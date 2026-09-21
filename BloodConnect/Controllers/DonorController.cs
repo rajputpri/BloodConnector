@@ -22,11 +22,29 @@ namespace BloodConnect.Controllers
         }
 
         public IActionResult Index()
+
         {
             var donors = _context.Donors.ToList();
             return View(donors);
         }
+        
+        [HttpGet]
+        public IActionResult Search(string bloodGroup, string location)
+        {
+            var donors = _context.Donors.Where(d => d.IsAvailable).AsQueryable();
 
+            if (!string.IsNullOrEmpty(bloodGroup))
+            {
+                donors = donors.Where(d => d.BloodGroup == bloodGroup);
+            }
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                donors = donors.Where(d => d.Location.Contains(location));
+            }
+
+            return View("Index", donors.ToList());
+        }
         [HttpGet]
         public IActionResult Create()
         {
@@ -43,6 +61,52 @@ namespace BloodConnect.Controllers
                 return RedirectToAction("Index");
             }
             return View(donor);
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var donor = _context.Donors.Find(id);
+            if (donor == null)
+            {
+                return NotFound();
+            }
+            return View(donor);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(Donor donor)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Donors.Update(donor);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(donor);
+        }
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var donor = _context.Donors.Find(id);
+            if (donor == null)
+            {
+                return NotFound();
+            }
+            return View(donor);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var donor = _context.Donors.Find(id);
+            if (donor != null)
+            {
+                _context.Donors.Remove(donor);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("Index");
         }
     }
 }

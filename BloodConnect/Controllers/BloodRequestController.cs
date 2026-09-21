@@ -36,5 +36,51 @@ namespace BloodConnect.Controllers
             }
             return View(request);
         }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var request = _context.BloodRequests.Find(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            return View(request);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(BloodRequest request)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.BloodRequests.Update(request);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(request);
+        }
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var request = _context.BloodRequests.Find(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            return View(request);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var request = _context.BloodRequests.Find(id);
+            if (request != null)
+            {
+                _context.BloodRequests.Remove(request);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("Index");
+        }
     }
 }

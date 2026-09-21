@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9d3ab69706aa0c20bb7f1ca80cd79393bb30ff6")]
 [assembly: System.Reflection.AssemblyProductAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

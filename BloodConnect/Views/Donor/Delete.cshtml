@@ -1,0 +1,19 @@
+@model BloodConnect.Models.Donor
+
+<h2>Delete Donor</h2>
+
+<p>Are you sure you want to delete this donor?</p>
+
+<div>
+    <strong>Name:</strong> @Model.Name<br />
+    <strong>Blood Group:</strong> @Model.BloodGroup<br />
+    <strong>Location:</strong> @Model.Location<br />
+    <strong>Contact:</strong> @Model.ContactNumber
+</div>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.DonorId" />
+    <button type="submit" style="color:red">Yes, Delete</button>
+</form>
+
+<a asp-action="Index">Cancel</a>

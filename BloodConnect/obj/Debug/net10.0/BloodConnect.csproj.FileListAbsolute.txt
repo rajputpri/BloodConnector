@@ -229,3 +229,4 @@ C:\Prince\BloodConnect\BloodConnect\bin\Debug\net10.0\runtimes\win-x64\native\ms
 C:\Prince\BloodConnect\BloodConnect\bin\Debug\net10.0\runtimes\win-x86\native\msalruntime_x86.dll
 C:\Prince\BloodConnect\BloodConnect\obj\Debug\net10.0\BloodConnect.csproj.AssemblyReference.cache
 C:\Prince\BloodConnect\BloodConnect\obj\Debug\net10.0\BloodCon.22746385.Up2Date
+C:\Prince\BloodConnect\BloodConnect\obj\Debug\net10.0\BloodConnect.sourcelink.json

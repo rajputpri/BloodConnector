@@ -2,6 +2,8 @@
 
 <h2>Donor List</h2>
 
+<a asp-action="Create">+ Add New Donor</a>
+
 <table border="1">
     <tr>
         <th>ID</th>
@@ -10,6 +12,7 @@
         <th>Location</th>
         <th>Contact</th>
         <th>Available</th>
+        <th>Actions</th>
     </tr>
 
     @foreach (var donor in Model)
@@ -21,6 +24,10 @@
             <td>@donor.Location</td>
             <td>@donor.ContactNumber</td>
             <td>@(donor.IsAvailable ? "Yes" : "No")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@donor.DonorId">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@donor.DonorId">Delete</a>
+            </td>
         </tr>
     }
 </table>

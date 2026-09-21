@@ -14,6 +14,7 @@
         <th>Urgency</th>
         <th>Status</th>
         <th>Request Date</th>
+        <th>Actions</th>
     </tr>
 
     @foreach (var request in Model)
@@ -27,6 +28,10 @@
             <td>@request.UrgencyLevel</td>
             <td>@request.Status</td>
             <td>@request.RequestDate</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@request.RequestId">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@request.RequestId">Delete</a>
+            </td>
         </tr>
     }
 </table>
