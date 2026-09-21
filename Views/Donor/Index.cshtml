@@ -1,0 +1,58 @@
+@model List<BloodConnect.Models.Donor>
+
+<h2>Donor List</h2>
+
+<a asp-action="Create">+ Add New Donor</a>
+
+<hr />
+
+<h4>Search Donors</h4>
+
+<form asp-action="Search" method="get">
+    <select name="bloodGroup">
+        <option value="">-- Any Blood Group --</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+    </select>
+
+    <input type="text" name="location" placeholder="Location" />
+
+    <button type="submit">Search</button>
+    <a asp-action="Index">Clear</a>
+</form>
+
+<hr />
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Blood Group</th>
+        <th>Location</th>
+        <th>Contact</th>
+        <th>Available</th>
+        <th>Actions</th>
+    </tr>
+
+    @foreach (var donor in Model)
+    {
+        <tr>
+            <td>@donor.DonorId</td>
+            <td>@donor.Name</td>
+            <td>@donor.BloodGroup</td>
+            <td>@donor.Location</td>
+            <td>@donor.ContactNumber</td>
+            <td>@(donor.IsAvailable ? "Yes" : "No")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@donor.DonorId">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@donor.DonorId">Delete</a>
+            </td>
+        </tr>
+    }
+</table>

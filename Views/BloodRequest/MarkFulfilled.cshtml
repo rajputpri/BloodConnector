@@ -1,0 +1,40 @@
+@model BloodConnect.Models.BloodRequest
+
+<h2>Mark Request as Fulfilled</h2>
+
+<div>
+    <strong>Requester:</strong> @Model.RequesterName<br />
+    <strong>Blood Group Needed:</strong> @Model.BloodGroupNeeded<br />
+    <strong>Location:</strong> @Model.Location<br />
+    <strong>Urgency:</strong> @Model.UrgencyLevel<br />
+    <strong>Status:</strong> @Model.Status
+</div>
+
+<hr />
+
+@{
+    var donors = ViewBag.Donors as List<BloodConnect.Models.Donor>;
+}
+
+@if (donors == null || donors.Count == 0)
+{
+    <p>No matching donors found for this blood group.</p>
+}
+else
+{
+    <form asp-action="MarkFulfilled" method="post">
+        <input type="hidden" name="id" value="@Model.RequestId" />
+
+        <label>Select Donor Who Fulfilled This:</label>
+        <select name="donorId">
+            @foreach (var donor in donors)
+            {
+                <option value="@donor.DonorId">@donor.Name (@donor.BloodGroup, @donor.Location)</option>
+            }
+        </select>
+
+        <button type="submit">Mark as Fulfilled</button>
+    </form>
+}
+
+<a asp-action="Index">Back to Requests List</a>
