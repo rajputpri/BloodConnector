@@ -1,0 +1,32 @@
+@model List<BloodConnect.Models.BloodRequest>
+
+<h2>Blood Requests</h2>
+
+<a asp-action="Create">+ New Request</a>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Requester</th>
+        <th>Blood Group Needed</th>
+        <th>Location</th>
+        <th>Contact</th>
+        <th>Urgency</th>
+        <th>Status</th>
+        <th>Request Date</th>
+    </tr>
+
+    @foreach (var request in Model)
+    {
+        <tr>
+            <td>@request.RequestId</td>
+            <td>@request.RequesterName</td>
+            <td>@request.BloodGroupNeeded</td>
+            <td>@request.Location</td>
+            <td>@request.ContactNumber</td>
+            <td>@request.UrgencyLevel</td>
+            <td>@request.Status</td>
+            <td>@request.RequestDate</td>
+        </tr>
+    }
+</table>
