@@ -1,50 +1,192 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using BloodConnect.Models
+@inject SignInManager<AppUser> SignInManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BloodConnect — Find blood donors, request blood, save lives." />
+    <meta name="theme-color" content="#DC2626" />
     <title>@ViewData["Title"] - BloodConnect</title>
-    <script type="importmap"></script>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/BloodConnect.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/animations.css" asp-append-version="true" />
 </head>
-<body>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <div id="page-loader" class="page-loader" aria-hidden="true">
+        <div class="loader-drop">
+            <svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <clipPath id="dropClip">
+                        <path d="M30 4 C30 4 6 34 6 54 C6 70 17 78 30 78 C43 78 54 70 54 54 C54 34 30 4 30 4 Z"/>
+                    </clipPath>
+                </defs>
+                <path class="drop-outline" d="M30 4 C30 4 6 34 6 54 C6 70 17 78 30 78 C43 78 54 70 54 54 C54 34 30 4 30 4 Z"/>
+                <rect class="drop-fill" x="0" y="0" width="60" height="80" clip-path="url(#dropClip)"/>
+            </svg>
+        </div>
+        <div class="loader-text">Loading</div>
+    </div>
+
+    @if (TempData["WelcomeSplash"] != null)
+    {
+        <div id="welcome-splash" class="welcome-splash" role="status">
+            <svg class="welcome-drop" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="welcomeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FF6B6B" />
+                        <stop offset="50%" stop-color="#DC2626" />
+                        <stop offset="100%" stop-color="#7F1D1D" />
+                    </linearGradient>
+                </defs>
+                <path d="M100 20 C100 20 30 110 30 170 C30 210 62 240 100 240 C138 240 170 210 170 170 C170 110 100 20 100 20 Z" fill="url(#welcomeGrad)"/>
+            </svg>
+            <div class="welcome-text">Welcome back, <em>@TempData["WelcomeSplash"]</em></div>
+            <div class="welcome-sub">Let's save some lives today.</div>
+        </div>
+    }
+
+    <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="bc-confirm-modal" class="confirm-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="confirm-dialog">
+            <div class="confirm-icon confirm-danger">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <h3 class="confirm-title">Are you sure?</h3>
+            <p class="confirm-message">This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button type="button" class="btn btn-outline-secondary" data-confirm-cancel>Cancel</button>
+                <button type="button" class="btn btn-danger" data-confirm-accept>Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BloodConnect</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-mark">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C12 2 5 9.5 5 14.5C5 18.0899 8.13401 21 12 21C15.866 21 19 18.0899 19 14.5C19 9.5 12 2 12 2Z"/>
+                        </svg>
+                    </span>
+                    BloodConnect
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Donor" asp-action="Index">Donors</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="BloodRequest" asp-action="Index">Blood Requests</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="About">About</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Faq">FAQ</a></li>
                     </ul>
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <a asp-controller="Donor" asp-action="Create" class="btn btn-outline-danger btn-sm">Become a Donor</a>
+                        <a asp-controller="BloodRequest" asp-action="Create" class="btn btn-danger btn-sm">Request Blood</a>
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main role="main" class="flex-grow-1">
+        @if (TempData["Success"] != null)
+        {
+            <div data-toast="success" data-toast-msg="@TempData["Success"]" hidden></div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div data-toast="error" data-toast-msg="@TempData["Error"]" hidden></div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div data-toast="info" data-toast-msg="@TempData["Info"]" hidden></div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <footer class="footer-rich">
         <div class="container">
-            &copy; 2026 - BloodConnect - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-brand-mark">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C12 2 5 9.5 5 14.5C5 18.0899 8.13401 21 12 21C15.866 21 19 18.0899 19 14.5C19 9.5 12 2 12 2Z"/></svg>
+                        <span>BloodConnect</span>
+                    </div>
+                    <p class="footer-brand-desc">
+                        India's fastest free blood donation network. Connecting donors with patients
+                        in real time — because every second counts.
+                    </p>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a asp-controller="Donor" asp-action="Index">Find Donors</a></li>
+                        <li><a asp-controller="BloodRequest" asp-action="Index">Blood Requests</a></li>
+                        <li><a asp-controller="Donor" asp-action="Create">Become a Donor</a></li>
+                        <li><a asp-controller="BloodRequest" asp-action="Create">Post Request</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="About">About Us</a></li>
+                        <li><a asp-controller="Home" asp-action="Faq">FAQ</a></li>
+                        <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Legal & Safety</h4>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Safety Guidelines</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>&copy; @DateTime.Now.Year BloodConnect. Made with <span class="footer-heart">♥</span> in India.</div>
+                <div class="footer-bottom-links">
+                    <a href="#">Terms</a>
+                    <span>·</span>
+                    <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                    <span>·</span>
+                    <a href="#">Cookies</a>
+                </div>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/animations.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

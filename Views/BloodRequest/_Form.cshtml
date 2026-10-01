@@ -1,0 +1,64 @@
+@model BloodConnect.Models.BloodRequest
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-3" role="alert"></div>
+
+<div class="mb-3">
+    <label asp-for="RequesterName" class="form-label">
+        Your name <span class="text-danger">*</span>
+    </label>
+    <input asp-for="RequesterName" class="form-control form-control-lg"
+           placeholder="e.g. Rahul Sharma" autocomplete="name" />
+    <span asp-validation-for="RequesterName" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="BloodGroupNeeded" class="form-label">
+        Blood group needed <span class="text-danger">*</span>
+    </label>
+    <select asp-for="BloodGroupNeeded" class="form-select form-select-lg">
+        <option value="">-- Select blood group --</option>
+        @foreach (var bg in BloodConnect.Models.DomainValues.BloodGroups)
+        {
+            <option value="@bg">@bg</option>
+        }
+    </select>
+    <span asp-validation-for="BloodGroupNeeded" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Location" class="form-label">
+        Location <span class="text-danger">*</span>
+    </label>
+    <input asp-for="Location" class="form-control form-control-lg"
+           placeholder="e.g. Mumbai, Maharashtra" autocomplete="address-level2" />
+    <span asp-validation-for="Location" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="ContactNumber" class="form-label">
+        Contact number <span class="text-danger">*</span>
+    </label>
+    <input asp-for="ContactNumber" class="form-control form-control-lg"
+           maxlength="10" inputmode="numeric"
+           pattern="[0-9]{10}"
+           placeholder="10-digit mobile number"
+           autocomplete="tel" />
+    <div class="form-text">
+        We'll share this only with verified donors — never public.
+    </div>
+    <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="UrgencyLevel" class="form-label">
+        Urgency level <span class="text-danger">*</span>
+    </label>
+    <select asp-for="UrgencyLevel" class="form-select form-select-lg">
+        <option value="">-- Select urgency --</option>
+        @foreach (var u in BloodConnect.Models.DomainValues.UrgencyLevels)
+        {
+            <option value="@u">@u</option>
+        }
+    </select>
+    <span asp-validation-for="UrgencyLevel" class="text-danger small"></span>
+</div>

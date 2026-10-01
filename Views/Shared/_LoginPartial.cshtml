@@ -1,0 +1,78 @@
+@using Microsoft.AspNetCore.Identity
+@using BloodConnect.Models
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var displayName = user?.FullName ?? User.Identity?.Name ?? "User";
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var isSuperAdmin = User.IsInRole("SuperAdmin");
+
+    <div class="dropdown">
+        <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button"
+                data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+            @displayName
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                    My Dashboard
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+
+            @if (isAdmin)
+            {
+                <li>
+                    <a class="dropdown-item fw-bold text-danger" asp-controller="Admin" asp-action="Index">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Admin Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Admin" asp-action="UserList">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Manage Users
+                    </a>
+                </li>
+                @if (isSuperAdmin)
+                {
+                    <li>
+                        <span class="dropdown-item-text">SuperAdmin</span>
+                    </li>
+                }
+                <li><hr class="dropdown-divider"></li>
+            }
+
+            <li>
+                <a class="dropdown-item" asp-controller="Donor" asp-action="Index">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Browse Donors
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" asp-controller="BloodRequest" asp-action="Index">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 5 9.5 5 14.5C5 18.0899 8.13401 21 12 21C15.866 21 19 18.0899 19 14.5C19 9.5 12 2 12 2Z"/></svg>
+                    Blood Requests
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="dropdown-item text-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Sign Out
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger btn-sm">Sign In</a>
+    <a asp-controller="Account" asp-action="Register" class="btn btn-danger btn-sm">Register</a>
+}

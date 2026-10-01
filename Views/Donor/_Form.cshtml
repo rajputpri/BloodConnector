@@ -1,0 +1,60 @@
+@model BloodConnect.Models.Donor
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-3" role="alert"></div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label">
+        Full name <span class="text-danger">*</span>
+    </label>
+    <input asp-for="Name" class="form-control form-control-lg"
+           placeholder="e.g. Rahul Sharma" autocomplete="name" />
+    <span asp-validation-for="Name" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="BloodGroup" class="form-label">
+        Blood group <span class="text-danger">*</span>
+    </label>
+    <select asp-for="BloodGroup" class="form-select form-select-lg">
+        <option value="">-- Select blood group --</option>
+        @foreach (var bg in BloodConnect.Models.DomainValues.BloodGroups)
+        {
+            <option value="@bg">@bg</option>
+        }
+    </select>
+    <span asp-validation-for="BloodGroup" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Location" class="form-label">
+        Location <span class="text-danger">*</span>
+    </label>
+    <input asp-for="Location" class="form-control form-control-lg"
+           placeholder="e.g. Mumbai, Maharashtra" autocomplete="address-level2" />
+    <span asp-validation-for="Location" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="ContactNumber" class="form-label">
+        Contact number <span class="text-danger">*</span>
+    </label>
+    <input asp-for="ContactNumber" class="form-control form-control-lg"
+           maxlength="10" inputmode="numeric"
+           pattern="[0-9]{10}"
+           placeholder="10-digit mobile number"
+           autocomplete="tel" />
+    <div class="form-text">
+        This will only be shared with verified requesters — never public.
+    </div>
+    <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+</div>
+
+<div class="mb-3 form-check form-switch">
+    <input asp-for="IsAvailable" class="form-check-input" role="switch" />
+    <label asp-for="IsAvailable" class="form-check-label ms-2">
+        Available to donate
+    </label>
+    <div class="form-text">
+        Turn this off temporarily if you're not available to donate right now.
+    </div>
+</div>

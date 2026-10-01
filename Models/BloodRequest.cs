@@ -1,32 +1,52 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BloodConnect.Models
+namespace BloodConnect.Models;
+
+public class BloodRequest
 {
-    public class BloodRequest
-    {
-        [Key]
-        public int RequestId { get; set; }
+    [Key]
+    public int RequestId { get; set; }
 
-        [Required(ErrorMessage = "Requester name is required")]
-        public string RequesterName { get; set; } = "";
+    // Owner
+    public string? UserId { get; set; }
 
-        [Required(ErrorMessage = "Blood group needed is required")]
-        public string BloodGroupNeeded { get; set; } = "";
+    [ForeignKey(nameof(UserId))]
+    public AppUser? User { get; set; }
 
-        [Required(ErrorMessage = "Location is required")]
-        public string Location { get; set; } = "";
+    [Required(ErrorMessage = "Requester name is required")]
+    [StringLength(100)]
+    public string RequesterName { get; set; } = "";
 
-        [Required(ErrorMessage = "Contact number is required")]
-        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Enter a valid 10-digit number")]
-        public string ContactNumber { get; set; } = "";
+    [Required(ErrorMessage = "Blood group needed is required")]
+    [RegularExpression(DomainValues.BloodGroupPattern,
+        ErrorMessage = "Select a valid blood group.")]
+    public string BloodGroupNeeded { get; set; } = "";
 
-        [Required(ErrorMessage = "Urgency level is required")]
-        public string UrgencyLevel { get; set; } = "";
+    [Required(ErrorMessage = "Location is required")]
+    [StringLength(100)]
+    public string Location { get; set; } = "";
 
-        public string Status { get; set; } = "Open";
+    [Required(ErrorMessage = "Contact number is required")]
+    [RegularExpression(@"^[0-9]{10}$",
+        ErrorMessage = "Enter a valid 10-digit number")]
+    public string ContactNumber { get; set; } = "";
 
-        public DateTime RequestDate { get; set; } = DateTime.Now;
+    [Required(ErrorMessage = "Urgency level is required")]
+    [RegularExpression(DomainValues.UrgencyPattern,
+        ErrorMessage = "Select a valid urgency level.")]
+    public string UrgencyLevel { get; set; } = "";
 
-        public int? FulfilledByDonorId { get; set; }
-    }
+    [RegularExpression(DomainValues.StatusPattern,
+        ErrorMessage = "Status must be Open or Fulfilled.")]
+    public string Status { get; set; } = DomainValues.Open;
+
+    public DateTime RequestDate { get; set; } = DateTime.UtcNow;
+
+    // Fulfilled info
+    public int? FulfilledByDonorId { get; set; }
+    public Donor? FulfilledByDonor { get; set; }
+
+    // ✅ NEW — offers on this request
+    public ICollection<DonationOffer> Offers { get; set; } = new List<DonationOffer>();
 }

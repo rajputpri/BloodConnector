@@ -1,50 +1,46 @@
 @model BloodConnect.Models.Donor
 
-<h2>Add New Donor</h2>
+@{
+    ViewData["Title"] = "Become a Donor";
+}
 
-<form asp-action="Create" method="post">
-
-    <div>
-        <label>Name:</label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name" style="color:red"></span>
+<!-- ============ PAGE HEADER ============ -->
+<section class="page-header py-4 mb-4">
+    <div class="container">
+        <h1 class="h3 fw-bold mb-1">Become a Blood Donor</h1>
+        <p class="text-muted mb-0 small">
+            Register in under a minute — you could save up to 3 lives
+        </p>
     </div>
+</section>
 
-    <div>
-        <label>Blood Group:</label>
-        <select asp-for="BloodGroup">
-            <option value="">-- Select Blood Group --</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-        </select>
-        <span asp-validation-for="BloodGroup" style="color:red"></span>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Create" method="post" novalidate>
+                        <partial name="_Form" model="Model" />
+
+                        <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-danger btn-lg flex-grow-1">
+                                🩸 Register as Donor
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <p class="text-center text-muted small mt-3 mb-0">
+                🔒 Your phone number will never be shown publicly.
+            </p>
+        </div>
     </div>
+</div>
 
-    <div>
-        <label>Location:</label>
-        <input asp-for="Location" />
-        <span asp-validation-for="Location" style="color:red"></span>
-    </div>
-
-    <div>
-        <label>Contact Number:</label>
-        <input asp-for="ContactNumber" maxlength="10" inputmode="numeric" />
-        <span asp-validation-for="ContactNumber" style="color:red"></span>
-    </div>
-
-    <div>
-        <label>Available:</label>
-        <input asp-for="IsAvailable" type="checkbox" />
-    </div>
-
-    <button type="submit">Register Donor</button>
-
-</form>
-
-<a asp-action="Index">Back to Donor List</a>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

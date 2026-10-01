@@ -1,0 +1,217 @@
+@model BloodConnect.Models.OffersViewModel
+
+@{
+    ViewData["Title"] = "Donation Offers";
+    var req = Model.Request;
+    var isAuthed = User.Identity?.IsAuthenticated == true;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var isOwner = req.UserId == currentUserId;
+}
+
+<section class="page-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Donation Offers</h1>
+                <p class="text-muted mb-0 small">
+                    Offers received for "@req.RequesterName"'s request
+                </p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                ← Back to Requests
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+
+    <!-- REQUEST SUMMARY -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 fw-bold mb-3 text-uppercase text-muted">Request Details</h2>
+            <dl class="row mb-0 small">
+                <dt class="col-sm-3 text-muted">Requester</dt>
+                <dd class="col-sm-9 fw-semibold">@req.RequesterName</dd>
+
+                <dt class="col-sm-3 text-muted">Blood group needed</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                        @req.BloodGroupNeeded
+                    </span>
+                </dd>
+
+                <dt class="col-sm-3 text-muted">Location</dt>
+                <dd class="col-sm-9">@req.Location</dd>
+
+                <dt class="col-sm-3 text-muted">Contact</dt>
+                <dd class="col-sm-9">@req.ContactNumber</dd>
+
+                <dt class="col-sm-3 text-muted">Urgency</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(req.UrgencyLevel switch {
+                        "Critical" => "danger",
+                        "High"     => "warning text-dark",
+                        "Medium"   => "info text-dark",
+                        _          => "secondary"
+                    })">@req.UrgencyLevel</span>
+                </dd>
+
+                <dt class="col-sm-3 text-muted">Status</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-@(req.Status == "Open" ? "primary" : "success")">
+                        @req.Status
+                    </span>
+                </dd>
+
+                @if (req.FulfilledByDonor != null)
+                {
+                    <dt class="col-sm-3 text-muted">Fulfilled by</dt>
+                    <dd class="col-sm-9">
+                        <strong>@req.FulfilledByDonor.Name</strong>
+                        (@req.FulfilledByDonor.BloodGroup — @req.FulfilledByDonor.Location)
+                    </dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+    <!-- OFFERS LIST -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 pt-4 pb-2">
+            <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                Offers (@Model.Offers.Count)
+            </h2>
+        </div>
+
+        @if (!Model.Offers.Any())
+        {
+            <div class="card-body text-center text-muted py-5">
+                <p class="mb-0">Abhi tak koi donor ne offer nahi kiya.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Donor</th>
+                            <th>Blood</th>
+                            <th>Location</th>
+                            <th>Contact</th>
+                            <th>Offered</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var offer in Model.Offers)
+                        {
+                            var statusClass = offer.Status switch
+                            {
+                                "Pledged"   => "warning text-dark",
+                                "Accepted"  => "info text-dark",
+                                "Completed" => "success",
+                                "Rejected"  => "danger",
+                                "Cancelled" => "secondary",
+                                _           => "secondary"
+                            };
+
+                            var showContact = offer.Status == "Accepted" || offer.Status == "Completed";
+                            var isAcceptedDonor = offer.Donor.UserId == currentUserId;
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    @offer.Donor.Name
+                                    @if (isAcceptedDonor)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary ms-1">You</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                        @offer.Donor.BloodGroup
+                                    </span>
+                                </td>
+                                <td>@offer.Donor.Location</td>
+                                <td class="small">
+                                    @if (showContact)
+                                    {
+                                        <span>@offer.Donor.ContactNumber</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">— hidden until accepted —</span>
+                                    }
+                                </td>
+                                <td class="text-muted small">
+                                    @offer.CreatedAt.ToLocalTime().ToString("dd MMM, hh:mm tt")
+                                </td>
+                                <td>
+                                    <span class="badge bg-@statusClass">@offer.Status</span>
+                                </td>
+                                <td class="text-end">
+                                    @if (req.Status == "Open")
+                                    {
+                                        @if (offer.Status == "Pledged")
+                                        {
+                                            if (isOwner || isAdmin)
+                                            {
+                                                <form asp-action="AcceptOffer" asp-route-id="@offer.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Accept @offer.Donor.Name\'s offer? Baaki offers auto-reject honge.');">
+                                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                                </form>
+                                                <form asp-action="RejectOffer" asp-route-id="@offer.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Reject this offer?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                                                </form>
+                                            }
+                                            else if (isAcceptedDonor)
+                                            {
+                                                <form asp-action="CancelOffer" asp-route-id="@offer.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Cancel your offer?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Cancel</button>
+                                                </form>
+                                            }
+                                        }
+                                        else if (offer.Status == "Accepted")
+                                        {
+                                            if (isOwner || isAdmin || isAcceptedDonor)
+                                            {
+                                                <form asp-action="CompleteDonation" asp-route-id="@offer.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Mark donation as completed? Request will be fulfilled.');">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        ✓ Mark Completed
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if ((isOwner || isAdmin) && !isAcceptedDonor)
+                                            {
+                                                <form asp-action="RejectOffer" asp-route-id="@offer.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Cancel acceptance?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                </form>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">— closed —</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</div>

@@ -1,8 +1,444 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using BloodConnect.Models
+@{
+    ViewData["Title"] = "Save Lives";
+    var totalDonors = (int)(ViewBag.TotalDonors ?? 0);
+    var availableDonors = (int)(ViewBag.AvailableDonors ?? 0);
+    var totalRequests = (int)(ViewBag.TotalRequests ?? 0);
+    var openRequests = (int)(ViewBag.OpenRequests ?? 0);
+    var fulfilledRequests = (int)(ViewBag.FulfilledRequests ?? 0);
+    var livesTouched = (int)(ViewBag.LivesTouched ?? 0);
+    var criticalRequests = ViewBag.CriticalRequests as List<BloodRequest> ?? new List<BloodRequest>();
+    var bloodGroups = DomainValues.BloodGroups;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 — HERO
+     ═══════════════════════════════════════════════════════ -->
+<section class="hero-v2">
+    <div class="hero-v2-bg"></div>
+    <div class="hero-v2-grid"></div>
+
+    <div class="container hero-v2-content">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="hero-badge">
+                    <span class="pulse-dot"></span>
+                    Emergency Blood Network • Live
+                </div>
+
+                <h1 class="hero-title">
+                    Every Drop<br />
+                    <span class="hero-title-gradient">Counts.</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    India's fastest way to find verified blood donors in your city.
+                    Real-time matching, verified profiles, zero cost — because in an emergency,
+                    <strong>every second matters</strong>.
+                </p>
+
+                <div class="hero-cta">
+                    <a asp-controller="Donor" asp-action="Index" class="btn-hero-primary">
+                        Find Donors Now
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                    <a asp-controller="BloodRequest" asp-action="Create" class="btn-hero-secondary">
+                        Request Blood
+                    </a>
+                </div>
+
+                <div class="hero-trust">
+                    <div class="hero-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Free forever
+                    </div>
+                    <div class="hero-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Verified donors
+                    </div>
+                    <div class="hero-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Privacy protected
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+                <div class="hero-drop-wrapper">
+                    <div class="hero-drop-glow"></div>
+                    <svg class="hero-drop-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FF6B6B" />
+                                <stop offset="50%" stop-color="#DC2626" />
+                                <stop offset="100%" stop-color="#7F1D1D" />
+                            </linearGradient>
+                            <radialGradient id="dropShine" cx="30%" cy="25%" r="40%">
+                                <stop offset="0%" stop-color="rgba(255,255,255,0.7)" />
+                                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                            </radialGradient>
+                            <filter id="dropShadow">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+                                <feOffset dx="0" dy="8" result="offsetblur"/>
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.4"/>
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <path d="M100 20 C100 20 30 110 30 170 C30 210 62 240 100 240 C138 240 170 210 170 170 C170 110 100 20 100 20 Z"
+                              fill="url(#dropGrad)"
+                              filter="url(#dropShadow)"/>
+                        <path d="M100 20 C100 20 30 110 30 170 C30 210 62 240 100 240 C138 240 170 210 170 170 C170 110 100 20 100 20 Z"
+                              fill="url(#dropShine)"/>
+                    </svg>
+                    <div class="hero-drop-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom wave -->
+    <div class="hero-wave">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#ffffff"/>
+        </svg>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 — LIVE STATS
+     ═══════════════════════════════════════════════════════ -->
+<section class="stats-v2">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-v2">
+                <div class="stat-v2-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="stat-v2-value" data-count="@totalDonors">0</div>
+                <div class="stat-v2-label">Registered Donors</div>
+            </div>
+
+            <div class="stat-v2 stat-v2-highlight">
+                <div class="stat-v2-icon">
+                    <span class="pulse-dot pulse-dot-green"></span>
+                </div>
+                <div class="stat-v2-value" data-count="@availableDonors">0</div>
+                <div class="stat-v2-label">Available Now</div>
+            </div>
+
+            <div class="stat-v2">
+                <div class="stat-v2-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="stat-v2-value" data-count="@fulfilledRequests">0</div>
+                <div class="stat-v2-label">Requests Fulfilled</div>
+            </div>
+
+            <div class="stat-v2">
+                <div class="stat-v2-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div class="stat-v2-value" data-count="@livesTouched">0</div>
+                <div class="stat-v2-label">Lives Touched</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — SEARCH WIDGET
+     ═══════════════════════════════════════════════════════ -->
+<section class="search-v2">
+    <div class="container">
+        <div class="search-v2-card">
+            <div class="search-v2-header">
+                <h2>Find a Matching Donor in Seconds</h2>
+                <p>Search by blood group and city — completely free, no signup needed.</p>
+            </div>
+
+            <form asp-controller="Donor" asp-action="Search" method="get" class="search-v2-form">
+                <div class="search-v2-field">
+                    <label>Blood Group</label>
+                    <select name="bloodGroup" class="form-select form-select-lg">
+                        <option value="">Any blood group</option>
+                        @foreach (var bg in bloodGroups)
+                        {
+                            <option value="@bg">@bg</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="search-v2-field">
+                    <label>Location</label>
+                    <input type="text" name="location" class="form-control form-control-lg"
+                           placeholder="e.g. Mumbai, Delhi, Bengaluru" />
+                </div>
+
+                <div class="search-v2-submit">
+                    <button type="submit" class="btn-search">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Search Donors
+                    </button>
+                </div>
+            </form>
+
+            <div class="search-v2-chips">
+                <span class="chips-label">Quick pick:</span>
+                @foreach (var bg in bloodGroups)
+                {
+                    <a asp-controller="Donor" asp-action="Search" asp-route-bloodGroup="@bg"
+                       class="chip">@bg</a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — BLOOD COMPATIBILITY GRID
+     ═══════════════════════════════════════════════════════ -->
+<section class="compat-v2">
+    <div class="container">
+        <div class="section-head">
+            <span class="section-eyebrow">KNOW YOUR MATCH</span>
+            <h2 class="section-title">Blood Type Compatibility</h2>
+            <p class="section-sub">Not every blood type can donate to everyone. Learn who you can save.</p>
+        </div>
+
+        <div class="compat-grid">
+            @{
+                var compat = new Dictionary<string, (string CanDonateTo, string CanReceiveFrom)>
+                {
+                    { "O-",  ("Everyone",            "O- only") },
+                    { "O+",  ("O+, A+, B+, AB+",     "O-, O+") },
+                    { "A-",  ("A+, A-, AB+, AB-",    "O-, A-") },
+                    { "A+",  ("A+, AB+",             "O-, O+, A-, A+") },
+                    { "B-",  ("B+, B-, AB+, AB-",    "O-, B-") },
+                    { "B+",  ("B+, AB+",             "O-, O+, B-, B+") },
+                    { "AB-", ("AB+, AB-",            "O-, A-, B-, AB-") },
+                    { "AB+", ("AB+ only",            "Everyone") }
+                };
+            }
+
+            @foreach (var bg in bloodGroups)
+            {
+                var info = compat[bg];
+                var isUniversalDonor = bg == "O-";
+                var isUniversalReceiver = bg == "AB+";
+
+                <div class="compat-card @(isUniversalDonor ? "compat-special" : isUniversalReceiver ? "compat-special" : "")">
+                    <div class="compat-blood">@bg</div>
+                    <div class="compat-row">
+                        <div class="compat-label">Can donate to</div>
+                        <div class="compat-value">@info.CanDonateTo</div>
+                    </div>
+                    <div class="compat-row">
+                        <div class="compat-label">Can receive from</div>
+                        <div class="compat-value">@info.CanReceiveFrom</div>
+                    </div>
+                    @if (isUniversalDonor)
+                    {
+                        <div class="compat-tag">Universal Donor</div>
+                    }
+                    else if (isUniversalReceiver)
+                    {
+                        <div class="compat-tag">Universal Receiver</div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 5 — URGENT REQUESTS PREVIEW
+     ═══════════════════════════════════════════════════════ -->
+@if (criticalRequests.Any())
+{
+    <section class="urgent-v2">
+        <div class="container">
+            <div class="urgent-v2-header">
+                <div>
+                    <div class="urgent-label">
+                        <span class="pulse-dot pulse-dot-red"></span>
+                        Live Requests
+                    </div>
+                    <h2>Someone needs blood <em>right now</em></h2>
+                </div>
+                <a asp-controller="BloodRequest" asp-action="Index" class="btn-view-all">
+                    View all @openRequests requests
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+            </div>
+
+            <div class="urgent-v2-grid">
+                @foreach (var req in criticalRequests)
+                {
+                    var urgencyClass = req.UrgencyLevel switch
+                    {
+                        "Critical" => "critical",
+                        "High" => "high",
+                        _ => "normal"
+                    };
+                    <div class="urgent-card @($"urgent-{urgencyClass}")">
+                        <div class="urgent-card-top">
+                            <span class="urgent-blood">@req.BloodGroupNeeded</span>
+                            <span class="urgent-badge urgency-@urgencyClass">@req.UrgencyLevel</span>
+                        </div>
+                        <div class="urgent-card-name">@req.RequesterName</div>
+                        <div class="urgent-card-location">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            @req.Location
+                        </div>
+                        <div class="urgent-card-time">
+                            @req.RequestDate.ToLocalTime().ToString("dd MMM, hh:mm tt")
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 6 — HOW IT WORKS
+     ═══════════════════════════════════════════════════════ -->
+<section class="how-v2">
+    <div class="container">
+        <div class="section-head">
+            <span class="section-eyebrow">SIMPLE PROCESS</span>
+            <h2 class="section-title">How BloodConnect Works</h2>
+            <p class="section-sub">Three steps to save a life — takes less than 2 minutes.</p>
+        </div>
+
+        <div class="how-grid">
+            <div class="how-card">
+                <div class="how-num">01</div>
+                <div class="how-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <h3>Register as Donor</h3>
+                <p>Create your donor profile with blood group, city, and contact. Takes 60 seconds.</p>
+            </div>
+
+            <div class="how-card">
+                <div class="how-num">02</div>
+                <div class="how-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <h3>Find or Post Match</h3>
+                <p>Search by blood group & location, or post an urgent request in seconds.</p>
+            </div>
+
+            <div class="how-card">
+                <div class="how-num">03</div>
+                <div class="how-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <h3>Donate & Save Lives</h3>
+                <p>Connect via our verified matching system, coordinate, and save a life.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 7 — WHY BLOODCONNECT
+     ═══════════════════════════════════════════════════════ -->
+<section class="why-v2">
+    <div class="container">
+        <div class="why-grid">
+            <div class="why-content">
+                <span class="section-eyebrow">WHY US</span>
+                <h2>Built for emergencies.<br />Designed for trust.</h2>
+                <p class="why-desc">
+                    BloodConnect isn't just another directory. We're a live, verified network
+                    with a pledge-based matching system — so every donation is a real, confirmed match.
+                </p>
+
+                <div class="why-features">
+                    <div class="why-feature">
+                        <div class="why-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div>
+                            <h4>Verified Matching</h4>
+                            <p>Donors pledge, requesters confirm — no fake fulfillments.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-feature">
+                        <div class="why-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div>
+                            <h4>Real-time Updates</h4>
+                            <p>Live request status — Open, Pledged, Accepted, or Fulfilled.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-feature">
+                        <div class="why-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <div>
+                            <h4>Privacy First</h4>
+                            <p>Contact info revealed only after offer is accepted.</p>
+                        </div>
+                    </div>
+
+                    <div class="why-feature">
+                        <div class="why-feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                        <div>
+                            <h4>Zero Cost</h4>
+                            <p>Free forever. No ads, no premium tiers, no hidden charges.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-visual">
+                <div class="why-stat-card">
+                    <div class="why-stat-value" data-count="@openRequests">0</div>
+                    <div class="why-stat-label">Active requests right now</div>
+                </div>
+                <div class="why-stat-card why-stat-highlight">
+                    <div class="why-stat-value">
+                        <span class="pulse-dot pulse-dot-red"></span>
+                        LIVE
+                    </div>
+                    <div class="why-stat-label">Network status</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 8 — FINAL CTA
+     ═══════════════════════════════════════════════════════ -->
+<section class="cta-v2">
+    <div class="cta-v2-bg"></div>
+    <div class="container">
+        <div class="cta-v2-content">
+            <h2>Ready to save a life today?</h2>
+            <p>Join thousands of donors making a real difference in their communities.</p>
+            <div class="cta-v2-buttons">
+                <a asp-controller="Donor" asp-action="Create" class="btn-cta-primary">
+                    Become a Donor
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+                <a asp-controller="BloodRequest" asp-action="Create" class="btn-cta-secondary">
+                    Post Urgent Request
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,386 @@
+@model BloodConnect.Models.UserDashboardViewModel
+
+@{
+    ViewData["Title"] = "My Dashboard";
+    var displayRole = Model.Roles.Contains("SuperAdmin") ? "SuperAdmin"
+                    : Model.Roles.Contains("Admin") ? "Admin"
+                    : "User";
+    var roleBadgeClass = displayRole == "SuperAdmin" ? "dark"
+                       : displayRole == "Admin" ? "danger"
+                       : "secondary";
+}
+
+<!-- ============ PAGE HEADER ============ -->
+<section class="page-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">My Dashboard</h1>
+                <p class="text-muted mb-0 small">
+                    Welcome back, @Model.FullName
+                </p>
+            </div>
+            <span class="badge bg-@roleBadgeClass fs-6">@displayRole</span>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+
+    @if (Model.IsBanned)
+    {
+        <div class="alert alert-danger rounded-4" role="alert">
+            <strong>⚠️ Account Suspended</strong> — Aapka account ban hai. Kuch features limited hain.
+        </div>
+    }
+
+    <!-- ============ STATS ROW ============ -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body text-center">
+                    <div class="fs-2 fw-bold text-danger">@Model.TotalRequestsPosted</div>
+                    <div class="text-muted small">Requests Posted</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body text-center">
+                    <div class="fs-2 fw-bold text-primary">@Model.ActiveRequestsCount</div>
+                    <div class="text-muted small">Active Requests</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body text-center">
+                    <div class="fs-2 fw-bold text-success">@Model.TotalDonationsMade</div>
+                    <div class="text-muted small">Donations Made</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body text-center">
+                    @if (Model.MyDonorProfile != null)
+                    {
+                        <div class="fs-2 fw-bold text-danger">@Model.MyDonorProfile.BloodGroup</div>
+                        <div class="text-muted small">My Blood Group</div>
+                    }
+                    else
+                    {
+                        <div class="fs-2 fw-bold text-muted">—</div>
+                        <div class="text-muted small">Not a Donor</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ============ LEFT COLUMN ============ -->
+        <div class="col-lg-4">
+
+            <!-- Profile Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 pt-4 pb-2">
+                    <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                        👤 My Profile
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0 small">
+                        <dt class="col-4 text-muted">Name</dt>
+                        <dd class="col-8 fw-semibold">@Model.FullName</dd>
+
+                        <dt class="col-4 text-muted">Email</dt>
+                        <dd class="col-8 text-break">@Model.Email</dd>
+
+                        <dt class="col-4 text-muted">Role</dt>
+                        <dd class="col-8">
+                            <span class="badge bg-@roleBadgeClass">@displayRole</span>
+                        </dd>
+
+                        <dt class="col-4 text-muted">Joined</dt>
+                        <dd class="col-8">@Model.MemberSince.ToLocalTime().ToString("dd MMM yyyy")</dd>
+
+                        <dt class="col-4 text-muted">Status</dt>
+                        <dd class="col-8">
+                            @if (Model.IsBanned)
+                            {
+                                <span class="badge bg-danger">Banned</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Donor Profile Card -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                        🩸 Donor Profile
+                    </h2>
+                    @if (Model.MyDonorProfile != null)
+                    {
+                        <a asp-controller="Donor" asp-action="Edit" asp-route-id="@Model.MyDonorProfile.DonorId"
+                           class="btn btn-sm btn-outline-primary">
+                            Edit
+                        </a>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (Model.MyDonorProfile != null)
+                    {
+                        <dl class="row mb-0 small">
+                            <dt class="col-4 text-muted">Name</dt>
+                            <dd class="col-8 fw-semibold">@Model.MyDonorProfile.Name</dd>
+
+                            <dt class="col-4 text-muted">Blood</dt>
+                            <dd class="col-8">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                    @Model.MyDonorProfile.BloodGroup
+                                </span>
+                            </dd>
+
+                            <dt class="col-4 text-muted">Location</dt>
+                            <dd class="col-8">@Model.MyDonorProfile.Location</dd>
+
+                            <dt class="col-4 text-muted">Contact</dt>
+                            <dd class="col-8">@Model.MyDonorProfile.ContactNumber</dd>
+
+                            <dt class="col-4 text-muted">Status</dt>
+                            <dd class="col-8">
+                                @if (Model.MyDonorProfile.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unavailable</span>
+                                }
+                            </dd>
+                        </dl>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-3">
+                            Aap abhi donor nahi hain. Donor bane aur zindagi bachayein.
+                        </p>
+                        <a asp-controller="Donor" asp-action="Create" class="btn btn-danger btn-sm w-100">
+                            + Become a Donor
+                        </a>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============ RIGHT COLUMN ============ -->
+        <div class="col-lg-8">
+
+            <!-- My Requests -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                        📋 My Blood Requests
+                    </h2>
+                    <a asp-controller="BloodRequest" asp-action="Create" class="btn btn-sm btn-outline-danger">
+                        + New Request
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.MyRequests.Any())
+                    {
+                        <div class="p-4 text-center text-muted small">
+                            Aapne abhi tak koi blood request post nahi ki.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Requester</th>
+                                        <th>Blood</th>
+                                        <th>Location</th>
+                                        <th>Urgency</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var req in Model.MyRequests)
+                                    {
+                                        <tr>
+                                            <td class="text-muted">@req.RequestId</td>
+                                            <td class="fw-semibold">@req.RequesterName</td>
+                                            <td>
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    @req.BloodGroupNeeded
+                                                </span>
+                                            </td>
+                                            <td>@req.Location</td>
+                                            <td>
+                                                <span class="badge bg-@(req.UrgencyLevel switch
+                                                      {
+                                                          "Critical" => "danger",
+                                                          "High" => "warning text-dark",
+                                                          "Medium" => "info text-dark",
+                                                          _ => "secondary"
+                                                      })">@req.UrgencyLevel</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(req.Status == "Open" ? "primary" : "success")">
+                                                    @req.Status
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-controller="BloodRequest" asp-action="Edit" asp-route-id="@req.RequestId"
+                                                   class="btn btn-sm btn-outline-primary">Edit</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+            <!-- My Offers (as Donor) -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 pt-4 pb-2">
+                    <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                        🩸 My Offers (Requests I Want to Donate To)
+                    </h2>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.MyDonorProfile == null)
+                    {
+                        <div class="p-4 text-center text-muted small">
+                            Donor profile banane ke baad offers yahan dikhengi.
+                        </div>
+                    }
+                    else if (!Model.MyOffers.Any())
+                    {
+                        <div class="p-4 text-center text-muted small">
+                            Aapne abhi tak koi request pe offer nahi kiya.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Requester</th>
+                                        <th>Blood</th>
+                                        <th>Location</th>
+                                        <th>Offer Status</th>
+                                        <th>Request Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var of in Model.MyOffers)
+                                    {
+                                        var statusClass = of.Status switch
+                                        {
+                                            "Pledged" => "warning text-dark",
+                                            "Accepted" => "info text-dark",
+                                            "Completed" => "success",
+                                            "Rejected" => "danger",
+                                            "Cancelled" => "secondary",
+                                            _ => "secondary"
+                                        };
+                                        <tr>
+                                            <td class="fw-semibold">@of.Request.RequesterName</td>
+                                            <td>
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    @of.Request.BloodGroupNeeded
+                                                </span>
+                                            </td>
+                                            <td>@of.Request.Location</td>
+                                            <td>
+                                                <span class="badge bg-@statusClass">@of.Status</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(of.Request.Status == "Open" ? "primary" : "success")">
+                                                    @of.Request.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+            <!-- My Donations -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-2">
+                    <h2 class="h6 fw-bold mb-0 text-uppercase text-muted">
+                        💚 My Donations (Requests I Fulfilled)
+                    </h2>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.MyDonorProfile == null)
+                    {
+                        <div class="p-4 text-center text-muted small">
+                            Donor profile banane ke baad donations yahan dikhengi.
+                        </div>
+                    }
+                    else if (!Model.MyDonations.Any())
+                    {
+                        <div class="p-4 text-center text-muted small">
+                            Aapne abhi tak koi request fulfil nahi ki.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Requester</th>
+                                        <th>Blood</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var don in Model.MyDonations)
+                                    {
+                                        <tr>
+                                            <td class="text-muted">@don.RequestId</td>
+                                            <td class="fw-semibold">@don.RequesterName</td>
+                                            <td>
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    @don.BloodGroupNeeded
+                                                </span>
+                                            </td>
+                                            <td>@don.Location</td>
+                                            <td>
+                                                <span class="badge bg-success">@don.Status</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,6 +1,87 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
+    ViewData["Description"] = "How BloodConnect collects, uses, and protects your information.";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5" style="max-width: 800px;">
+    <h1 class="h2 mb-2">Privacy Policy</h1>
+    <p class="text-muted">Last updated: @DateTime.Now.ToString("MMMM yyyy")</p>
+
+    <hr class="my-4" />
+
+    <section class="mb-4">
+        <h2 class="h4">1. Information We Collect</h2>
+        <p>
+            When you register as a donor or submit a blood request, we collect:
+        </p>
+        <ul>
+            <li>Your name</li>
+            <li>Blood group</li>
+            <li>Location (city/region only)</li>
+            <li>Contact number</li>
+            <li>Availability status</li>
+        </ul>
+        <p>
+            We do <strong>not</strong> collect your email, payment information, 
+            or any data unrelated to blood donation.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">2. How We Use Your Information</h2>
+        <p>Your information is used only to:</p>
+        <ul>
+            <li>Let patients or their families find matching blood donors in their area</li>
+            <li>Allow you to be contacted when someone needs your blood group</li>
+            <li>Help you manage your donor profile and availability</li>
+        </ul>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">3. Who Can See Your Information</h2>
+        <p>
+            <strong>Your phone number is never shown publicly.</strong>
+            Only registered users and verified requesters can request your contact 
+            information, and only when they have a legitimate blood request.
+        </p>
+        <p>
+            We do not sell, trade, or rent your information to any third party. 
+            Ever.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">4. Data Security</h2>
+        <p>
+            We use industry-standard security practices to protect your data, 
+            including encrypted connections (HTTPS), secure database storage, and 
+            anti-forgery protections on all forms.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">5. Your Rights</h2>
+        <p>You can, at any time:</p>
+        <ul>
+            <li>Update your donor profile and contact information</li>
+            <li>Mark yourself as unavailable</li>
+            <li>Delete your account and all associated data</li>
+        </ul>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">6. Cookies</h2>
+        <p>
+            We use essential cookies only — for session management and CSRF 
+            protection. We do not use tracking or advertising cookies.
+        </p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h4">7. Contact Us</h2>
+        <p>
+            If you have any questions about this Privacy Policy, please 
+            <a asp-controller="Home" asp-action="Contact">contact us</a>.
+        </p>
+    </section>
+</div>

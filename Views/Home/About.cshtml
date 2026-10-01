@@ -1,0 +1,173 @@
+@{
+    ViewData["Title"] = "About Us";
+    var totalDonors = (int)(ViewBag.TotalDonors ?? 0);
+    var fulfilled = (int)(ViewBag.FulfilledRequests ?? 0);
+    var livesTouched = (int)(ViewBag.LivesTouched ?? 0);
+    var totalUsers = (int)(ViewBag.TotalUsers ?? 0);
+}
+
+<!-- HERO -->
+<section class="about-hero">
+    <div class="container">
+        <div class="about-hero-content">
+            <span class="section-eyebrow">ABOUT BLOODCONNECT</span>
+            <h1 class="about-hero-title">
+                Built by students.<br />
+                Powered by <em>compassion.</em>
+            </h1>
+            <p class="about-hero-sub">
+                BloodConnect is a free, verified, real-time blood donation network — connecting
+                donors with patients in their most urgent moments. No middlemen. No fees. No delays.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+
+    <!-- STATS STRIP -->
+    <div class="about-stats">
+        <div class="about-stat">
+            <div class="about-stat-value">@totalUsers+</div>
+            <div class="about-stat-label">Registered Users</div>
+        </div>
+        <div class="about-stat">
+            <div class="about-stat-value">@totalDonors+</div>
+            <div class="about-stat-label">Active Donors</div>
+        </div>
+        <div class="about-stat">
+            <div class="about-stat-value">@fulfilled</div>
+            <div class="about-stat-label">Requests Fulfilled</div>
+        </div>
+        <div class="about-stat">
+            <div class="about-stat-value">@livesTouched+</div>
+            <div class="about-stat-label">Lives Touched</div>
+        </div>
+    </div>
+
+    <!-- MISSION -->
+    <section class="about-section">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="section-eyebrow">OUR MISSION</span>
+                <h2 class="about-title">Every second counts when blood is needed.</h2>
+                <p class="about-text">
+                    In emergencies, finding a matching blood donor within minutes can mean the
+                    difference between life and death. Traditional methods — phone calls, WhatsApp
+                    groups, word of mouth — are slow and unreliable.
+                </p>
+                <p class="about-text">
+                    BloodConnect solves this with a real-time, verified, pledge-based matching
+                    system. Donors pledge, requesters confirm, and every donation is transparent.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="about-quote">
+                    <div class="about-quote-mark">"</div>
+                    <p>
+                        We believe access to safe blood is a fundamental right — not a privilege
+                        decided by luck, geography, or connections.
+                    </p>
+                    <div class="about-quote-author">— The BloodConnect Team</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRINCIPLES -->
+    <section class="about-section">
+        <div class="section-head">
+            <span class="section-eyebrow">WHAT WE STAND FOR</span>
+            <h2 class="section-title">Our Principles</h2>
+        </div>
+
+        <div class="principles-grid">
+            <div class="principle-card">
+                <div class="principle-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>Verified Matching</h3>
+                <p>Donors pledge, requesters confirm — no fake fulfillments, no impersonation.</p>
+            </div>
+            <div class="principle-card">
+                <div class="principle-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h3>Privacy First</h3>
+                <p>Contact info revealed only after both parties mutually agree to a match.</p>
+            </div>
+            <div class="principle-card">
+                <div class="principle-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <h3>Zero Cost</h3>
+                <p>Free forever. No premium tiers, no hidden charges, no ads. Ever.</p>
+            </div>
+            <div class="principle-card">
+                <div class="principle-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h3>Real-Time</h3>
+                <p>Live request status — Open, Pledged, Accepted, or Fulfilled. Always accurate.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section class="about-section">
+        <div class="section-head">
+            <span class="section-eyebrow">HOW WE GOT HERE</span>
+            <h2 class="section-title">Our Story</h2>
+        </div>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">The Beginning</div>
+                    <h4>The Problem</h4>
+                    <p>Watching a family scramble for blood donors during an emergency sparked the idea.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">The Build</div>
+                    <h4>BloodConnect v1</h4>
+                    <p>Built with ASP.NET Core, EF Core, and a lot of late nights. Focused on simplicity and trust.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">Today</div>
+                    <h4>Growing Network</h4>
+                    <p>@totalDonors+ donors and counting. Every pledge brings us closer to a world with zero blood shortages.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot timeline-dot-future"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">The Future</div>
+                    <h4>Pan-India Reach</h4>
+                    <p>Mobile apps, hospital integrations, and 24×7 availability — coming soon.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="about-cta">
+        <div class="about-cta-content">
+            <h2>Be part of the mission.</h2>
+            <p>One donation can save up to three lives. Start today.</p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a asp-controller="Donor" asp-action="Create" class="btn-cta-primary">
+                    Become a Donor
+                </a>
+                <a asp-controller="Home" asp-action="Contact" class="btn-cta-secondary">
+                    Get in Touch
+                </a>
+            </div>
+        </div>
+    </section>
+</div>

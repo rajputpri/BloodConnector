@@ -1,0 +1,139 @@
+@model BloodConnect.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<section class="admin-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="badge bg-danger mb-2">🛡️ ADMIN PANEL</span>
+                <h1 class="h3 fw-bold mb-1">Dashboard</h1>
+                <p class="text-muted mb-0 small">System overview & management</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Donors" class="btn btn-outline-danger">Manage Donors</a>
+                <a asp-action="Requests" class="btn btn-outline-danger">Manage Requests</a>
+                <a asp-action="Users" class="btn btn-danger">Manage Users</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+
+    <!-- ============ STATS GRID ============ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">@Model.TotalUsers</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="stat-icon">🩸</div>
+                    <div class="stat-value">@Model.TotalDonors</div>
+                    <div class="stat-label">Total Donors</div>
+                    <div class="small text-success mt-1">@Model.AvailableDonors available</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value">@Model.TotalRequests</div>
+                    <div class="stat-label">Total Requests</div>
+                    <div class="small text-primary mt-1">@Model.OpenRequests open</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value">@Model.FulfilledRequests</div>
+                    <div class="stat-label">Fulfilled</div>
+                    <div class="small text-muted mt-1">Lives saved</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ RECENT ACTIVITY ============ -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold mb-0">Recent Donors</h2>
+                        <a asp-action="Donors" class="small text-decoration-none">View all →</a>
+                    </div>
+                    @if (!Model.RecentDonors.Any())
+                    {
+                        <p class="text-muted small mb-0">No donors yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var donor in Model.RecentDonors)
+                            {
+                                <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div>
+                                        <div class="fw-semibold small">@donor.Name</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">
+                                            @donor.Location
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-danger-subtle text-danger">
+                                        @donor.BloodGroup
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold mb-0">Recent Requests</h2>
+                        <a asp-action="Requests" class="small text-decoration-none">View all →</a>
+                    </div>
+                    @if (!Model.RecentRequests.Any())
+                    {
+                        <p class="text-muted small mb-0">No requests yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var req in Model.RecentRequests)
+                            {
+                                <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div>
+                                        <div class="fw-semibold small">@req.RequesterName</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">
+                                            @req.Location
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-@(req.Status == "Open" ? "primary" : "success")">
+                                        @req.Status
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

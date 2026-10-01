@@ -1,58 +1,244 @@
 @model List<BloodConnect.Models.Donor>
+@using BloodConnect.Models
 
-<h2>Donor List</h2>
+@{
+    ViewData["Title"] = "Donor List";
+    var currentBg = ViewBag.SelectedBloodGroup as string;
+    var currentLocation = ViewBag.SelectedLocation as string;
+    var userDonorId = ViewBag.UserDonorId as int?;
+    var exactMatch = (bool?)ViewBag.ExactMatch ?? false;
+    var isCompatibleSearch = (bool?)ViewBag.IsCompatibleSearch ?? false;
+    var compatibleGroups = ViewBag.CompatibleGroups as List<string> ?? new List<string>();
 
-<a asp-action="Create">+ Add New Donor</a>
+    var isAuthed = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-<hr />
+    var hasFilters = !string.IsNullOrEmpty(currentBg) || !string.IsNullOrEmpty(currentLocation);
+}
 
-<h4>Search Donors</h4>
+<!-- PAGE HEADER -->
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1>Donor List</h1>
+                <p class="text-muted mb-0 small">Find verified blood donors in your area</p>
+            </div>
 
-<form asp-action="Search" method="get">
-    <select name="bloodGroup">
-        <option value="">-- Any Blood Group --</option>
-        <option value="A+">A+</option>
-        <option value="A-">A-</option>
-        <option value="B+">B+</option>
-        <option value="B-">B-</option>
-        <option value="AB+">AB+</option>
-        <option value="AB-">AB-</option>
-        <option value="O+">O+</option>
-        <option value="O-">O-</option>
-    </select>
+            @if (!isAuthed)
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-danger">
+                    Login to become a donor
+                </a>
+            }
+            else if (userDonorId.HasValue && !isAdmin)
+            {
+                <a asp-action="Edit" asp-route-id="@userDonorId" class="btn btn-outline-danger">
+                    Edit My Profile
+                </a>
+            }
+            else if (!userDonorId.HasValue)
+            {
+                <a asp-action="Create" class="btn btn-danger">
+                    + Become a Donor
+                </a>
+            }
+        </div>
+    </div>
+</section>
 
-    <input type="text" name="location" placeholder="Location" />
+<div class="container py-5">
 
-    <button type="submit">Search</button>
-    <a asp-action="Index">Clear</a>
-</form>
+    <!-- SEARCH -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 fw-bold mb-3 text-uppercase text-muted">Search Donors</h2>
 
-<hr />
+            <form asp-action="Search" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="searchBloodGroup" class="form-label">Blood group needed</label>
+                    <select id="searchBloodGroup" name="bloodGroup" class="form-select">
+                        <option value="">Any blood group</option>
+                        @foreach (var bg in DomainValues.BloodGroups)
+                        {
+                            <option value="@bg" selected="@(bg == currentBg)">@bg</option>
+                        }
+                    </select>
+                </div>
 
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Blood Group</th>
-        <th>Location</th>
-        <th>Contact</th>
-        <th>Available</th>
-        <th>Actions</th>
-    </tr>
+                <div class="col-md-4">
+                    <label for="searchLocation" class="form-label">Location</label>
+                    <input id="searchLocation" type="text" name="location"
+                           value="@currentLocation" class="form-control"
+                           placeholder="e.g. Mumbai, Delhi" />
+                </div>
 
-    @foreach (var donor in Model)
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1">
+                            Search Donors
+                        </button>
+                        @if (hasFilters)
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                Clear
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="exactMatch"
+                               value="true" id="exactMatchCheck" @(exactMatch ? "checked" : "") />
+                        <label class="form-check-label small" for="exactMatchCheck">
+                            Show only exact blood group match (default: show all compatible donors)
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COMPATIBILITY BANNER -->
+    @if (isCompatibleSearch && compatibleGroups.Any())
     {
-        <tr>
-            <td>@donor.DonorId</td>
-            <td>@donor.Name</td>
-            <td>@donor.BloodGroup</td>
-            <td>@donor.Location</td>
-            <td>@donor.ContactNumber</td>
-            <td>@(donor.IsAvailable ? "Yes" : "No")</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@donor.DonorId">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@donor.DonorId">Delete</a>
-            </td>
-        </tr>
+        <div class="compat-banner mb-4">
+            <div class="compat-banner-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C12 2 5 9.5 5 14.5C5 18.0899 8.13401 21 12 21C15.866 21 19 18.0899 19 14.5C19 9.5 12 2 12 2Z"/>
+                </svg>
+            </div>
+            <div class="compat-banner-body">
+                <div class="compat-banner-title">
+                    Showing donors compatible with <strong>@currentBg</strong> patients
+                </div>
+                <div class="compat-banner-groups">
+                    @foreach (var g in compatibleGroups)
+                    {
+                        var isExact = g == currentBg;
+                        <span class="compat-pill @(isExact ? "compat-pill-exact" : "")">
+                            @g
+                            @if (isExact)
+                            {
+                                <span class="compat-pill-tag">exact</span>
+                            }
+                        </span>
+                    }
+                </div>
+                <div class="compat-banner-note">
+                    Compatible donors can safely donate to a @currentBg patient.
+                    Tick "exact match only" above to see same blood group donors only.
+                </div>
+            </div>
+        </div>
     }
-</table>
+
+    <!-- RESULTS -->
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info border-0 rounded-4 p-4" role="alert">
+            @if (hasFilters)
+            {
+                <span>No donors match your search.
+                    <a asp-action="Index" class="fw-bold">Clear filters</a> to see all.
+                </span>
+            }
+            else
+            {
+                <span>No donors registered yet.
+                    <a asp-action="Create" class="fw-bold">Add the first donor</a>.
+                </span>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small mb-2">
+            Showing <strong>@Model.Count</strong>
+            @(Model.Count == 1 ? "donor" : "donors")
+        </p>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">List of registered blood donors</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Blood Group</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Available</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var donor in Model)
+                        {
+                            var isOwner = isAuthed
+                                          && !string.IsNullOrEmpty(currentUserId)
+                                          && donor.UserId == currentUserId;
+                            var canEdit = isOwner;
+                            var canDelete = isOwner || isAdmin;
+                            var isExactMatch = !string.IsNullOrEmpty(currentBg) && donor.BloodGroup == currentBg;
+
+                            <tr>
+                                <td class="text-muted">@donor.DonorId</td>
+                                <td class="fw-semibold">
+                                    @donor.Name
+                                    @if (isOwner)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary ms-1">You</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge badge-blood">@donor.BloodGroup</span>
+                                    @if (isExactMatch && isCompatibleSearch)
+                                    {
+                                        <span class="badge bg-success-subtle text-success ms-1" style="font-size:0.65rem;">Exact</span>
+                                    }
+                                </td>
+                                <td>@donor.Location</td>
+                                <td>
+                                    @if (donor.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">Available</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unavailable</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (canEdit || canDelete)
+                                    {
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            @if (canEdit)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@donor.DonorId"
+                                                   class="btn btn-outline-primary">Edit</a>
+                                            }
+                                            @if (canDelete)
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@donor.DonorId"
+                                                   class="btn btn-outline-danger">Delete</a>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            View only
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

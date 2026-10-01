@@ -1,0 +1,66 @@
+@model List<BloodConnect.Models.Donor>
+
+@{
+    ViewData["Title"] = "Manage Donors";
+}
+
+<section class="admin-header py-4 mb-4">
+    <div class="container">
+        <span class="badge bg-danger mb-2">🛡️ ADMIN PANEL</span>
+        <h1 class="h3 fw-bold mb-1">Manage Donors</h1>
+        <p class="text-muted mb-0 small">Delete fake or duplicate donor entries</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Blood Group</th>
+                        <th>Location</th>
+                        <th>Contact</th>
+                        <th>Available</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var donor in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">@donor.DonorId</td>
+                            <td class="fw-semibold">@donor.Name</td>
+                            <td>
+                                <span class="badge bg-danger-subtle text-danger">@donor.BloodGroup</span>
+                            </td>
+                            <td>@donor.Location</td>
+                            <td class="text-muted small">@donor.ContactNumber</td>
+                            <td>
+                                @if (donor.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unavailable</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="DeleteDonor" asp-route-id="@donor.DonorId"
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete @donor.Name?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

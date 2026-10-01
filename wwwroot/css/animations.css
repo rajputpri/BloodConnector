@@ -1,0 +1,793 @@
+/* ═══════════════════════════════════════════════════════════
+   BloodConnect — Animations Library
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Timing functions ── */
+:root {
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulse animations */
+@keyframes pulseSoft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.15); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.12); }
+    70% { transform: scale(1); }
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.85); opacity: 0.7; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Shake for validation errors */
+@keyframes shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+}
+
+/* Success check draw */
+@keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Blood drop fill */
+@keyframes dropFill {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes dropBounce {
+    0% { transform: translateY(-80px) scale(0.9); opacity: 0; }
+    60% { transform: translateY(0) scale(1.05); opacity: 1; }
+    80% { transform: translateY(-6px) scale(0.98); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+/* Ripple */
+@keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+}
+
+/* Shimmer */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Gradient shift */
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Skeleton loading */
+@keyframes skeletonPulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Confetti fall (for fulfillment success) */
+@keyframes confettiFall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE TRANSITIONS
+   ═══════════════════════════════════════════════════════════ */
+
+body {
+    animation: fadeIn 200ms var(--ease-out);
+}
+
+main {
+    animation: pageEnter 400ms var(--ease-out);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTON STATES
+   ═══════════════════════════════════════════════════════════ */
+
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn.is-loading {
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn.is-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+}
+
+.btn-outline-danger.is-loading::after,
+.btn-outline-primary.is-loading::after,
+.btn-outline-success.is-loading::after,
+.btn-outline-secondary.is-loading::after {
+    border-color: rgba(0, 0, 0, 0.15);
+    border-top-color: var(--bc-primary);
+}
+
+.btn-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(0);
+    animation: ripple 600ms var(--ease-out);
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE LOADER — Blood drop fill
+   ═══════════════════════════════════════════════════════════ */
+
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: var(--bc-cream);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms, visibility 200ms;
+}
+
+.page-loader.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loader-drop {
+    position: relative;
+    width: 60px;
+    height: 80px;
+}
+
+.loader-drop svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 24px rgba(220, 38, 38, 0.35));
+}
+
+.loader-drop .drop-outline {
+    fill: #fff;
+    stroke: var(--bc-primary);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+}
+
+.loader-drop .drop-fill {
+    fill: var(--bc-primary);
+    transform-origin: center bottom;
+    animation: dropFill 1.2s var(--ease-in-out) infinite;
+}
+
+.loader-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bc-text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOASTS
+   ═══════════════════════════════════════════════════════════ */
+
+.toast-stack {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    max-width: 380px;
+    pointer-events: none;
+}
+
+.toast-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: #fff;
+    border: 1px solid var(--bc-border);
+    border-left: 4px solid var(--bc-primary);
+    border-radius: var(--bc-radius);
+    box-shadow: var(--bc-shadow-lg);
+    animation: slideInRight 320ms var(--ease-spring);
+    transition: opacity 200ms, transform 200ms;
+    font-size: 0.9375rem;
+    color: var(--bc-text);
+}
+
+.toast-item.is-leaving {
+    opacity: 0;
+    transform: translateX(24px);
+}
+
+.toast-item.toast-success { border-left-color: var(--bc-success); }
+.toast-item.toast-error { border-left-color: var(--bc-primary); }
+.toast-item.toast-warning { border-left-color: var(--bc-warning); }
+.toast-item.toast-info { border-left-color: var(--bc-info); }
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.toast-success .toast-icon { color: var(--bc-success); }
+.toast-error .toast-icon { color: var(--bc-primary); }
+.toast-warning .toast-icon { color: var(--bc-warning); }
+.toast-info .toast-icon { color: var(--bc-info); }
+
+.toast-content { flex: 1; line-height: 1.5; }
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--bc-text-faint);
+    padding: 0;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: color var(--bc-t-fast);
+}
+
+.toast-close:hover { color: var(--bc-text); }
+
+/* ═══════════════════════════════════════════════════════════
+   CUSTOM CONFIRM MODAL
+   ═══════════════════════════════════════════════════════════ */
+
+.confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    background: rgba(26, 14, 14, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms, visibility 200ms;
+}
+
+.confirm-backdrop.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-dialog {
+    background: #fff;
+    border-radius: var(--bc-radius-lg);
+    padding: 1.75rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--bc-shadow-xl);
+    transform: scale(0.92);
+    transition: transform 280ms var(--ease-spring);
+}
+
+.confirm-backdrop.is-active .confirm-dialog {
+    transform: scale(1);
+}
+
+.confirm-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: var(--bc-primary-soft);
+    color: var(--bc-primary);
+}
+
+.confirm-icon.confirm-danger { background: var(--bc-primary-soft); color: var(--bc-primary); }
+.confirm-icon.confirm-warning { background: var(--bc-warning-soft); color: var(--bc-warning); }
+.confirm-icon.confirm-info { background: var(--bc-info-soft); color: var(--bc-info); }
+
+.confirm-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--bc-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.confirm-message {
+    font-size: 0.9375rem;
+    color: var(--bc-text-muted);
+    line-height: 1.55;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+}
+
+.confirm-actions .btn { min-width: 100px; }
+
+/* ═══════════════════════════════════════════════════════════
+   WELCOME SPLASH (login success)
+   ═══════════════════════════════════════════════════════════ */
+
+.welcome-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background:
+        radial-gradient(ellipse 60% 50% at 50% 45%, rgba(220, 38, 38, 0.35), transparent 65%),
+        linear-gradient(135deg, #1A0E0E 0%, #450A0A 50%, #7F1D1D 100%);
+    animation: fadeIn 300ms var(--ease-out);
+    transition: opacity 500ms, visibility 500ms;
+}
+
+.welcome-splash.is-leaving {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.welcome-drop {
+    width: 100px;
+    height: 130px;
+    animation: dropBounce 700ms var(--ease-spring) both;
+    filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.5));
+}
+
+.welcome-text {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    animation: fadeInUp 500ms 400ms var(--ease-out) both;
+}
+
+.welcome-text em {
+    font-style: normal;
+    background: linear-gradient(135deg, #FCD34D, #D4A24C);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.welcome-sub {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9375rem;
+    animation: fadeInUp 500ms 550ms var(--ease-out) both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORM VALIDATION SHAKE
+   ═══════════════════════════════════════════════════════════ */
+
+.field-shake {
+    animation: shake 500ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.input-validation-error,
+.field-shake {
+    border-color: var(--bc-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SUCCESS CHECKMARK (draw animation)
+   ═══════════════════════════════════════════════════════════ */
+
+.success-mark {
+    width: 48px;
+    height: 48px;
+    display: inline-block;
+}
+
+.success-mark circle {
+    stroke: var(--bc-success);
+    stroke-width: 2.5;
+    fill: none;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: drawCircle 700ms var(--ease-out) forwards;
+}
+
+.success-mark path {
+    stroke: var(--bc-success);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 400ms 500ms var(--ease-out) forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CRITICAL REQUEST PULSE
+   ═══════════════════════════════════════════════════════════ */
+
+.badge.urgency-Critical,
+.urgency-critical,
+.pulse-urgent {
+    position: relative;
+    animation: pulseSoft 1.8s ease-in-out infinite;
+}
+
+.pulse-urgent::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 2px solid currentColor;
+    opacity: 0.6;
+    animation: pulseRing 1.8s var(--ease-out) infinite;
+    pointer-events: none;
+}
+
+.heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SKELETON LOADER
+   ═══════════════════════════════════════════════════════════ */
+
+.skeleton {
+    background: linear-gradient(90deg, var(--bc-cream-2) 25%, var(--bc-cream-3) 37%, var(--bc-cream-2) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--bc-radius-xs);
+    color: transparent !important;
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REVEAL ON SCROLL
+   ═══════════════════════════════════════════════════════════ */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger children */
+.reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+}
+
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 80ms; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 160ms; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 240ms; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 320ms; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 400ms; }
+
+.reveal-stagger.is-visible > * {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONFETTI (fulfillment success)
+   ═══════════════════════════════════════════════════════════ */
+
+.confetti-piece {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 14px;
+    pointer-events: none;
+    z-index: 9998;
+    animation: confettiFall 3s linear forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION — accessibility
+   ═══════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+/* ═══════════════════════════════════════════════════════════
+   PREMIUM LAYER — 3D tilt, magnetic buttons, cursor glow
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 3D Tilt ── */
+.tilt-target {
+    transform-style: preserve-3d;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease;
+    will-change: transform;
+}
+
+.tilt-target.is-tilting { transition: none; }
+
+/* ── Magnetic buttons ── */
+.btn-magnetic {
+    transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 250ms ease,
+                background 180ms ease,
+                color 180ms ease,
+                border-color 180ms ease;
+    will-change: transform;
+}
+
+.btn-magnetic.is-snapping {
+    transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Hero cursor glow ── */
+.hero-v2 { --mouse-x: 50%; --mouse-y: 50%; }
+
+.hero-v2::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle 340px at var(--mouse-x) var(--mouse-y),
+        rgba(252, 211, 77, 0.15),
+        rgba(220, 38, 38, 0.08) 40%,
+        transparent 70%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    z-index: 1;
+}
+
+.hero-v2:hover::after { opacity: 1; }
+
+/* ── Sound toggle button ── */
+.sound-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--bc-border);
+    background: #fff;
+    color: var(--bc-text-secondary);
+    cursor: pointer;
+    transition: all 180ms ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.sound-toggle:hover {
+    background: var(--bc-cream-2);
+    border-color: var(--bc-border-strong);
+    color: var(--bc-primary);
+    transform: scale(1.05);
+}
+
+.sound-toggle svg { width: 18px; height: 18px; }
+.sound-toggle .icon-on { display: block; }
+.sound-toggle .icon-off { display: none; }
+.sound-toggle.is-muted .icon-on { display: none; }
+.sound-toggle.is-muted .icon-off { display: block; }
+.sound-toggle.is-muted { color: var(--bc-text-faint); }
+
+/* ── Sparkle burst (on success) ── */
+@keyframes sparkleOut {
+    0% { transform: translate(0, 0) scale(0); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
+
+.sparkle-particle {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--bc-gold);
+    box-shadow: 0 0 8px rgba(212, 162, 76, 0.8);
+    pointer-events: none;
+    z-index: 9999;
+    animation: sparkleOut 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Blood drop rain (on fulfill) ── */
+@keyframes bloodDripFall {
+    0% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(110vh) scale(1); opacity: 0.6; }
+}
+
+.blood-drip {
+    position: fixed;
+    top: -20px;
+    width: 6px;
+    height: 14px;
+    background: linear-gradient(180deg, #DC2626, #7F1D1D);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    pointer-events: none;
+    z-index: 9997;
+    animation: bloodDripFall 2.5s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.5);
+}
+
+/* ── Success flash overlay ── */
+.success-flash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(220, 38, 38, 0.35), transparent 60%);
+    pointer-events: none;
+    z-index: 9996;
+    animation: successFlash 500ms ease-out forwards;
+}
+
+@keyframes successFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ── Card hover glow ── */
+.glow-on-hover {
+    position: relative;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glow-on-hover::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--bc-primary), var(--bc-gold), var(--bc-primary));
+    background-size: 200% 200%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+    animation: gradientShift 3s ease infinite;
+}
+
+.glow-on-hover:hover::before { opacity: 1; }
+
+/* ── Navbar brand pulse ── */
+@keyframes brandPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+.navbar-brand:hover .brand-mark {
+    animation: brandPulse 800ms ease-in-out infinite;
+    color: var(--bc-primary);
+}
+
+/* ── Input focus lift ── */
+.form-control:focus,
+.form-select:focus {
+    transform: translateY(-1px);
+}
+
+/* ── Tab/chip active pulse ── */
+.chip.is-active {
+    animation: heartbeat 1s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .tilt-target,
+    .btn-magnetic,
+    .hero-v2::after,
+    .sparkle-particle,
+    .blood-drip,
+    .success-flash {
+        animation: none !important;
+        transition: none !important;
+    }
+}

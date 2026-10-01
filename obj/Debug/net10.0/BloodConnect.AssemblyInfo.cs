@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d9638d6d39bc91bfd2c8d2f11b9b0fa8f372511")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1e1a349ad7d4e92dc62c0e8bf0282c230d963e2")]
 [assembly: System.Reflection.AssemblyProductAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BloodConnect")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

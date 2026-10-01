@@ -1,42 +1,226 @@
 @model List<BloodConnect.Models.BloodRequest>
 
-<h2>Blood Requests</h2>
+@{
+    ViewData["Title"] = "Blood Requests";
+    var filterBloodGroup = ViewBag.FilterBloodGroup as string;
+    var filterUrgency = ViewBag.FilterUrgency as string;
+    var filterStatus = ViewBag.FilterStatus as string;
+    var isAuthed = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var hasFilters = !string.IsNullOrEmpty(filterBloodGroup)
+                     || !string.IsNullOrEmpty(filterUrgency)
+                     || !string.IsNullOrEmpty(filterStatus);
 
-<a asp-action="Create">+ New Request</a>
+    var myDonorId = ViewBag.MyDonorId as int?;
+    var myBloodGroup = ViewBag.MyBloodGroup as string;
+    var myOfferRequestIds = ViewBag.MyOfferRequestIds as HashSet<int> ?? new HashSet<int>();
+}
 
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Requester</th>
-        <th>Blood Group Needed</th>
-        <th>Location</th>
-        <th>Contact</th>
-        <th>Urgency</th>
-        <th>Status</th>
-        <th>Request Date</th>
-        <th>Actions</th>
-    </tr>
+<section class="page-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Blood Requests</h1>
+                <p class="text-muted mb-0 small">
+                    Help save lives by fulfilling open requests
+                </p>
+            </div>
+            <a asp-action="Create" class="btn btn-danger">+ New Request</a>
+        </div>
+    </div>
+</section>
 
-    @foreach (var request in Model)
+<div class="container">
+    <!-- FILTERS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 fw-bold mb-3 text-uppercase text-muted">Filter Requests</h2>
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="filterBloodGroup" class="form-label">Blood group</label>
+                    <select id="filterBloodGroup" name="bloodGroup" class="form-select">
+                        <option value="">Any blood group</option>
+                        @foreach (var bg in BloodConnect.Models.DomainValues.BloodGroups)
+                        {
+                            <option value="@bg" selected="@(bg == filterBloodGroup)">@bg</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filterUrgency" class="form-label">Urgency</label>
+                    <select id="filterUrgency" name="urgency" class="form-select">
+                        <option value="">Any urgency</option>
+                        @foreach (var u in BloodConnect.Models.DomainValues.UrgencyLevels)
+                        {
+                            <option value="@u" selected="@(u == filterUrgency)">@u</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filterStatus" class="form-label">Status</label>
+                    <select id="filterStatus" name="status" class="form-select">
+                        <option value="">Any status</option>
+                        <option value="Open" selected="@(filterStatus == "Open")">Open</option>
+                        <option value="Fulfilled" selected="@(filterStatus == "Fulfilled")">Fulfilled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1">Apply Filters</button>
+                        @if (hasFilters)
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RESULTS -->
+    @if (!Model.Any())
     {
-        <tr>
-            <td>@request.RequestId</td>
-            <td>@request.RequesterName</td>
-            <td>@request.BloodGroupNeeded</td>
-            <td>@request.Location</td>
-            <td>@request.ContactNumber</td>
-            <td>@request.UrgencyLevel</td>
-            <td>@request.Status</td>
-            <td>@request.RequestDate</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@request.RequestId">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@request.RequestId">Delete</a>
-                @if (request.Status == "Open")
-                {
-                    <text> | </text>
-                    <a asp-action="MarkFulfilled" asp-route-id="@request.RequestId">Mark Fulfilled</a>
-                }
-            </td>
-        </tr>
+        <div class="alert alert-info border-0 rounded-4 p-4" role="alert">
+            @if (hasFilters)
+            {
+                <span>No blood requests match your filters.
+                    <a asp-action="Index" class="fw-bold">Clear filters</a> to see all.
+                </span>
+            }
+            else
+            {
+                <span>No blood requests yet.
+                    <a asp-action="Create" class="fw-bold">Create the first request</a>.
+                </span>
+            }
+        </div>
     }
-</table>
+    else
+    {
+        <p class="text-muted small mb-2">
+            Showing <strong>@Model.Count</strong> @(Model.Count == 1 ? "request" : "requests")
+        </p>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">List of blood requests</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Requester</th>
+                            <th scope="col">Blood Group</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Urgency</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Requested</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            var isOwner = isAuthed
+                                          && !string.IsNullOrEmpty(currentUserId)
+                                          && request.UserId == currentUserId;
+
+                            var iOffered = myOfferRequestIds.Contains(request.RequestId);
+
+                            // donor can offer if: authed, not owner, not admin, request open,
+                            // has donor profile, blood matches, hasn't offered
+                            var canOffer = isAuthed
+                                        && !isOwner
+                                        && !isAdmin
+                                        && request.Status == "Open"
+                                        && myDonorId.HasValue
+                                        && myBloodGroup == request.BloodGroupNeeded
+                                        && !iOffered;
+
+                            <tr>
+                                <td class="text-muted">@request.RequestId</td>
+                                <td class="fw-semibold">
+                                    @request.RequesterName
+                                    @if (isOwner)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary ms-1">You</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                        @request.BloodGroupNeeded
+                                    </span>
+                                </td>
+                                <td>@request.Location</td>
+                                <td>
+                                    <span class="badge bg-@(request.UrgencyLevel switch {
+                                        "Critical" => "danger",
+                                        "High"     => "warning text-dark",
+                                        "Medium"   => "info text-dark",
+                                        _          => "secondary"
+                                    })">@request.UrgencyLevel</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(request.Status == "Open" ? "primary" : "success")">
+                                        @request.Status
+                                    </span>
+                                </td>
+                                <td class="text-muted small">
+                                    @request.RequestDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                                </td>
+                                <td class="text-end">
+                                    @if (!isAuthed)
+                                    {
+                                        <a asp-controller="Account" asp-action="Login"
+                                           class="btn btn-sm btn-outline-danger">
+                                            Login to manage
+                                        </a>
+                                    }
+                                    else if (isOwner || isAdmin)
+                                    {
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            @if (request.Status == "Open")
+                                            {
+                                                <a asp-action="Offers" asp-route-id="@request.RequestId"
+                                                   class="btn btn-outline-success">
+                                                    View Offers
+                                                </a>
+                                            }
+                                            @if (isOwner)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@request.RequestId"
+                                                   class="btn btn-outline-primary">Edit</a>
+                                            }
+                                            <a asp-action="Delete" asp-route-id="@request.RequestId"
+                                               class="btn btn-outline-danger">Delete</a>
+                                        </div>
+                                    }
+                                    else if (request.Status == "Open" && iOffered)
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            ⏳ Your offer is pending
+                                        </span>
+                                    }
+                                    else if (canOffer)
+                                    {
+                                        <form asp-action="Offer" asp-route-requestId="@request.RequestId"
+                                              method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Offer to donate for @request.RequesterName?');">
+                                                🩸 I can donate
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">View only</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
