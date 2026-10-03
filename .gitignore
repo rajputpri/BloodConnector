@@ -1,0 +1,31 @@
+# ============ Build artifacts ============
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.user
+
+# ============ VS Code / Visual Studio ============
+.vs/
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ============ NuGet ============
+*.nupkg
+*.snupkg
+packages/
+
+# ============ Logs & temp ============
+*.log
+*.tmp
+*.temp
+publish/
+.DS_Store
+Thumbs.db
+
+# ============ User secrets ============
+appsettings.Production.json
+secrets.json
