@@ -1,69 +1,126 @@
 /* ═══════════════════════════════════════════════════════════
-   BloodConnect — Animation Orchestrator v2
+   BloodConnect — Animation Orchestrator v3
    ═══════════════════════════════════════════════════════════ */
 (function () {
     'use strict';
 
     /* ═══════════════════════════════════════════════════════
        §0 — SOUND SYSTEM (Web Audio API, no files)
+       Louder + warmer: master gain + compressor + harmonic layering
        ═══════════════════════════════════════════════════════ */
     const Sound = (function () {
         let ctx = null;
+        let master = null;
+        let compressor = null;
         let muted = localStorage.getItem('bc-sound-muted') === 'true';
 
         function getCtx() {
             if (!ctx) {
                 try {
                     ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+                    // Compressor — prevents clipping, glues sounds together
+                    compressor = ctx.createDynamicsCompressor();
+                    compressor.threshold.value = -14;
+                    compressor.knee.value = 14;
+                    compressor.ratio.value = 5;
+                    compressor.attack.value = 0.003;
+                    compressor.release.value = 0.25;
+
+                    // Master gain
+                    master = ctx.createGain();
+                    master.gain.value = 1.0;
+
+                    master.connect(compressor);
+                    compressor.connect(ctx.destination);
                 } catch (e) { return null; }
             }
             if (ctx.state === 'suspended') ctx.resume();
             return ctx;
         }
 
-        function tone({ freq, type = 'sine', dur = 0.15, vol = 0.06, sweep = null, delay = 0 }) {
+        /**
+         * Play a tone.
+         * @param {object} opts
+         *   freq      — base frequency (Hz)
+         *   type      — 'sine' | 'triangle' | 'square' | 'sawtooth'
+         *   dur       — duration (seconds)
+         *   vol       — peak volume (0..1) — 0.2 to 0.3 is punchy but safe
+         *   sweep     — optional frequency target for exponential sweep
+         *   delay     — start delay (seconds)
+         *   detune    — cents detune
+         *   harmonic  — add a richer 2nd layer for warmth
+         */
+        function tone({ freq, type = 'sine', dur = 0.15, vol = 0.25, sweep = null, delay = 0, detune = 0, harmonic = false }) {
             if (muted) return;
             const ac = getCtx();
             if (!ac) return;
             try {
+                const start = ac.currentTime + delay;
+
+                // ── Main oscillator ──
                 const osc = ac.createOscillator();
                 const gain = ac.createGain();
-                const start = ac.currentTime + delay;
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, start);
                 if (sweep) osc.frequency.exponentialRampToValueAtTime(sweep, start + dur);
-                gain.gain.setValueAtTime(0, start);
-                gain.gain.linearRampToValueAtTime(vol, start + 0.005);
-                gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-                osc.connect(gain).connect(ac.destination);
+                if (detune) osc.detune.value = detune;
+
+                // Envelope (attack → decay → tail)
+                gain.gain.setValueAtTime(0.0001, start);
+                gain.gain.exponentialRampToValueAtTime(vol, start + 0.01);
+                gain.gain.exponentialRampToValueAtTime(vol * 0.55, start + dur * 0.5);
+                gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+                osc.connect(gain);
+                gain.connect(master);
                 osc.start(start);
                 osc.stop(start + dur + 0.05);
+
+                // ── Harmonic layer (adds warmth/presence) ──
+                if (harmonic) {
+                    const osc2 = ac.createOscillator();
+                    const gain2 = ac.createGain();
+                    osc2.type = 'triangle';
+                    osc2.frequency.setValueAtTime(freq * 2, start);
+                    osc2.detune.value = 5;
+
+                    gain2.gain.setValueAtTime(0.0001, start);
+                    gain2.gain.exponentialRampToValueAtTime(vol * 0.32, start + 0.012);
+                    gain2.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+                    osc2.connect(gain2);
+                    gain2.connect(master);
+                    osc2.start(start);
+                    osc2.stop(start + dur + 0.05);
+                }
             } catch (e) { /* silent */ }
         }
 
         return {
             success() {
-                tone({ freq: 523.25, dur: 0.12, vol: 0.07 });
-                tone({ freq: 783.99, dur: 0.2, vol: 0.06, delay: 0.09 });
-                tone({ freq: 1046.5, dur: 0.24, vol: 0.05, delay: 0.2 });
+                tone({ freq: 523.25, dur: 0.14, vol: 0.28, harmonic: true });          // C5
+                tone({ freq: 783.99, dur: 0.20, vol: 0.25, delay: 0.09, harmonic: true }); // G5
+                tone({ freq: 1046.5, dur: 0.30, vol: 0.24, delay: 0.20, harmonic: true }); // C6
             },
             error() {
-                tone({ freq: 220, type: 'sawtooth', dur: 0.16, vol: 0.05, sweep: 110 });
-                tone({ freq: 180, type: 'sawtooth', dur: 0.22, vol: 0.04, sweep: 90, delay: 0.12 });
+                tone({ freq: 220, type: 'sawtooth', dur: 0.18, vol: 0.22, sweep: 110 });
+                tone({ freq: 180, type: 'sawtooth', dur: 0.24, vol: 0.20, sweep: 90, delay: 0.12 });
             },
             click() {
-                tone({ freq: 1400, dur: 0.035, vol: 0.025 });
+                tone({ freq: 1600, type: 'triangle', dur: 0.04, vol: 0.11 });
+                tone({ freq: 2400, type: 'sine', dur: 0.03, vol: 0.06 });
             },
             notify() {
-                tone({ freq: 880, dur: 0.1, vol: 0.055 });
-                tone({ freq: 1318.5, dur: 0.18, vol: 0.045, delay: 0.08 });
+                tone({ freq: 880, dur: 0.12, vol: 0.26, harmonic: true });       // A5
+                tone({ freq: 1318.5, dur: 0.20, vol: 0.23, delay: 0.08, harmonic: true }); // E6
             },
             whoosh() {
-                tone({ freq: 400, type: 'sine', dur: 0.22, vol: 0.04, sweep: 80 });
+                tone({ freq: 500, type: 'sine', dur: 0.25, vol: 0.13, sweep: 90 });
             },
             chime() {
-                tone({ freq: 659.25, dur: 0.15, vol: 0.055 });
-                tone({ freq: 987.77, dur: 0.24, vol: 0.05, delay: 0.1 });
+                tone({ freq: 659.25, dur: 0.18, vol: 0.27, harmonic: true });      // E5
+                tone({ freq: 987.77, dur: 0.30, vol: 0.25, delay: 0.10, harmonic: true }); // B5
             },
             isMuted: () => muted,
             toggle() {
@@ -72,7 +129,6 @@
                 if (!muted) Sound.click();
                 return muted;
             },
-            // Trigger a "priming" tone on first user gesture so autoplay doesn't block
             prime() {
                 const ac = getCtx();
                 if (ac && ac.state === 'suspended') ac.resume();
@@ -82,7 +138,7 @@
 
     window.bcSound = Sound;
 
-    // Prime audio context on first user interaction
+    // Prime audio context on first user interaction (autoplay policy)
     ['click', 'touchstart', 'keydown'].forEach(evt => {
         window.addEventListener(evt, () => Sound.prime(), { once: true, passive: true });
     });
@@ -102,7 +158,6 @@
     function showToast(message, type = 'info', duration = 4500) {
         if (!toastStack || !message) return;
 
-        // Play sound based on type
         if (type === 'success') Sound.success();
         else if (type === 'error') Sound.error();
         else if (type === 'warning') Sound.error();
@@ -154,7 +209,6 @@
         confirmEl.classList.add('is-active');
         confirmEl.setAttribute('aria-hidden', 'false');
 
-        // Sound for confirm opening
         if (sound) sound();
         else Sound.notify();
     }
@@ -291,7 +345,7 @@
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn, .btn-hero-primary, .btn-cta-primary, .btn-search, .chip');
         if (!btn) return;
-        // Sound click (subtle)
+
         Sound.click();
 
         const rect = btn.getBoundingClientRect();
@@ -340,11 +394,22 @@
     });
 
     /* ═══════════════════════════════════════════════════════
-       §9 — PAGE LOADER
+       §9 — MINIMAL TOP PROGRESS BAR (loader)
+       Only shows if navigation takes > 280ms. Quick navs = no bar.
        ═══════════════════════════════════════════════════════ */
     const loader = document.getElementById('page-loader');
-    window.bcShowLoader = () => loader && loader.classList.add('is-active');
-    window.bcHideLoader = () => loader && loader.classList.remove('is-active');
+    let loaderTimer = null;
+
+    function showLoader() {
+        if (loader) loader.classList.add('is-active');
+    }
+    function hideLoader() {
+        clearTimeout(loaderTimer);
+        if (loader) loader.classList.remove('is-active');
+    }
+
+    window.bcShowLoader = () => showLoader();
+    window.bcHideLoader = () => hideLoader();
 
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a');
@@ -360,11 +425,14 @@
             if (url.origin !== window.location.origin) return;
         } catch (err) { return; }
 
-        window.bcShowLoader();
+        clearTimeout(loaderTimer);
+        loaderTimer = setTimeout(() => showLoader(), 280);
+
         Sound.whoosh();
     });
 
-    window.addEventListener('pageshow', () => window.bcHideLoader());
+    window.addEventListener('pageshow', () => hideLoader());
+    window.addEventListener('beforeunload', () => clearTimeout(loaderTimer));
 
     /* ═══════════════════════════════════════════════════════
        §10 — WELCOME SPLASH
@@ -525,7 +593,6 @@
             toggle.classList.toggle('is-muted', isMuted);
         });
 
-        // Insert into navbar (before the button group at right)
         const btnGroup = navContainer.querySelector('.d-flex.gap-2');
         if (btnGroup) {
             btnGroup.insertBefore(toggle, btnGroup.firstChild);

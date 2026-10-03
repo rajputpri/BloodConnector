@@ -453,7 +453,11 @@ C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\a3ygkwa5zy-{0}-2z0ns9nrw6-2z
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\nezrqnk58p-{0}-muycvpuwrr-muycvpuwrr.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\v0zgfp0y55-{0}-87fc7y1x7t-87fc7y1x7t.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\yfc7ypekbg-{0}-mlv21k5csn-mlv21k5csn.gz
+C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\li818s1rjz-{0}-i0hrd8h1xw-i0hrd8h1xw.gz
+C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\yzrr8d6euf-{0}-i0f5dj742q-i0f5dj742q.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\zih6ctzlep-{0}-61n19gt1b8-61n19gt1b8.gz
+C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\wr0i9znc8q-{0}-un9lntlqby-un9lntlqby.gz
+C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\2t4532ip70-{0}-pps2kmn2cg-pps2kmn2cg.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\r9n2um2f6p-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\hmipo3us3t-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\u7pak0qo7c-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -526,7 +530,8 @@ C:\Prince\BloodConnect\obj\Debug\net10.0\refint\BloodConnect.dll
 C:\Prince\BloodConnect\obj\Debug\net10.0\BloodConnect.pdb
 C:\Prince\BloodConnect\obj\Debug\net10.0\BloodConnect.genruntimeconfig.cache
 C:\Prince\BloodConnect\obj\Debug\net10.0\ref\BloodConnect.dll
-C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\2t4532ip70-{0}-pps2kmn2cg-pps2kmn2cg.gz
-C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\li818s1rjz-{0}-82wr4wiauz-82wr4wiauz.gz
-C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\wr0i9znc8q-{0}-ofvq3daq1r-ofvq3daq1r.gz
-C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\yzrr8d6euf-{0}-i0f5dj742q-i0f5dj742q.gz
+C:\Prince\BloodConnect\bin\Debug\net10.0\Microsoft.OpenApi.dll
+C:\Prince\BloodConnect\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Prince\BloodConnect\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Prince\BloodConnect\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Prince\BloodConnect\obj\Debug\net10.0\compressed\l0m2ssail5-{0}-ql3i693f2n-ql3i693f2n.gz

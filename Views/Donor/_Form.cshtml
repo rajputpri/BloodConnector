@@ -1,60 +1,77 @@
 @model BloodConnect.Models.Donor
+@using BloodConnect.Models
 
-<div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-3" role="alert"></div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" id="donorFormErrors"></div>
 
-<div class="mb-3">
-    <label asp-for="Name" class="form-label">
-        Full name <span class="text-danger">*</span>
-    </label>
-    <input asp-for="Name" class="form-control form-control-lg"
-           placeholder="e.g. Rahul Sharma" autocomplete="name" />
-    <span asp-validation-for="Name" class="text-danger small"></span>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label">Full Name</label>
+        <input asp-for="Name" class="form-control" placeholder="Your full name" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Age" class="form-label">Age</label>
+        <input asp-for="Age" type="number" min="18" max="65"
+               class="form-control" placeholder="Between 18 and 65" />
+        <span asp-validation-for="Age" class="text-danger small"></span>
+        <div class="form-text">Donors must be between 18 and 65 years old.</div>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="BloodGroup" class="form-label">Blood Group</label>
+        <select asp-for="BloodGroup" class="form-select">
+            <option value="">-- Select blood group --</option>
+            @foreach (var bg in DomainValues.BloodGroups)
+            {
+                <option value="@bg">@bg</option>
+            }
+        </select>
+        <span asp-validation-for="BloodGroup" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="ContactNumber" class="form-label">Contact Number</label>
+        <input asp-for="ContactNumber" class="form-control"
+               maxlength="10" inputmode="numeric"
+               placeholder="10-digit mobile number" />
+        <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="State" class="form-label">State / UT</label>
+        <select asp-for="State" class="form-select" required>
+            <option value="">-- Select state --</option>
+            @foreach (var s in DomainValues.IndianStates)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+        <span asp-validation-for="State" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="City" class="form-label">City</label>
+        <input asp-for="City" class="form-control" maxlength="50"
+               placeholder="e.g. Ahmedabad" autocomplete="address-level2" required />
+        <span asp-validation-for="City" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <div class="form-check form-switch">
+            <input asp-for="IsAvailable" class="form-check-input" />
+            <label asp-for="IsAvailable" class="form-check-label">
+                I'm currently available to donate
+            </label>
+        </div>
+    </div>
 </div>
 
-<div class="mb-3">
-    <label asp-for="BloodGroup" class="form-label">
-        Blood group <span class="text-danger">*</span>
-    </label>
-    <select asp-for="BloodGroup" class="form-select form-select-lg">
-        <option value="">-- Select blood group --</option>
-        @foreach (var bg in BloodConnect.Models.DomainValues.BloodGroups)
-        {
-            <option value="@bg">@bg</option>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const summary = document.getElementById('donorFormErrors');
+        if (summary && summary.querySelector('ul li')) {
+            summary.classList.remove('d-none');
         }
-    </select>
-    <span asp-validation-for="BloodGroup" class="text-danger small"></span>
-</div>
-
-<div class="mb-3">
-    <label asp-for="Location" class="form-label">
-        Location <span class="text-danger">*</span>
-    </label>
-    <input asp-for="Location" class="form-control form-control-lg"
-           placeholder="e.g. Mumbai, Maharashtra" autocomplete="address-level2" />
-    <span asp-validation-for="Location" class="text-danger small"></span>
-</div>
-
-<div class="mb-3">
-    <label asp-for="ContactNumber" class="form-label">
-        Contact number <span class="text-danger">*</span>
-    </label>
-    <input asp-for="ContactNumber" class="form-control form-control-lg"
-           maxlength="10" inputmode="numeric"
-           pattern="[0-9]{10}"
-           placeholder="10-digit mobile number"
-           autocomplete="tel" />
-    <div class="form-text">
-        This will only be shared with verified requesters — never public.
-    </div>
-    <span asp-validation-for="ContactNumber" class="text-danger small"></span>
-</div>
-
-<div class="mb-3 form-check form-switch">
-    <input asp-for="IsAvailable" class="form-check-input" role="switch" />
-    <label asp-for="IsAvailable" class="form-check-label ms-2">
-        Available to donate
-    </label>
-    <div class="form-text">
-        Turn this off temporarily if you're not available to donate right now.
-    </div>
-</div>
+    });
+</script>

@@ -100,6 +100,9 @@ namespace BloodConnect.Controllers
         {
             ModelState.Remove(nameof(BloodRequest.UserId));
             ModelState.Remove(nameof(BloodRequest.User));
+            ValidateLocation(request.State, request.City);
+            ModelState.Remove(nameof(BloodRequest.Location));
+            request.Location = BuildLocation(request.City, request.State);
 
             if (!ModelState.IsValid) return View(request);
 
@@ -146,6 +149,9 @@ namespace BloodConnect.Controllers
 
             ModelState.Remove(nameof(BloodRequest.UserId));
             ModelState.Remove(nameof(BloodRequest.User));
+            ValidateLocation(request.State, request.City);
+            ModelState.Remove(nameof(BloodRequest.Location));
+            request.Location = BuildLocation(request.City, request.State);
 
             if (!ModelState.IsValid) return View(request);
 
@@ -153,6 +159,8 @@ namespace BloodConnect.Controllers
             {
                 existing.RequesterName = request.RequesterName;
                 existing.BloodGroupNeeded = request.BloodGroupNeeded;
+                existing.State = request.State;
+                existing.City = request.City;
                 existing.Location = request.Location;
                 existing.ContactNumber = request.ContactNumber;
                 existing.UrgencyLevel = request.UrgencyLevel;
@@ -166,6 +174,26 @@ namespace BloodConnect.Controllers
                 ModelState.AddModelError("", "Could not update. Try again.");
                 return View(request);
             }
+        }
+
+        // ✅ FIXED — state nullable accept karta hai (purane rows ke liye safety)
+        private void ValidateLocation(string? state, string? city)
+        {
+            if (!DomainValues.IsValidState(state))
+                ModelState.AddModelError(nameof(BloodRequest.State),
+                    "Select a valid Indian state or union territory.");
+
+            if (!string.IsNullOrWhiteSpace(city) && city.Length > 50)
+                ModelState.AddModelError(nameof(BloodRequest.City),
+                    "City cannot exceed 50 characters.");
+        }
+
+        // ✅ FIXED — state nullable handle karta hai ("" return ho sakta hai but validation already rokega)
+        private static string BuildLocation(string? city, string? state)
+        {
+            if (string.IsNullOrWhiteSpace(state))
+                return city?.Trim() ?? "";
+            return string.IsNullOrWhiteSpace(city) ? state : $"{city.Trim()}, {state}";
         }
 
         // ----- Delete (owner OR admin) -----

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using BloodConnect.Models;
+using BloodConnect.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BloodConnect.Controllers
@@ -11,16 +12,18 @@ namespace BloodConnect.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
+        private readonly MessageCache _messageCache;
 
         public AdminController(
             ApplicationDbContext context,
-            UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager,
+            MessageCache messageCache)
         {
             _context = context;
             _userManager = userManager;
+            _messageCache = messageCache;
         }
 
-        // Helper: current user SuperAdmin hai?
         private bool IsSuperAdmin => User.IsInRole(DbSeeder.SuperAdminRole);
 
         // ==================== DASHBOARD ====================
@@ -151,21 +154,18 @@ namespace BloodConnect.Controllers
             if (user == null)
                 return NotFound();
 
-            // ✅ SuperAdmin ko koi ban nahi kar sakta
             if (await _userManager.IsInRoleAsync(user, DbSeeder.SuperAdminRole))
             {
                 TempData["Error"] = "Cannot ban a SuperAdmin.";
                 return RedirectToAction(nameof(UserList));
             }
 
-            // ✅ Admin, doosre Admin ko ban nahi kar sakta (sirf SuperAdmin kar sakta)
             if (!IsSuperAdmin && await _userManager.IsInRoleAsync(user, DbSeeder.AdminRole))
             {
                 TempData["Error"] = "Only a SuperAdmin can manage other Admins.";
                 return RedirectToAction(nameof(UserList));
             }
 
-            // Khud ko ban nahi kar sakta
             var currentUserId = _userManager.GetUserId(User);
             if (user.Id == currentUserId)
             {
@@ -191,14 +191,12 @@ namespace BloodConnect.Controllers
             if (user == null)
                 return NotFound();
 
-            // ✅ SuperAdmin ko delete nahi kar sakte
             if (await _userManager.IsInRoleAsync(user, DbSeeder.SuperAdminRole))
             {
                 TempData["Error"] = "Cannot delete a SuperAdmin.";
                 return RedirectToAction(nameof(UserList));
             }
 
-            // ✅ Admin, doosre Admin ko delete nahi kar sakta (sirf SuperAdmin)
             if (!IsSuperAdmin && await _userManager.IsInRoleAsync(user, DbSeeder.AdminRole))
             {
                 TempData["Error"] = "Only a SuperAdmin can manage other Admins.";
@@ -222,8 +220,6 @@ namespace BloodConnect.Controllers
         }
 
         // ==================== ROLE MANAGEMENT ====================
-
-        // Promote: Admin aur SuperAdmin dono kar sakte hain (regular user ko Admin banao)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PromoteToAdmin(string id)
@@ -247,12 +243,10 @@ namespace BloodConnect.Controllers
             return RedirectToAction(nameof(UserList));
         }
 
-        // Demote: SIRF SuperAdmin kar sakta hai
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DemoteFromAdmin(string id)
         {
-            // ✅ Only SuperAdmin
             if (!IsSuperAdmin)
             {
                 TempData["Error"] = "Only a SuperAdmin can remove Admin role.";
@@ -263,14 +257,12 @@ namespace BloodConnect.Controllers
             if (user == null)
                 return NotFound();
 
-            // ✅ Doosre SuperAdmin ko demote nahi kar sakta
             if (await _userManager.IsInRoleAsync(user, DbSeeder.SuperAdminRole))
             {
                 TempData["Error"] = "Cannot demote a SuperAdmin.";
                 return RedirectToAction(nameof(UserList));
             }
 
-            // ✅ Khud ko demote nahi kar sakta
             var currentUserId = _userManager.GetUserId(User);
             if (user.Id == currentUserId)
             {
@@ -291,6 +283,55 @@ namespace BloodConnect.Controllers
                 TempData["Error"] = "Could not demote user.";
 
             return RedirectToAction(nameof(UserList));
+        }
+
+        // ==================== CONTACT MESSAGES (NEW) ====================
+        public async Task<IActionResult> Messages()
+        {
+            var messages = await _context.ContactMessages
+                .AsNoTracking()
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+
+            return View(messages);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleRead(int id)
+        {
+            var message = await _context.ContactMessages.FindAsync(id);
+            if (message == null)
+                return NotFound();
+
+            message.IsRead = !message.IsRead;
+            message.ReadAt = message.IsRead ? DateTime.UtcNow : null;
+            await _context.SaveChangesAsync();
+
+            _messageCache.Invalidate();
+
+            TempData["Success"] = message.IsRead
+                ? "Marked as read."
+                : "Marked as unread.";
+
+            return RedirectToAction(nameof(Messages));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMessage(int id)
+        {
+            var message = await _context.ContactMessages.FindAsync(id);
+            if (message == null)
+                return NotFound();
+
+            _context.ContactMessages.Remove(message);
+            await _context.SaveChangesAsync();
+
+            _messageCache.Invalidate();
+
+            TempData["Success"] = "Message deleted.";
+            return RedirectToAction(nameof(Messages));
         }
     }
 }

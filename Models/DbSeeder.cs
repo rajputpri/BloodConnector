@@ -80,9 +80,9 @@ public static class DbSeeder
 
         var donors = new[]
         {
-            new Donor { Name = "Pawan",      BloodGroup = "AB-", Location = "Bihar",       ContactNumber = "1234567890", IsAvailable = true },
-            new Donor { Name = "Ravi Kumar", BloodGroup = "O+",  Location = "Gujarat",     ContactNumber = "4535393458", IsAvailable = true },
-            new Donor { Name = "Ramesh",     BloodGroup = "B+",  Location = "Maharashtra", ContactNumber = "9876543210", IsAvailable = true },
+            new Donor { Name = "Pawan",      BloodGroup = "AB-", State = "Bihar",       Location = "Bihar",       ContactNumber = "1234567890", IsAvailable = true },
+            new Donor { Name = "Ravi Kumar", BloodGroup = "O+",  State = "Gujarat",     Location = "Gujarat",     ContactNumber = "4535393458", IsAvailable = true },
+            new Donor { Name = "Ramesh",     BloodGroup = "B+",  State = "Maharashtra", Location = "Maharashtra", ContactNumber = "9876543210", IsAvailable = true },
         };
 
         context.Donors.AddRange(donors);

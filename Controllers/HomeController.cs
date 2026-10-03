@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using BloodConnect.Models;
+using BloodConnect.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,12 @@ namespace BloodConnect.Controllers
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly MessageCache _messageCache;
 
-        public HomeController(ApplicationDbContext context)
+        public HomeController(ApplicationDbContext context, MessageCache messageCache)
         {
             _context = context;
+            _messageCache = messageCache;
         }
 
         public async Task<IActionResult> Index()
@@ -51,14 +54,26 @@ namespace BloodConnect.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Contact(ContactViewModel model)
+        public async Task<IActionResult> Contact(ContactViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            // In production: integrate email service (SendGrid, SMTP, etc.)
-            // For now: log and show success
-            // var body = $"From: {model.Name} <{model.Email}>\nSubject: {model.Subject}\n\n{model.Message}";
+            var message = new ContactMessage
+            {
+                Name = model.Name.Trim(),
+                Email = model.Email.Trim(),
+                Subject = model.Subject.Trim(),
+                Message = model.Message.Trim(),
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            _context.ContactMessages.Add(message);
+            await _context.SaveChangesAsync();
+
+            // ✅ Invalidate admin badge cache — naya message aaya
+            _messageCache.Invalidate();
 
             TempData["Success"] = "Thank you! Your message has been received. We'll get back within 24 hours.";
             return RedirectToAction(nameof(Contact));

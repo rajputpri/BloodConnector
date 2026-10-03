@@ -133,6 +133,13 @@
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
+/* Top loader slide (minimal progress bar) */
+@keyframes loaderSlide {
+    0% { left: -35%; width: 35%; }
+    50% { left: 30%; width: 45%; }
+    100% { left: 100%; width: 35%; }
+}
+
 /* ═══════════════════════════════════════════════════════════
    PAGE TRANSITIONS
    ═══════════════════════════════════════════════════════════ */
@@ -191,22 +198,24 @@ main {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE LOADER — Blood drop fill
+   PAGE LOADER — Minimal top progress bar
+   (Fixed 3px bar at top. Only appears on slow navigation.)
+   Old markup children are hidden — no _Layout change needed.
    ═══════════════════════════════════════════════════════════ */
 
 .page-loader {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
     z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    background: var(--bc-cream);
+    background: transparent;
+    overflow: hidden;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 200ms, visibility 200ms;
+    transition: opacity 180ms ease, visibility 180ms ease;
+    pointer-events: none;
 }
 
 .page-loader.is-active {
@@ -214,37 +223,30 @@ main {
     visibility: visible;
 }
 
-.loader-drop {
-    position: relative;
-    width: 60px;
-    height: 80px;
+/* Hide old children (loader-drop, loader-text) if still present in markup */
+.page-loader .loader-drop,
+.page-loader .loader-text {
+    display: none !important;
 }
 
-.loader-drop svg {
-    width: 100%;
+/* Animated gradient sweep */
+.page-loader::before {
+    content: "";
+    position: absolute;
+    top: 0;
     height: 100%;
-    filter: drop-shadow(0 8px 24px rgba(220, 38, 38, 0.35));
-}
-
-.loader-drop .drop-outline {
-    fill: #fff;
-    stroke: var(--bc-primary);
-    stroke-width: 1.5;
-    stroke-dasharray: 4 3;
-}
-
-.loader-drop .drop-fill {
-    fill: var(--bc-primary);
-    transform-origin: center bottom;
-    animation: dropFill 1.2s var(--ease-in-out) infinite;
-}
-
-.loader-text {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--bc-text-muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    width: 35%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--bc-primary) 30%,
+        var(--bc-gold) 60%,
+        var(--bc-primary) 90%,
+        transparent 100%
+    );
+    animation: loaderSlide 1s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.55),
+                0 0 4px rgba(212, 162, 76, 0.7);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -597,6 +599,7 @@ main {
         transition-duration: 0.01ms !important;
     }
 }
+
 /* ═══════════════════════════════════════════════════════════
    PREMIUM LAYER — 3D tilt, magnetic buttons, cursor glow
    ═══════════════════════════════════════════════════════════ */

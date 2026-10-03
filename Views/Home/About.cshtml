@@ -6,168 +6,962 @@
     var totalUsers = (int)(ViewBag.TotalUsers ?? 0);
 }
 
-<!-- HERO -->
-<section class="about-hero">
-    <div class="container">
-        <div class="about-hero-content">
-            <span class="section-eyebrow">ABOUT BLOODCONNECT</span>
-            <h1 class="about-hero-title">
-                Built by students.<br />
-                Powered by <em>compassion.</em>
+<link rel="stylesheet" href="~/css/about.css" asp-append-version="true" />
+
+<div class="pulse-page">
+
+    <!-- ==================== HERO ==================== -->
+    <section class="pulse-hero">
+        <canvas class="pulse-hero-canvas" id="heroCanvas"></canvas>
+
+        <svg class="pulse-hero-ekg" viewBox="0 0 1440 140" preserveAspectRatio="none">
+            <path d="M0,70 L240,70 L260,70 L280,48 L300,92 L320,28 L345,112 L370,14 L395,70 L700,70 L720,70 L740,50 L760,90 L780,30 L805,110 L830,16 L855,70 L1160,70 L1180,70 L1200,48 L1220,92 L1240,28 L1265,112 L1290,14 L1315,70 L1440,70" />
+        </svg>
+
+        <div class="pulse-hero-inner">
+            <div class="pulse-hero-hud">
+                <span class="pulse-hero-hud-dot"></span>
+                <span class="pulse-hero-hud-label">Live Network</span>
+                <span class="pulse-hero-hud-divider"></span>
+                <span class="pulse-hero-hud-label">BPM</span>
+                <span class="pulse-hero-hud-value" id="bpmValue">072 · SINUS RHYTHM</span>
+            </div>
+
+            <h1 class="pulse-hero-title">
+                <span class="pulse-line pulse-line-1">
+                    <span class="pulse-word">Every</span>
+                    <span class="pulse-word">second,</span>
+                    <span class="pulse-word">someone</span>
+                </span>
+                <span class="pulse-line pulse-line-2">
+                    <span class="pulse-word">somewhere</span>
+                    <span class="pulse-word">needs</span>
+                    <span class="pulse-word accent">blood.</span>
+                </span>
+                <span class="pulse-line pulse-line-3">
+                    <span class="pulse-word">We</span>
+                    <span class="pulse-word">answer.</span>
+                </span>
             </h1>
-            <p class="about-hero-sub">
-                BloodConnect is a free, verified, real-time blood donation network — connecting
-                donors with patients in their most urgent moments. No middlemen. No fees. No delays.
+
+            <p class="pulse-hero-sub">
+                BloodConnect is a free, real-time, verified blood donation network — connecting
+                donors with patients in their most urgent moments. <strong>No middlemen. No fees. No delays.</strong>
             </p>
-        </div>
-    </div>
-</section>
 
-<div class="container py-5">
-
-    <!-- STATS STRIP -->
-    <div class="about-stats">
-        <div class="about-stat">
-            <div class="about-stat-value">@totalUsers+</div>
-            <div class="about-stat-label">Registered Users</div>
-        </div>
-        <div class="about-stat">
-            <div class="about-stat-value">@totalDonors+</div>
-            <div class="about-stat-label">Active Donors</div>
-        </div>
-        <div class="about-stat">
-            <div class="about-stat-value">@fulfilled</div>
-            <div class="about-stat-label">Requests Fulfilled</div>
-        </div>
-        <div class="about-stat">
-            <div class="about-stat-value">@livesTouched+</div>
-            <div class="about-stat-label">Lives Touched</div>
-        </div>
-    </div>
-
-    <!-- MISSION -->
-    <section class="about-section">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <span class="section-eyebrow">OUR MISSION</span>
-                <h2 class="about-title">Every second counts when blood is needed.</h2>
-                <p class="about-text">
-                    In emergencies, finding a matching blood donor within minutes can mean the
-                    difference between life and death. Traditional methods — phone calls, WhatsApp
-                    groups, word of mouth — are slow and unreliable.
-                </p>
-                <p class="about-text">
-                    BloodConnect solves this with a real-time, verified, pledge-based matching
-                    system. Donors pledge, requesters confirm, and every donation is transparent.
-                </p>
-            </div>
-            <div class="col-lg-6">
-                <div class="about-quote">
-                    <div class="about-quote-mark">"</div>
-                    <p>
-                        We believe access to safe blood is a fundamental right — not a privilege
-                        decided by luck, geography, or connections.
-                    </p>
-                    <div class="about-quote-author">— The BloodConnect Team</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PRINCIPLES -->
-    <section class="about-section">
-        <div class="section-head">
-            <span class="section-eyebrow">WHAT WE STAND FOR</span>
-            <h2 class="section-title">Our Principles</h2>
-        </div>
-
-        <div class="principles-grid">
-            <div class="principle-card">
-                <div class="principle-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <h3>Verified Matching</h3>
-                <p>Donors pledge, requesters confirm — no fake fulfillments, no impersonation.</p>
-            </div>
-            <div class="principle-card">
-                <div class="principle-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                </div>
-                <h3>Privacy First</h3>
-                <p>Contact info revealed only after both parties mutually agree to a match.</p>
-            </div>
-            <div class="principle-card">
-                <div class="principle-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                </div>
-                <h3>Zero Cost</h3>
-                <p>Free forever. No premium tiers, no hidden charges, no ads. Ever.</p>
-            </div>
-            <div class="principle-card">
-                <div class="principle-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <h3>Real-Time</h3>
-                <p>Live request status — Open, Pledged, Accepted, or Fulfilled. Always accurate.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- TIMELINE -->
-    <section class="about-section">
-        <div class="section-head">
-            <span class="section-eyebrow">HOW WE GOT HERE</span>
-            <h2 class="section-title">Our Story</h2>
-        </div>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <div class="timeline-date">The Beginning</div>
-                    <h4>The Problem</h4>
-                    <p>Watching a family scramble for blood donors during an emergency sparked the idea.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <div class="timeline-date">The Build</div>
-                    <h4>BloodConnect v1</h4>
-                    <p>Built with ASP.NET Core, EF Core, and a lot of late nights. Focused on simplicity and trust.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <div class="timeline-date">Today</div>
-                    <h4>Growing Network</h4>
-                    <p>@totalDonors+ donors and counting. Every pledge brings us closer to a world with zero blood shortages.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot timeline-dot-future"></div>
-                <div class="timeline-content">
-                    <div class="timeline-date">The Future</div>
-                    <h4>Pan-India Reach</h4>
-                    <p>Mobile apps, hospital integrations, and 24×7 availability — coming soon.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="about-cta">
-        <div class="about-cta-content">
-            <h2>Be part of the mission.</h2>
-            <p>One donation can save up to three lives. Start today.</p>
-            <div class="d-flex gap-2 justify-content-center flex-wrap">
-                <a asp-controller="Donor" asp-action="Create" class="btn-cta-primary">
+            <div class="pulse-hero-actions">
+                <a asp-controller="Donor" asp-action="Create" class="pulse-btn pulse-btn-primary">
                     Become a Donor
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
-                <a asp-controller="Home" asp-action="Contact" class="btn-cta-secondary">
+                <a asp-controller="Home" asp-action="Contact" class="pulse-btn pulse-btn-ghost">
+                    Get in Touch
+                </a>
+            </div>
+        </div>
+
+        <div class="pulse-scroll-cue">
+            <span>Scroll</span>
+            <div class="pulse-scroll-cue-line"></div>
+        </div>
+    </section>
+
+    <!-- ==================== DIVIDER (replaces marquee) ==================== -->
+    <div class="pulse-divider" aria-hidden="true">
+        <svg class="pulse-divider-ekg" viewBox="0 0 1440 90" preserveAspectRatio="none">
+            <path d="M0,45 L240,45 L260,45 L280,30 L300,60 L320,18 L345,72 L370,10 L395,45 L700,45 L720,45 L740,30 L760,60 L780,18 L805,72 L830,10 L855,45 L1160,45 L1180,45 L1200,30 L1220,60 L1240,18 L1265,72 L1290,10 L1315,45 L1440,45" />
+        </svg>
+        <span class="pulse-divider-label">Every Drop · Every Life</span>
+    </div>
+
+    <!-- ==================== MANIFESTO ==================== -->
+    <section class="pulse-manifesto">
+        <div class="pulse-manifesto-inner">
+            <span class="pulse-eyebrow pulse-reveal">Our Mission</span>
+            <h2 class="pulse-manifesto-title pulse-reveal">
+                Blood doesn't wait.<br />
+                Neither should <em>finding it.</em>
+            </h2>
+
+            <div class="pulse-statements">
+                <div class="pulse-statement">
+                    <span class="pulse-statement-num">01</span>
+                    <p class="pulse-statement-text">
+                        Every second wasted searching for a donor is a second the patient
+                        can't afford. <em>We built this to fix that.</em>
+                    </p>
+                </div>
+                <div class="pulse-statement">
+                    <span class="pulse-statement-num">02</span>
+                    <p class="pulse-statement-text">
+                        Not a directory. Not a WhatsApp group. A <em>real-time network</em>
+                        where donors pledge and patients confirm — every match transparent.
+                    </p>
+                </div>
+                <div class="pulse-statement">
+                    <span class="pulse-statement-num">03</span>
+                    <p class="pulse-statement-text">
+                        Free, forever. No premium tier. No data selling. No ads.
+                        Because <em>blood isn't a business.</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROBLEM ==================== -->
+    <section class="pulse-problem">
+        <div class="pulse-container">
+            <div class="pulse-problem-head pulse-reveal">
+                <span class="pulse-eyebrow">The Problem</span>
+                <h2 class="pulse-h2">Why blood donation needs <em>a better system.</em></h2>
+                <p class="pulse-lead">
+                    Every day, thousands of patients in India struggle to find compatible donors in time.
+                </p>
+            </div>
+
+            <div class="pulse-problem-grid">
+                <div class="tilt-card pulse-reveal" data-delay="1">
+                    <span class="tilt-card-num">01 / TIME</span>
+                    <div class="tilt-card-inner">
+                        <div class="tilt-card-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h3>Time is critical</h3>
+                        <p>
+                            In emergencies, every minute counts. Scattered phone calls and
+                            WhatsApp messages waste precious hours that could be saved by one search.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tilt-card pulse-reveal" data-delay="2">
+                    <span class="tilt-card-num">02 / TRUST</span>
+                    <div class="tilt-card-inner">
+                        <div class="tilt-card-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <h3>No trust, no verification</h3>
+                        <p>
+                            Unverified groups and random contacts mean fake promises and wasted
+                            time. There's no way to know if a donor will actually show up.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tilt-card pulse-reveal" data-delay="3">
+                    <span class="tilt-card-num">03 / MATCH</span>
+                    <div class="tilt-card-inner">
+                        <div class="tilt-card-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <h3>Wrong blood matching</h3>
+                        <p>
+                            Not everyone knows compatibility rules. O− is the universal donor,
+                            AB+ the universal receiver — but most people don't know who can give to whom.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== IMPACT SIMULATOR ⭐ NEW ==================== -->
+    <section class="pulse-simulator">
+        <div class="pulse-container">
+            <div class="pulse-simulator-head pulse-reveal">
+                <span class="pulse-eyebrow">Impact Simulator</span>
+                <h2 class="pulse-h2">See what <em>your donations</em> could do.</h2>
+                <p class="pulse-lead">
+                    Drag the slider. Watch your impact unfold.
+                </p>
+            </div>
+
+            <div class="simulator-card pulse-reveal" data-delay="1">
+                <div class="simulator-slider-head">
+                    <span class="simulator-slider-label">Donations per year</span>
+                    <div class="simulator-slider-value">
+                        <span id="simDonations">12</span><small>DONATIONS</small>
+                    </div>
+                </div>
+
+                <input type="range" min="1" max="50" value="12" class="simulator-range" id="simRange" aria-label="Donations per year" />
+
+                <div class="simulator-outputs">
+                    <div class="simulator-output">
+                        <div class="simulator-output-value" id="simLives">0</div>
+                        <div class="simulator-output-label">Lives Saved</div>
+                    </div>
+                    <div class="simulator-output">
+                        <div class="simulator-output-value"><span id="simBlood">0</span><small>ML</small></div>
+                        <div class="simulator-output-label">Blood Collected</div>
+                    </div>
+                    <div class="simulator-output">
+                        <div class="simulator-output-value" id="simGroups">0</div>
+                        <div class="simulator-output-label">Blood Groups Helped</div>
+                    </div>
+                    <div class="simulator-output">
+                        <div class="simulator-output-value" id="simPatients">0</div>
+                        <div class="simulator-output-label">Patients Reached</div>
+                    </div>
+                </div>
+
+                <div class="simulator-visual">
+                    <svg class="simulator-visual-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2c-1.5 3-6 7-6 11.5a6 6 0 0 0 12 0C18 9 13.5 5 12 2z"/>
+                    </svg>
+                    <div class="simulator-visual-text">
+                        Each donation gives roughly <strong>350 mL</strong> of blood — enough to help up to <strong>3 patients</strong>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== BLOOD COMPATIBILITY ==================== -->
+    <section class="pulse-compat">
+        <div class="pulse-container">
+            <div class="pulse-compat-head pulse-reveal">
+                <span class="pulse-eyebrow">Blood Compatibility</span>
+                <h2 class="pulse-h2">Tap any blood group.<br /><em>See the network.</em></h2>
+                <p class="pulse-lead">
+                    Compatibility isn't guesswork. It's medical science — and we've made it visual.
+                </p>
+                <div class="pulse-compat-hint">
+                    <span class="pulse-compat-hint-dot"></span>
+                    Click a cell to explore
+                </div>
+            </div>
+
+            <div class="pulse-compat-canvas" id="compatCanvas">
+                <svg class="pulse-compat-svg" id="compatSvg"></svg>
+
+                <div class="pulse-compat-grid" id="compatGrid">
+                    <div class="pulse-blood-cell" data-group="O-">O−</div>
+                    <div class="pulse-blood-cell" data-group="O+">O+</div>
+                    <div class="pulse-blood-cell" data-group="A-">A−</div>
+                    <div class="pulse-blood-cell" data-group="A+">A+</div>
+                    <div class="pulse-blood-cell" data-group="B-">B−</div>
+                    <div class="pulse-blood-cell" data-group="B+">B+</div>
+                    <div class="pulse-blood-cell" data-group="AB-">AB−</div>
+                    <div class="pulse-blood-cell" data-group="AB+">AB+</div>
+                </div>
+            </div>
+
+            <div class="pulse-compat-result" id="compatResult">
+                <span>Select a blood group above to see who can donate to whom.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== BLOOD CELL EXPLORER ⭐ NEW ==================== -->
+    <section class="pulse-explorer">
+        <div class="pulse-container">
+            <div class="pulse-explorer-head pulse-reveal">
+                <span class="pulse-eyebrow">Inside A Blood Cell</span>
+                <h2 class="pulse-h2">One drop. <em>A universe of life.</em></h2>
+                <p class="pulse-lead">
+                    Every drop of blood carries billions of cells with their own story.
+                </p>
+            </div>
+
+            <div class="explorer-stage">
+                <div class="explorer-cell-wrap pulse-reveal">
+                    <div class="explorer-cell"></div>
+                    <div class="explorer-orbit"></div>
+
+                    <div class="explorer-core-label">
+                        <div class="explorer-core-value" id="explorerValue">120</div>
+                        <div class="explorer-core-unit" id="explorerUnit">days lifespan</div>
+                    </div>
+
+                    <div class="explorer-hotspot is-active" data-pos="tl" data-key="lifespan">
+                        <span class="explorer-hotspot-label">Lifespan</span>
+                    </div>
+                    <div class="explorer-hotspot" data-pos="tr" data-key="volume">
+                        <span class="explorer-hotspot-label">Blood Volume</span>
+                    </div>
+                    <div class="explorer-hotspot" data-pos="bl" data-key="donation">
+                        <span class="explorer-hotspot-label">Per Donation</span>
+                    </div>
+                    <div class="explorer-hotspot" data-pos="br" data-key="impact">
+                        <span class="explorer-hotspot-label">Impact</span>
+                    </div>
+                </div>
+
+                <div class="explorer-info pulse-reveal" data-delay="1">
+                    <div class="explorer-info-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-1.5 3-6 7-6 11.5a6 6 0 0 0 12 0C18 9 13.5 5 12 2z"/></svg>
+                        <span id="explorerBadge">Lifespan</span>
+                    </div>
+                    <h3 class="explorer-info-title" id="explorerTitle">
+                        Red blood cells live for about <em>120 days</em>.
+                    </h3>
+                    <p class="explorer-info-body" id="explorerBody">
+                        Your body constantly replaces old cells with new ones. That's why a single donation
+                        never puts you at risk — your body rebuilds the lost blood in weeks, not months.
+                        Donating regularly is safe, healthy, and saves lives.
+                    </p>
+
+                    <div class="explorer-info-stats">
+                        <div class="explorer-info-stat">
+                            <div class="explorer-info-stat-value">120</div>
+                            <div class="explorer-info-stat-label">Days of life</div>
+                        </div>
+                        <div class="explorer-info-stat">
+                            <div class="explorer-info-stat-value">2M+</div>
+                            <div class="explorer-info-stat-label">Cells per second</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== DONATION JOURNEY ⭐ NEW ==================== -->
+    <section class="pulse-journey">
+        <div class="pulse-container">
+            <div class="pulse-journey-head pulse-reveal">
+                <span class="pulse-eyebrow">The Journey</span>
+                <h2 class="pulse-h2">From a click to <em>a life saved.</em></h2>
+                <p class="pulse-lead">
+                    Four steps. Real time. Real impact.
+                </p>
+            </div>
+
+            <div class="journey-track">
+                <div class="journey-line"></div>
+
+                <div class="journey-step pulse-reveal" data-delay="1">
+                    <div class="journey-step-icon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                    <div class="journey-step-num">Step 01</div>
+                    <h3>Find a request</h3>
+                    <p>Patients post their need. Donors search by blood group and location.</p>
+                </div>
+
+                <div class="journey-step pulse-reveal" data-delay="2">
+                    <div class="journey-step-icon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <div class="journey-step-num">Step 02</div>
+                    <h3>Pledge to help</h3>
+                    <p>Donors click "I can donate". A verified offer is created — both sides see it.</p>
+                </div>
+
+                <div class="journey-step pulse-reveal" data-delay="3">
+                    <div class="journey-step-icon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="journey-step-num">Step 03</div>
+                    <h3>Get matched</h3>
+                    <p>Requester reviews offers and accepts. Others are informed automatically.</p>
+                </div>
+
+                <div class="journey-step pulse-reveal" data-delay="4">
+                    <div class="journey-step-icon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <div class="journey-step-num">Step 04</div>
+                    <h3>Save a life</h3>
+                    <p>Donation complete. Both confirm. Request fulfilled. Three lives touched.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== NUMBERS ==================== -->
+    <section class="pulse-numbers">
+        <div class="pulse-numbers-head pulse-reveal">
+            <span class="pulse-eyebrow">Real Numbers</span>
+            <h2 class="pulse-h2">Not vanity metrics. <em>Actual impact.</em></h2>
+        </div>
+
+        <div class="pulse-numbers-grid">
+            <div class="pulse-number pulse-reveal" data-delay="1">
+                <div class="pulse-number-value"><span data-count="@totalUsers">0</span></div>
+                <div class="pulse-number-label">Registered Users</div>
+            </div>
+            <div class="pulse-number pulse-reveal" data-delay="2">
+                <div class="pulse-number-value"><span data-count="@totalDonors">0</span></div>
+                <div class="pulse-number-label">Active Donors</div>
+            </div>
+            <div class="pulse-number pulse-reveal" data-delay="3">
+                <div class="pulse-number-value"><span data-count="@fulfilled">0</span></div>
+                <div class="pulse-number-label">Requests Fulfilled</div>
+            </div>
+            <div class="pulse-number pulse-reveal" data-delay="4">
+                <div class="pulse-number-value"><span data-count="@livesTouched">0</span><span class="plus">+</span></div>
+                <div class="pulse-number-label">Lives Touched</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TIMELINE ==================== -->
+    <section class="pulse-timeline">
+        <div class="pulse-timeline-head pulse-reveal">
+            <span class="pulse-eyebrow">Our Story</span>
+            <h2 class="pulse-h2">From an idea to <em>a promise.</em></h2>
+        </div>
+
+        <div class="pulse-timeline-track-wrap">
+            <svg class="pulse-timeline-ekg" viewBox="0 0 1440 100" preserveAspectRatio="none">
+                <path d="M0,50 L240,50 L260,50 L280,35 L300,65 L320,18 L345,82 L370,10 L395,50 L700,50 L720,50 L740,35 L760,65 L780,18 L805,82 L830,10 L855,50 L1160,50 L1180,50 L1200,35 L1220,65 L1240,18 L1265,82 L1290,10 L1315,50 L1440,50" />
+            </svg>
+
+            <div class="pulse-timeline-track" id="timelineTrack">
+                <div class="pulse-milestone">
+                    <div class="pulse-milestone-num">Chapter I · The Beginning</div>
+                    <h4>A problem worth solving</h4>
+                    <p>
+                        Watching a family scramble for blood donors during an emergency sparked
+                        a simple question — why isn't this easier in 2026?
+                    </p>
+                </div>
+
+                <div class="pulse-milestone">
+                    <div class="pulse-milestone-num">Chapter II · The Build</div>
+                    <h4>Late nights. Real code.</h4>
+                    <p>
+                        ASP.NET Core, EF Core, Identity, blood compatibility logic. Every
+                        feature was built asking — would this actually help someone at 3 AM?
+                    </p>
+                </div>
+
+                <div class="pulse-milestone">
+                    <div class="pulse-milestone-num">Chapter III · Today</div>
+                    <h4>@totalDonors donors. And counting.</h4>
+                    <p>
+                        A working network with real pledges, real matches, and real stories
+                        of people who showed up when it mattered most.
+                    </p>
+                </div>
+
+                <div class="pulse-milestone future">
+                    <div class="pulse-milestone-num">Chapter IV · The Future</div>
+                    <h4>Pan-India. Then everywhere.</h4>
+                    <p>
+                        Mobile apps, hospital integrations, and 24×7 availability. A world
+                        where no one dies waiting for blood.
+                    </p>
+                </div>
+            </div>
+
+            <div class="pulse-timeline-hint">Drag · Scroll · Explore</div>
+        </div>
+    </section>
+
+    <!-- ==================== CTA ==================== -->
+    <section class="pulse-cta">
+        <svg class="pulse-cta-monitor" viewBox="0 0 1440 90" preserveAspectRatio="none">
+            <path d="M0,45 L240,45 L260,45 L280,32 L300,58 L320,15 L345,75 L370,8 L395,45 L700,45 L720,45 L740,32 L760,58 L780,15 L805,75 L830,8 L855,45 L1160,45 L1180,45 L1200,32 L1220,58 L1240,15 L1265,75 L1290,8 L1315,45 L1440,45" />
+        </svg>
+
+        <div class="pulse-cta-inner">
+            <h2 class="pulse-reveal">Be part of <em>the mission.</em></h2>
+            <p class="pulse-reveal" data-delay="1">
+                One donation can save up to three lives. The only thing standing between
+                a patient and a donor is a network. Help us build it.
+            </p>
+            <div class="pulse-cta-actions pulse-reveal" data-delay="2">
+                <a asp-controller="Donor" asp-action="Create" class="pulse-btn pulse-btn-primary">
+                    Become a Donor
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+                <a asp-controller="Home" asp-action="Contact" class="pulse-btn pulse-btn-ghost">
                     Get in Touch
                 </a>
             </div>
         </div>
     </section>
+
 </div>
+
+<script>
+    (function () {
+        'use strict';
+
+        // ============================================================
+        // 1. SCROLL REVEAL
+        // ============================================================
+        const reveals = document.querySelectorAll('.pulse-reveal, .pulse-statement');
+        const revealIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('is-in');
+                    revealIO.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -70px 0px' });
+        reveals.forEach(el => revealIO.observe(el));
+
+        // ============================================================
+        // 2. COUNTERS (numbers section)
+        // ============================================================
+        const counters = document.querySelectorAll('[data-count]');
+        const counterIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                const el = e.target;
+                const target = parseInt(el.dataset.count, 10) || 0;
+                const duration = 1800;
+                const start = performance.now();
+                const tick = (now) => {
+                    const p = Math.min((now - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - p, 4);
+                    el.textContent = Math.round(target * eased);
+                    if (p < 1) requestAnimationFrame(tick);
+                    else el.textContent = target;
+                };
+                requestAnimationFrame(tick);
+                counterIO.unobserve(el);
+            });
+        }, { threshold: 0.5 });
+        counters.forEach(el => counterIO.observe(el));
+
+        // ============================================================
+        // 3. HERO CANVAS — Blood rain
+        // ============================================================
+        const canvas = document.getElementById('heroCanvas');
+        if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const ctx = canvas.getContext('2d');
+            let W = 0, H = 0, drops = [];
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                W = canvas.offsetWidth;
+                H = canvas.offsetHeight;
+                canvas.width = W * dpr;
+                canvas.height = H * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function makeDrop(reset) {
+                return {
+                    x: Math.random() * W,
+                    y: reset ? -20 - Math.random() * 100 : Math.random() * H,
+                    vy: 0.6 + Math.random() * 1.6,
+                    r: 1.5 + Math.random() * 3.5,
+                    alpha: 0.25 + Math.random() * 0.5,
+                    wobble: Math.random() * Math.PI * 2,
+                    wobbleSpeed: 0.012 + Math.random() * 0.02
+                };
+            }
+            for (let i = 0; i < 40; i++) drops.push(makeDrop(false));
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                for (let i = 0; i < drops.length; i++) {
+                    const d = drops[i];
+                    d.wobble += d.wobbleSpeed;
+                    d.y += d.vy;
+                    d.x += Math.sin(d.wobble) * 0.4;
+
+                    const grd = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r * 6);
+                    grd.addColorStop(0, `rgba(239, 68, 68, ${d.alpha})`);
+                    grd.addColorStop(0.4, `rgba(220, 38, 38, ${d.alpha * 0.5})`);
+                    grd.addColorStop(1, 'rgba(220, 38, 38, 0)');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r * 6, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(248, 113, 113, ${d.alpha + 0.25})`;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = `rgba(220, 38, 38, ${d.alpha * 0.35})`;
+                    ctx.lineWidth = d.r * 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(d.x, d.y);
+                    ctx.lineTo(d.x, d.y - d.r * 5);
+                    ctx.stroke();
+
+                    if (d.y > H + 30) drops[i] = makeDrop(true);
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        // ============================================================
+        // 4. HERO BPM
+        // ============================================================
+        const bpmEl = document.getElementById('bpmValue');
+        if (bpmEl) {
+            let bpm = 72;
+            let dir = 1;
+            const rhythms = ['SINUS RHYTHM', 'SINUS RHYTHM', 'NORMAL', 'STABLE'];
+            let rhythmIdx = 0;
+
+            setInterval(() => {
+                bpm += dir * (Math.random() < 0.5 ? 1 : 2);
+                if (bpm >= 88) dir = -1;
+                if (bpm <= 66) dir = 1;
+                if (Math.random() < 0.2) rhythmIdx = (rhythmIdx + 1) % rhythms.length;
+                const padded = String(bpm).padStart(3, '0');
+                bpmEl.textContent = `${padded} · ${rhythms[rhythmIdx]}`;
+            }, 1600);
+        }
+
+        // ============================================================
+        // 5. 3D TILT
+        // ============================================================
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+            window.matchMedia('(hover: hover)').matches) {
+            document.querySelectorAll('.tilt-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const r = card.getBoundingClientRect();
+                    const x = e.clientX - r.left;
+                    const y = e.clientY - r.top;
+                    const cx = r.width / 2, cy = r.height / 2;
+                    const rotY = ((x - cx) / cx) * 8;
+                    const rotX = -((y - cy) / cy) * 8;
+
+                    card.style.setProperty('--mx', `${x}px`);
+                    card.style.setProperty('--my', `${y}px`);
+                    card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+                });
+            });
+        }
+
+        // ============================================================
+        // 6. IMPACT SIMULATOR
+        // ============================================================
+        const simRange = document.getElementById('simRange');
+        if (simRange) {
+            const elDonations = document.getElementById('simDonations');
+            const elLives = document.getElementById('simLives');
+            const elBlood = document.getElementById('simBlood');
+            const elGroups = document.getElementById('simGroups');
+            const elPatients = document.getElementById('simPatients');
+
+            // Store current displayed values for smooth interpolation
+            let displayed = { lives: 0, blood: 0, groups: 0, patients: 0 };
+            let target = { lives: 0, blood: 0, groups: 0, patients: 0 };
+
+            function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+
+            function pulse(el) {
+                el.classList.remove('is-pulsing');
+                void el.offsetWidth;
+                el.classList.add('is-pulsing');
+            }
+
+            function updateTargets(donations) {
+                // Each donation: saves ~3 lives, 350 mL blood, helps up to 3 patients
+                // Groups: mod 8 (only 8 blood groups exist), scaled
+                target.lives = donations * 3;
+                target.blood = donations * 350;
+                target.patients = donations * 2 + Math.floor(donations / 3);
+                target.groups = Math.min(8, donations);
+            }
+
+            function animateValues() {
+                const keys = ['lives', 'blood', 'groups', 'patients'];
+                const els = {
+                    lives: elLives, blood: elBlood, groups: elGroups, patients: elPatients
+                };
+                let changed = false;
+                keys.forEach(k => {
+                    const diff = target[k] - displayed[k];
+                    if (Math.abs(diff) > 0.5) {
+                        displayed[k] += diff * 0.15;
+                        els[k].textContent = Math.round(displayed[k]);
+                        changed = true;
+                    } else if (displayed[k] !== target[k]) {
+                        displayed[k] = target[k];
+                        els[k].textContent = target[k];
+                        changed = true;
+                    }
+                });
+                if (changed) requestAnimationFrame(animateValues);
+            }
+
+            function handleSlider() {
+                const val = parseInt(simRange.value, 10);
+                const pct = ((val - simRange.min) / (simRange.max - simRange.min)) * 100;
+                simRange.style.setProperty('--val', pct + '%');
+
+                elDonations.textContent = val;
+                updateTargets(val);
+
+                pulse(elLives);
+                pulse(elBlood);
+                pulse(elGroups);
+                pulse(elPatients);
+
+                requestAnimationFrame(animateValues);
+            }
+
+            simRange.addEventListener('input', handleSlider);
+            // initial
+            handleSlider();
+        }
+
+        // ============================================================
+        // 7. BLOOD COMPATIBILITY
+        // ============================================================
+        const compatMatrix = {
+            'O-':  ['O-'],
+            'O+':  ['O-', 'O+'],
+            'A-':  ['O-', 'A-'],
+            'A+':  ['O-', 'O+', 'A-', 'A+'],
+            'B-':  ['O-', 'B-'],
+            'B+':  ['O-', 'O+', 'B-', 'B+'],
+            'AB-': ['O-', 'A-', 'B-', 'AB-'],
+            'AB+': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']
+        };
+
+        const cells = document.querySelectorAll('.pulse-blood-cell');
+        const compatSvg = document.getElementById('compatSvg');
+        const compatResult = document.getElementById('compatResult');
+        const compatCanvas = document.getElementById('compatCanvas');
+
+        const norm = g => g.replace('−', '-');
+        const pretty = g => g.replace('-', '−');
+
+        function clearCompat() {
+            cells.forEach(c => c.classList.remove('is-active', 'is-receiver', 'is-donor', 'is-dim'));
+            compatSvg.innerHTML = '';
+            compatResult.classList.remove('is-in');
+        }
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                const group = norm(cell.dataset.group);
+                const donors = compatMatrix[group] || [];
+                const receivers = Object.keys(compatMatrix).filter(r => compatMatrix[r].includes(group));
+
+                clearCompat();
+                cell.classList.add('is-active');
+
+                cells.forEach(c => {
+                    const g = norm(c.dataset.group);
+                    if (g === group) return;
+                    if (donors.includes(g)) c.classList.add('is-receiver');
+                    else if (receivers.includes(g)) c.classList.add('is-donor');
+                    else c.classList.add('is-dim');
+                });
+
+                const canvasRect = compatCanvas.getBoundingClientRect();
+                const activeRect = cell.getBoundingClientRect();
+                const ax = activeRect.left + activeRect.width / 2 - canvasRect.left;
+                const ay = activeRect.top + activeRect.height / 2 - canvasRect.top;
+
+                compatSvg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
+
+                cells.forEach(c => {
+                    const g = norm(c.dataset.group);
+                    if (g === group) return;
+                    if (!donors.includes(g) && !receivers.includes(g)) return;
+
+                    const r = c.getBoundingClientRect();
+                    const bx = r.left + r.width / 2 - canvasRect.left;
+                    const by = r.top + r.height / 2 - canvasRect.top;
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', ax);
+                    line.setAttribute('y1', ay);
+                    line.setAttribute('x2', bx);
+                    line.setAttribute('y2', by);
+                    line.setAttribute('stroke', donors.includes(g) ? '#EF4444' : '#D4A24C');
+                    line.setAttribute('stroke-dasharray', '500');
+                    line.setAttribute('stroke-dashoffset', '500');
+                    line.setAttribute('opacity', '0.85');
+                    compatSvg.appendChild(line);
+                    requestAnimationFrame(() => line.classList.add('is-visible'));
+                });
+
+                const donorsText = donors.map(pretty).join(', ');
+                let extra = '';
+                if (group === 'O-') extra = ' · <span class="gold">Universal Donor</span>';
+                if (group === 'AB+') extra = ' · <span class="gold">Universal Receiver</span>';
+
+                compatResult.innerHTML =
+                    `<strong>${pretty(group)}</strong> can receive from ${donors.length} group${donors.length > 1 ? 's' : ''}: <strong>${donorsText}</strong>${extra}`;
+                compatResult.classList.add('is-in');
+            });
+        });
+
+        let autoCompat = false;
+        const compatIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting && !autoCompat) {
+                    autoCompat = true;
+                    setTimeout(() => {
+                        const f = document.querySelector('.pulse-blood-cell[data-group="O-"]');
+                        if (f) f.click();
+                    }, 600);
+                }
+            });
+        }, { threshold: 0.5 });
+        if (compatCanvas) compatIO.observe(compatCanvas);
+
+        // ============================================================
+        // 8. BLOOD CELL EXPLORER
+        // ============================================================
+        const explorerData = {
+            lifespan: {
+                value: '120',
+                unit: 'days lifespan',
+                badge: 'Lifespan',
+                title: 'Red blood cells live for about <em>120 days</em>.',
+                body: 'Your body constantly replaces old cells with new ones. That\'s why a single donation never puts you at risk — your body rebuilds the lost blood in weeks, not months. Donating regularly is safe, healthy, and saves lives.',
+                stat1v: '120', stat1l: 'Days of life',
+                stat2v: '2M+', stat2l: 'Cells per second'
+            },
+            volume: {
+                value: '5',
+                unit: 'liters total',
+                badge: 'Blood Volume',
+                title: 'An average adult carries <em>4.5 to 5.5 liters</em> of blood.',
+                body: 'That\'s roughly 7-8% of your entire body weight. Only about 350 mL is taken during a single donation — under 10% of your total volume. Your body replaces the plasma within 24 hours and the red cells within a few weeks.',
+                stat1v: '5L', stat1l: 'Total volume',
+                stat2v: '7-8%', stat2l: 'Of body weight'
+            },
+            donation: {
+                value: '350',
+                unit: 'ml per donation',
+                badge: 'Per Donation',
+                title: 'One donation is only <em>350 mL</em> — a small sip.',
+                body: 'A typical blood donation takes 8-10 minutes to collect. The whole process, including screening and rest, takes under an hour. In that hour, you could save up to three people.',
+                stat1v: '8-10', stat1l: 'Minutes to collect',
+                stat2v: '< 1 hr', stat2l: 'Total time'
+            },
+            impact: {
+                value: '3',
+                unit: 'lives saved',
+                badge: 'Impact',
+                title: 'One donation. <em>Three lives.</em>',
+                body: 'Blood can be separated into red cells, plasma, and platelets — three components, each going to a different patient. A single donation can help a surgery patient, a cancer fighter, and a newborn — all in one day.',
+                stat1v: '3', stat1l: 'Lives per donation',
+                stat2v: '1', stat2l: 'Donation needed'
+            }
+        };
+
+        const explorerValue = document.getElementById('explorerValue');
+        const explorerUnit = document.getElementById('explorerUnit');
+        const explorerBadge = document.getElementById('explorerBadge');
+        const explorerTitle = document.getElementById('explorerTitle');
+        const explorerBody = document.getElementById('explorerBody');
+        const hotspots = document.querySelectorAll('.explorer-hotspot');
+
+        let stats1v = document.querySelector('.explorer-info-stat:nth-child(1) .explorer-info-stat-value');
+        let stats1l = document.querySelector('.explorer-info-stat:nth-child(1) .explorer-info-stat-label');
+        let stats2v = document.querySelector('.explorer-info-stat:nth-child(2) .explorer-info-stat-value');
+        let stats2l = document.querySelector('.explorer-info-stat:nth-child(2) .explorer-info-stat-label');
+
+        function animateNumber(el, target) {
+            const start = parseInt(el.textContent, 10) || 0;
+            const isNumeric = !isNaN(start) && !isNaN(parseInt(target, 10));
+            if (!isNumeric) { el.textContent = target; return; }
+            const end = parseInt(target, 10);
+            const dur = 500;
+            const t0 = performance.now();
+            const tick = (now) => {
+                const p = Math.min((now - t0) / dur, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(start + (end - start) * eased);
+                if (p < 1) requestAnimationFrame(tick);
+                else el.textContent = target;
+            };
+            requestAnimationFrame(tick);
+        }
+
+        hotspots.forEach(h => {
+            h.addEventListener('click', () => {
+                const key = h.dataset.key;
+                const d = explorerData[key];
+                if (!d) return;
+
+                hotspots.forEach(x => x.classList.remove('is-active'));
+                h.classList.add('is-active');
+
+                // Fade-out-in effect
+                [explorerValue, explorerUnit, explorerBadge, explorerTitle, explorerBody].forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(6px)';
+                });
+
+                setTimeout(() => {
+                    explorerValue.textContent = d.value;
+                    explorerUnit.textContent = d.unit;
+                    explorerBadge.textContent = d.badge;
+                    explorerTitle.innerHTML = d.title;
+                    explorerBody.textContent = d.body;
+                    if (stats1v) stats1v.textContent = d.stat1v;
+                    if (stats1l) stats1l.textContent = d.stat1l;
+                    if (stats2v) stats2v.textContent = d.stat2v;
+                    if (stats2l) stats2l.textContent = d.stat2l;
+
+                    [explorerValue, explorerUnit, explorerBadge, explorerTitle, explorerBody].forEach(el => {
+                        el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    });
+                }, 200);
+            });
+        });
+
+        // ============================================================
+        // 9. TIMELINE DRAG
+        // ============================================================
+        const timeline = document.getElementById('timelineTrack');
+        if (timeline) {
+            let isDown = false, startX = 0, scrollStart = 0;
+            timeline.addEventListener('mousedown', (e) => {
+                isDown = true;
+                timeline.classList.add('is-dragging');
+                startX = e.pageX - timeline.offsetLeft;
+                scrollStart = timeline.scrollLeft;
+            });
+            ['mouseleave', 'mouseup'].forEach(evt =>
+                timeline.addEventListener(evt, () => {
+                    isDown = false;
+                    timeline.classList.remove('is-dragging');
+                })
+            );
+            timeline.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const walk = (e.pageX - timeline.offsetLeft - startX) * 1.4;
+                timeline.scrollLeft = scrollStart - walk;
+            });
+            timeline.addEventListener('wheel', (e) => {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    e.preventDefault();
+                    timeline.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+        }
+
+        // ============================================================
+        // 10. HERO PARALLAX
+        // ============================================================
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+            window.matchMedia('(min-width: 1024px)').matches) {
+            const heroContent = document.querySelector('.pulse-hero-inner');
+            let raf = null;
+            window.addEventListener('scroll', () => {
+                if (raf) return;
+                raf = requestAnimationFrame(() => {
+                    const y = window.scrollY;
+                    if (y < 800 && heroContent) {
+                        heroContent.style.transform = `translateY(${y * 0.15}px)`;
+                        heroContent.style.opacity = String(Math.max(0, 1 - y / 900));
+                    }
+                    raf = null;
+                });
+            }, { passive: true });
+        }
+
+    })();
+</script>

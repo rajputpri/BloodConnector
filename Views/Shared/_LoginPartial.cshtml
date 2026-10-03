@@ -1,7 +1,10 @@
 @using Microsoft.AspNetCore.Identity
 @using BloodConnect.Models
+@using BloodConnect.Services
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
+@inject MessageCache MessageCache
+@inject ApplicationDbContext DbContext
 
 @if (SignInManager.IsSignedIn(User))
 {
@@ -10,10 +13,21 @@
     var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
     var isSuperAdmin = User.IsInRole("SuperAdmin");
 
+    var unreadMessages = 0;
+    if (isAdmin)
+    {
+        // ✅ Cached — max 1 DB query per 60s per app instance
+        unreadMessages = await MessageCache.GetUnreadCountAsync(DbContext);
+    }
+
     <div class="dropdown">
         <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button"
                 data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
             @displayName
+            @if (isAdmin && unreadMessages > 0)
+            {
+                <span class="nav-msg-badge" title="@unreadMessages unread message(s)">@unreadMessages</span>
+            }
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
             <li>
@@ -30,6 +44,16 @@
                     <a class="dropdown-item fw-bold text-danger" asp-controller="Admin" asp-action="Index">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                         Admin Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" asp-controller="Admin" asp-action="Messages">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <span class="ms-2">Messages</span>
+                        @if (unreadMessages > 0)
+                        {
+                            <span class="ms-auto badge rounded-pill bg-danger">@unreadMessages</span>
+                        }
                     </a>
                 </li>
                 <li>
@@ -70,6 +94,27 @@
             </li>
         </ul>
     </div>
+
+    <style>
+        .nav-msg-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: var(--bc-primary, #DC2626);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 1;
+            vertical-align: middle;
+            animation: pulseSoft 1.6s ease-in-out infinite;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+    </style>
 }
 else
 {

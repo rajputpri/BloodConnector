@@ -19,7 +19,6 @@ namespace BloodConnect.Controllers
             _userManager = userManager;
         }
 
-        // ----- Helpers -----
         private string? CurrentUserId => _userManager.GetUserId(User);
         private bool IsAdmin => User.IsInRole(DbSeeder.AdminRole) || User.IsInRole(DbSeeder.SuperAdminRole);
 
@@ -35,11 +34,24 @@ namespace BloodConnect.Controllers
             return CanEditDonor(donor);
         }
 
-        // ----- Public: List & Search -----
+        // ✅ NEW — State dropdown + City ka server-side check (Create & Edit dono me use hota hai)
+        private void ValidateStateAndCity(Donor donor)
+        {
+            donor.State = donor.State?.Trim();
+            donor.City = donor.City?.Trim();
+
+            if (!DomainValues.IsValidState(donor.State))
+                ModelState.AddModelError(nameof(Donor.State), "Please select a valid state.");
+
+            if (string.IsNullOrWhiteSpace(donor.City))
+                ModelState.AddModelError(nameof(Donor.City), "City is required.");
+            else if (donor.City.Length < 2)
+                ModelState.AddModelError(nameof(Donor.City), "City must be 2-50 characters.");
+        }
+
         public async Task<IActionResult> Index()
         {
             var userId = CurrentUserId;
-
             var myDonorId = string.IsNullOrEmpty(userId)
                 ? (int?)null
                 : await _context.Donors
@@ -61,38 +73,38 @@ namespace BloodConnect.Controllers
         public async Task<IActionResult> Search(
             string? bloodGroup,
             string? location,
+            string? state,
             bool exactMatch = false)
         {
-            var query = _context.Donors
-                .AsNoTracking()
-                .Where(d => d.IsAvailable);
-
-            // ✅ Blood group compatibility filter
+            var query = _context.Donors.AsNoTracking().Where(d => d.IsAvailable);
             var compatibleGroups = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(bloodGroup) && BloodCompatibility.IsValid(bloodGroup))
             {
                 if (exactMatch)
                 {
-                    // Exact match — only same blood group
                     query = query.Where(d => d.BloodGroup == bloodGroup);
                     compatibleGroups.Add(bloodGroup);
                 }
                 else
                 {
-                    // Compatible match — all groups that can donate to this patient
                     var groups = BloodCompatibility.CompatibleDonorsFor(bloodGroup).ToList();
                     query = query.Where(d => groups.Contains(d.BloodGroup));
                     compatibleGroups = groups;
                 }
             }
 
+            // ✅ NEW — exact State filter. Purane donors (State = NULL) ke liye Location text se fallback.
+            if (!string.IsNullOrWhiteSpace(state) && DomainValues.IsValidState(state))
+                query = query.Where(d => d.State == state
+                                      || (d.State == null && d.Location.Contains(state)));
+
             if (!string.IsNullOrWhiteSpace(location))
                 query = query.Where(d => d.Location.Contains(location));
 
-            // ViewBag for UI
             ViewBag.SelectedBloodGroup = bloodGroup;
             ViewBag.SelectedLocation = location;
+            ViewBag.SelectedState = state;
             ViewBag.ExactMatch = exactMatch;
             ViewBag.CompatibleGroups = compatibleGroups;
             ViewBag.IsCompatibleSearch = !exactMatch
@@ -107,7 +119,6 @@ namespace BloodConnect.Controllers
                     .Select(d => (int?)d.DonorId)
                     .FirstOrDefaultAsync();
 
-            // Ordering: in compatibility mode, show exact matches first, then by donor id
             var results = await query
                 .OrderByDescending(d => d.BloodGroup == bloodGroup)
                 .ThenByDescending(d => d.DonorId)
@@ -116,15 +127,12 @@ namespace BloodConnect.Controllers
             return View("Index", results);
         }
 
-        // ----- Create (1 per user) -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Create()
         {
             var userId = CurrentUserId!;
-
-            var existing = await _context.Donors
-                .FirstOrDefaultAsync(d => d.UserId == userId);
+            var existing = await _context.Donors.FirstOrDefaultAsync(d => d.UserId == userId);
 
             if (existing != null)
             {
@@ -148,14 +156,29 @@ namespace BloodConnect.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // ✅ Age mandatory for new donor registration (custom server-side validation)
+            if (!donor.Age.HasValue)
+            {
+                ModelState.AddModelError(nameof(Donor.Age), "Age is required to register as a donor.");
+            }
+            else if (donor.Age.Value < 18 || donor.Age.Value > 65)
+            {
+                ModelState.AddModelError(nameof(Donor.Age), "Donor age must be between 18 and 65 years.");
+            }
+
             ModelState.Remove(nameof(Donor.UserId));
             ModelState.Remove(nameof(Donor.User));
+
+            // ✅ NEW — Location form se nahi aata, State + City se banega
+            ModelState.Remove(nameof(Donor.Location));
+            ValidateStateAndCity(donor);
 
             if (!ModelState.IsValid)
                 return View(donor);
 
             try
             {
+                donor.Location = DomainValues.BuildLocation(donor.City!, donor.State!);
                 donor.UserId = userId;
                 _context.Donors.Add(donor);
                 await _context.SaveChangesAsync();
@@ -170,7 +193,6 @@ namespace BloodConnect.Controllers
             }
         }
 
-        // ----- Edit (OWNER ONLY) -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Edit(int id)
@@ -195,14 +217,21 @@ namespace BloodConnect.Controllers
             ModelState.Remove(nameof(Donor.UserId));
             ModelState.Remove(nameof(Donor.User));
 
+            // ✅ NEW — Location form se nahi aata, State + City se banega
+            ModelState.Remove(nameof(Donor.Location));
+            ValidateStateAndCity(donor);
+
             if (!ModelState.IsValid)
                 return View(donor);
 
             try
             {
                 existing.Name = donor.Name;
+                existing.Age = donor.Age;
                 existing.BloodGroup = donor.BloodGroup;
-                existing.Location = donor.Location;
+                existing.State = donor.State;       // ✅ NEW
+                existing.City = donor.City;         // ✅ NEW
+                existing.Location = DomainValues.BuildLocation(donor.City!, donor.State!); // ✅ NEW
                 existing.ContactNumber = donor.ContactNumber;
                 existing.IsAvailable = donor.IsAvailable;
 
@@ -222,7 +251,6 @@ namespace BloodConnect.Controllers
             }
         }
 
-        // ----- Delete (owner OR admin) -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Delete(int id)

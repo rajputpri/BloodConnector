@@ -11,6 +11,23 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
+// ✅ Swagger services — OpenApi 2.x namespaces
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = "BloodConnect API",
+        Version = "v1",
+        Description = "REST API for BloodConnect — donor management, blood requests, compatibility-aware search.",
+        Contact = new Microsoft.OpenApi.OpenApiContact
+        {
+            Name = "Prince Rajput",
+            Url = new Uri("https://github.com/rajputpri/BloodConnector")
+        }
+    });
+});
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' not found.");
@@ -59,6 +76,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<BloodConnect.Services.MessageCache>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -77,7 +97,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// ✅ 404 & status code pages — styled error page
+// ✅ Swagger middleware (dev me hi)
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BloodConnect API v1");
+        c.RoutePrefix = "swagger";  // → http://localhost:5006/swagger
+        c.DocumentTitle = "BloodConnect API Docs";
+    });
+}
+
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
 
 app.UseHttpsRedirection();

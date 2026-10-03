@@ -23,6 +23,14 @@ public class BloodRequest
         ErrorMessage = "Select a valid blood group.")]
     public string BloodGroupNeeded { get; set; } = "";
 
+    // ✅ FIXED — Nullable (purane requests me NULL hai). [Required] rakha taaki naya form validate kare.
+    [Required(ErrorMessage = "Select a state")]
+    [StringLength(100)]
+    public string? State { get; set; }
+
+    [StringLength(50, ErrorMessage = "City cannot exceed 50 characters")]
+    public string? City { get; set; }
+
     [Required(ErrorMessage = "Location is required")]
     [StringLength(100)]
     public string Location { get; set; } = "";

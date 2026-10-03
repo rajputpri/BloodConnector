@@ -1,0 +1,295 @@
+@model List<BloodConnect.Models.ContactMessage>
+@{
+    ViewData["Title"] = "Messages";
+    var total = Model.Count;
+    var unread = Model.Count(m => !m.IsRead);
+    var today = Model.Count(m => m.CreatedAt.Date == DateTime.UtcNow.Date);
+}
+
+<section class="page-header">
+    <div class="container">
+        <span class="section-eyebrow">ADMIN</span>
+        <h1>Contact Messages</h1>
+        <p class="text-muted mb-0">All messages submitted via the Contact form.</p>
+    </div>
+</section>
+
+<div class="container py-5">
+
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="msg-stat">
+                <div class="msg-stat-label">Total</div>
+                <div class="msg-stat-value">@total</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="msg-stat msg-stat-warn">
+                <div class="msg-stat-label">Unread</div>
+                <div class="msg-stat-value">@unread</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="msg-stat">
+                <div class="msg-stat-label">Today</div>
+                <div class="msg-stat-value">@today</div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="msg-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <h3>No messages yet</h3>
+            <p class="text-muted">Messages submitted from the Contact page will appear here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="msg-list">
+            @foreach (var msg in Model)
+            {
+                var msgId = $"msg-{msg.Id}";
+                var ageHours = (DateTime.UtcNow - msg.CreatedAt).TotalHours;
+                var isFresh = ageHours < 24;
+
+                <div class="msg-item @(msg.IsRead ? "" : "is-unread")">
+                    <div class="msg-head" data-bs-toggle="collapse" data-bs-target="#@msgId" role="button" aria-expanded="false">
+                        <div class="msg-head-left">
+                            <div class="msg-avatar">@(string.IsNullOrEmpty(msg.Name) ? "?" : msg.Name.Substring(0, 1).ToUpper())</div>
+                            <div class="msg-meta">
+                                <div class="msg-name">
+                                    @msg.Name
+                                    @if (!msg.IsRead)
+                                    {
+                                        <span class="msg-dot" title="Unread"></span>
+                                    }
+                                </div>
+                                <div class="msg-subject">@msg.Subject</div>
+                            </div>
+                        </div>
+                        <div class="msg-head-right">
+                            <div class="msg-date">@msg.CreatedAt.ToLocalTime().ToString("dd MMM yyyy · HH:mm")</div>
+                            <span class="msg-status @(msg.IsRead ? "is-read" : "is-new")">
+                                @(msg.IsRead ? "Read" : "New")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="collapse" id="@msgId">
+                        <div class="msg-body">
+                            <div class="msg-from">
+                                <strong>From:</strong>
+                                <a href="mailto:@msg.Email">@msg.Email</a>
+                            </div>
+                            <div class="msg-text">@msg.Message</div>
+
+                            <div class="msg-actions">
+                                <form asp-action="ToggleRead" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@msg.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        @(msg.IsRead ? "Mark as Unread" : "Mark as Read")
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteMessage" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete this message?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@msg.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                                <a href="mailto:@msg.Email?subject=Re: @msg.Subject" class="btn btn-sm btn-danger ms-auto">
+                                    Reply via Email
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .msg-stat {
+        background: #fff;
+        border: 1px solid var(--bc-border);
+        border-radius: var(--bc-radius);
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--bc-shadow-sm, 0 2px 8px rgba(120, 80, 60, 0.06));
+    }
+    .msg-stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bc-text-muted);
+        margin-bottom: 0.35rem;
+    }
+    .msg-stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--bc-text);
+        letter-spacing: -0.02em;
+    }
+    .msg-stat-warn { border-left: 4px solid var(--bc-primary); }
+    .msg-stat-warn .msg-stat-value { color: var(--bc-primary); }
+
+    .msg-empty {
+        text-align: center;
+        padding: 4rem 1rem;
+        color: var(--bc-text-muted);
+    }
+    .msg-empty svg { color: var(--bc-text-faint); margin-bottom: 1rem; }
+    .msg-empty h3 { font-size: 1.125rem; font-weight: 700; color: var(--bc-text); margin-bottom: 0.4rem; }
+
+    .msg-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .msg-item {
+        background: #fff;
+        border: 1px solid var(--bc-border);
+        border-radius: var(--bc-radius);
+        overflow: hidden;
+        transition: box-shadow 220ms ease, border-color 220ms ease, transform 220ms ease;
+    }
+    .msg-item:hover {
+        box-shadow: var(--bc-shadow-md, 0 6px 20px rgba(120, 80, 60, 0.09));
+        border-color: var(--bc-border-strong, #D9D0C0);
+    }
+    .msg-item.is-unread {
+        border-left: 4px solid var(--bc-primary);
+        background: linear-gradient(90deg, rgba(254, 242, 242, 0.6), #fff 40%);
+    }
+
+    .msg-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        user-select: none;
+    }
+    .msg-head:hover { background: var(--bc-cream-2, #F5EFE6); }
+
+    .msg-head-left {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        min-width: 0;
+        flex: 1;
+    }
+    .msg-head-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .msg-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #DC2626, #7F1D1D);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    .msg-meta { min-width: 0; flex: 1; }
+    .msg-name {
+        font-weight: 700;
+        color: var(--bc-text);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .msg-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--bc-primary);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        animation: pulseSoft 1.6s ease-in-out infinite;
+    }
+    .msg-subject {
+        font-size: 0.85rem;
+        color: var(--bc-text-muted);
+        margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .msg-date {
+        font-size: 0.78rem;
+        color: var(--bc-text-muted);
+        white-space: nowrap;
+    }
+    .msg-status {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+    }
+    .msg-status.is-new {
+        background: var(--bc-primary-soft, #FEF2F2);
+        color: var(--bc-primary);
+    }
+    .msg-status.is-read {
+        background: #F3F4F6;
+        color: var(--bc-text-muted);
+    }
+
+    .msg-body {
+        padding: 0 1.25rem 1.25rem 1.25rem;
+        border-top: 1px solid var(--bc-border);
+        background: var(--bc-cream, #FAF7F2);
+    }
+    .msg-from {
+        font-size: 0.85rem;
+        color: var(--bc-text-muted);
+        padding: 1rem 0 0.5rem;
+    }
+    .msg-from a { color: var(--bc-primary); text-decoration: none; font-weight: 600; }
+    .msg-from a:hover { text-decoration: underline; }
+
+    .msg-text {
+        font-size: 0.9375rem;
+        line-height: 1.65;
+        color: var(--bc-text);
+        white-space: pre-wrap;
+        padding: 0.5rem 0 1rem;
+    }
+
+    .msg-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 0.75rem;
+        border-top: 1px dashed var(--bc-border);
+    }
+
+    @@media (max-width: 640px) {
+        .msg-head { flex-direction: column; align-items: flex-start; }
+        .msg-head-right { width: 100%; justify-content: space-between; }
+    }
+</style>

@@ -26,12 +26,24 @@
 </div>
 
 <div class="mb-3">
-    <label asp-for="Location" class="form-label">
-        Location <span class="text-danger">*</span>
+    <label asp-for="State" class="form-label">
+        State / Union Territory <span class="text-danger">*</span>
     </label>
-    <input asp-for="Location" class="form-control form-control-lg"
-           placeholder="e.g. Mumbai, Maharashtra" autocomplete="address-level2" />
-    <span asp-validation-for="Location" class="text-danger small"></span>
+    <select asp-for="State" class="form-select form-select-lg">
+        <option value="">-- Select state --</option>
+        @foreach (var state in BloodConnect.Models.DomainValues.IndianStates)
+        {
+            <option value="@state">@state</option>
+        }
+    </select>
+    <span asp-validation-for="State" class="text-danger small"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="City" class="form-label">City (optional)</label>
+    <input asp-for="City" class="form-control form-control-lg" maxlength="50"
+           placeholder="e.g. Mumbai" autocomplete="address-level2" />
+    <span asp-validation-for="City" class="text-danger small"></span>
 </div>
 
 <div class="mb-3">

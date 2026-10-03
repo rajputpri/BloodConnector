@@ -35,7 +35,7 @@
                             <label asp-for="Email" class="form-label">
                                 Email <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Email" class="form-control form-control-lg"
+                            <input asp-for="Email" type="email" class="form-control form-control-lg"
                                    placeholder="you@example.com" autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
@@ -44,7 +44,7 @@
                             <label asp-for="Password" class="form-label">
                                 Password <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Password" class="form-control form-control-lg"
+                            <input asp-for="Password" type="password" class="form-control form-control-lg"
                                    placeholder="Minimum 6 characters" autocomplete="new-password" />
                             <div class="form-text">
                                 At least 6 characters with one number.
@@ -56,9 +56,23 @@
                             <label asp-for="ConfirmPassword" class="form-label">
                                 Confirm password <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="ConfirmPassword" class="form-control form-control-lg"
+                            <input asp-for="ConfirmPassword" type="password" class="form-control form-control-lg"
                                    placeholder="Re-enter password" autocomplete="new-password" />
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="AcceptTerms" class="form-check-input" />
+                                <label asp-for="AcceptTerms" class="form-check-label small">
+                                    I agree to the
+                                    <a asp-controller="Home" asp-action="Privacy" target="_blank" class="fw-semibold">
+                                        Privacy Policy
+                                    </a>
+                                    and Terms of Service.
+                                </label>
+                            </div>
+                            <span asp-validation-for="AcceptTerms" class="text-danger small"></span>
                         </div>
 
                         <button type="submit" class="btn btn-danger btn-lg w-100 mt-3">
