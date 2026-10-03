@@ -28,4 +28,5 @@ Thumbs.db
 
 # ============ User secrets ============
 appsettings.Production.json
-secrets.json
+secrets.jsonappsettings.Production.json
+appsettings.Production.json

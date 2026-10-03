@@ -94,24 +94,24 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    // app.UseHsts();  // Free tier HTTP-only hai — HSTS skip
 }
 
-// ✅ Swagger middleware (dev me hi)
-if (app.Environment.IsDevelopment())
+// ✅ Swagger — HAR environment me on (viva demo ke liye)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BloodConnect API v1");
-        c.RoutePrefix = "swagger";  // → http://localhost:5006/swagger
-        c.DocumentTitle = "BloodConnect API Docs";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BloodConnect API v1");
+    c.RoutePrefix = "swagger";
+    c.DocumentTitle = "BloodConnect API Docs";
+});
 
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
 
-app.UseHttpsRedirection();
+// Free tier HTTP-only — production me HTTPS redirect skip
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+
 app.UseRouting();
 
 app.UseAuthentication();
