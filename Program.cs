@@ -74,13 +74,14 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 
-    // ✅ NEW — API calls return 401 instead of redirecting to login page
+    // API calls → return 401/403 instead of redirecting to login page
     options.Events.OnRedirectToLogin = context =>
     {
         if (context.Request.Path.StartsWithSegments("/api"))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"error\":\"Unauthorized\",\"statusCode\":401}");
         }
         context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
@@ -91,7 +92,8 @@ builder.Services.ConfigureApplicationCookie(options =>
         if (context.Request.Path.StartsWithSegments("/api"))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"error\":\"Forbidden\",\"statusCode\":403}");
         }
         context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
@@ -116,8 +118,10 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    // app.UseHsts();  // Free tier HTTP-only hai — HSTS skip
 }
 
+// ✅ Swagger — HAR environment me on (viva demo ke liye)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -126,8 +130,40 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "BloodConnect API Docs";
 });
 
-app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
+// ✅ FIXED — API routes ko clean JSON status codes, MVC routes ko styled HTML error page
+// UseStatusCodePagesWithReExecute 401 ko 400 me convert kar deta tha
+app.UseStatusCodePages(async context =>
+{
+    var request = context.HttpContext.Request;
+    var response = context.HttpContext.Response;
 
+    // API routes → clean JSON with proper status code
+    if (request.Path.StartsWithSegments("/api"))
+    {
+        response.ContentType = "application/json";
+        await response.WriteAsync(
+            $"{{\"error\":\"HTTP {response.StatusCode}\",\"statusCode\":{response.StatusCode}}}");
+        return;
+    }
+
+    // MVC routes → styled HTML error page (original behaviour preserved)
+    if (response.StatusCode >= 400)
+    {
+        var originalPath = request.Path;
+        var originalMethod = request.Method;
+
+        request.Path = "/Home/Error";
+        request.Method = "GET";
+        request.QueryString = new QueryString($"?code={response.StatusCode}");
+
+        await context.Next(context.HttpContext);
+
+        request.Path = originalPath;
+        request.Method = originalMethod;
+    }
+});
+
+// Free tier HTTP-only — production me HTTPS redirect skip
 if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
