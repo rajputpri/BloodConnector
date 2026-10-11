@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: https://bloodconnector.runasp.net/api/donor
+  method: POST
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Test Donor",
+        "age": 28,
+        "bloodGroup": "O+",
+        "state": "Gujarat",
+        "city": "Surat",
+        "contactNumber": "9876543210",
+        "isAvailable": true
+      }
+response:
+  statusCode: 400
+  statusText: ""
+  headers:
+    :status: "400"
+    location: https://bloodconnector.runasp.net/Account/Login?ReturnUrl=%2Fapi%2Fdonor
+    server: Microsoft-IIS/10.0
+    x-powered-by: ASP.NET
+    date: Sun, 11 Oct 2026 13:55:05 GMT
+  body:
+    type: text
+    content: ""
+order: 1000

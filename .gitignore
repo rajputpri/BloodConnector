@@ -28,5 +28,14 @@ Thumbs.db
 
 # ============ User secrets ============
 appsettings.Production.json
-secrets.jsonappsettings.Production.json
-appsettings.Production.json
+secrets.json
+
+# ============ Postman personal config ============
+.postman/
+
+# Empty folders (git doesn't track them)
+postman/documents/
+postman/flows/
+postman/globals/
+postman/mocks/
+postman/specs/

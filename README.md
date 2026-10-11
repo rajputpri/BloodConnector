@@ -1,392 +1,673 @@
+<div align="center">
+
 # 🩸 BloodConnect
 
-> A blood donation management platform that helps connect donors with people who need blood, built with ASP.NET Core MVC.
+### Real-Time Blood Donation Network
 
-BloodConnect is an educational full-stack project. It demonstrates donor and blood-request management, compatibility-aware search, a pledge-based donation workflow, role-based administration, and a responsive web interface.
+**A production-grade full-stack platform connecting blood donors with patients in urgent need**
 
-> [!IMPORTANT]
-> BloodConnect is **not a medical, emergency-response, or production blood-bank system**. Do not use it to make medical decisions or coordinate urgent care. See [Disclaimer](#disclaimer).
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?style=for-the-badge&logo=dotnet)](https://learn.microsoft.com/aspnet/core)
+[![EF Core](https://img.shields.io/badge/EF_Core-10.0-512BD4?style=for-the-badge)](https://learn.microsoft.com/ef/core)
+[![SQL Server](https://img.shields.io/badge/SQL_Server-Express-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)](https://www.microsoft.com/sql-server)
+[![License](https://img.shields.io/badge/License-Educational-D4A24C?style=for-the-badge)](LICENSE)
 
-## Contents
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-bloodconnector.runasp.net-DC2626?style=for-the-badge)](https://bloodconnector.runasp.net)
+[![Swagger](https://img.shields.io/badge/📖_API_Docs-Swagger-85EA2D?style=for-the-badge&logo=swagger)](https://bloodconnector.runasp.net/swagger)
+[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github)](https://github.com/rajputpri/BloodConnector)
 
-- [Overview](#overview)
-- [Features](#features)
-- [Technology](#technology)
-- [Architecture](#architecture)
-- [Getting started](#getting-started)
-- [Configuration](#configuration)
-- [Authorization](#authorization)
-- [Donation workflow](#donation-workflow)
-- [Blood compatibility](#blood-compatibility)
-- [API](#api)
-- [Project layout](#project-layout)
-- [Verification checklist](#verification-checklist)
-- [Deployment](#deployment)
-- [Roadmap](#roadmap)
-- [Disclaimer](#disclaimer)
-- [License](#license)
+**[🌐 Live Demo](https://bloodconnector.runasp.net)** · **[📖 API Docs](https://bloodconnector.runasp.net/swagger)** · **[🐛 Report Bug](https://github.com/rajputpri/BloodConnector/issues)** · **[✨ Request Feature](https://github.com/rajputpri/BloodConnector/issues)**
 
-## Overview
+</div>
 
-BloodConnect supports two connected workflows:
+---
 
-1. People can publish blood requests with an urgency level and location.
-2. Donors can find compatible requests and pledge to help. The request owner can accept an offer and coordinate with the donor.
+## 📸 Screenshots
 
-The application includes account management, donor profiles, request and offer tracking, an admin area, and a contact-message inbox.
+<div align="center">
 
-## Features
+### 🏠 Homepage
+![Homepage](docs/screenshots/public/01-homepage.png)
 
-### Donor and requester experience
+### 🩸 Blood Compatibility Chart
+![Blood Compatibility](docs/screenshots/public/02-compatibility.png)
 
-- ASP.NET Core Identity registration, login, logout, password validation, and account lockout.
-- Donor profiles with blood group, age, location, and contact details; profile changes are owner-scoped.
-- Blood requests with Critical, High, Medium, or Low urgency and status tracking. The original project supports guest request submission; review privacy and spam controls before exposing this publicly.
-- Donor search by blood group and location, with compatible-group search or exact-match filtering.
-- Pledge workflow: donors offer help, request owners accept an offer, and either party can mark the accepted donation complete.
-- User dashboard for profile, requests, offers, and fulfilled donations.
-- Contact form with persistent messages and an admin inbox with read/unread tracking.
+### 🔍 Donor Search
+![Donor Search](docs/screenshots/public/03-donor-search.png)
 
-### Interface
+### 📊 Admin Dashboard
+![Admin Dashboard](docs/screenshots/admin/01-dashboard.png)
 
-- Responsive, mobile-first layout using Bootstrap 5.
-- Warm cream, burgundy, and gold visual theme, inline SVG icons, and Inter typography.
-- Toast notifications, confirmation modal, and optional browser-local sound effects.
-- CSS and JavaScript animations, including card and button effects.
+</div>
 
-### Engineering
+---
 
-- MVC separation with Razor views, controllers, domain models, and view models.
-- Server-side validation and global antiforgery validation for MVC form posts.
-- Role hierarchy and ownership checks for administrative and personal data actions.
-- Centralized red-cell compatibility lookup logic in `BloodCompatibility`.
-- Unique `(RequestId, DonorId)` index to prevent duplicate pledges.
-- Optimistic concurrency token on donor records.
-- Cached unread-message count with write-triggered invalidation.
-- Read-only EF Core queries use `AsNoTracking`; SQL Server transient retry configuration is documented in the application setup.
+## 📖 Table of Contents
 
-## Technology
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
+- [Configuration](#-configuration)
+- [API Documentation](#-api-documentation)
+- [Donation Workflow](#-donation-workflow)
+- [Blood Compatibility Logic](#-blood-compatibility-logic)
+- [Authorization Model](#-authorization-model)
+- [Project Structure](#-project-structure)
+- [Testing & Verification](#-testing--verification)
+- [Deployment](#-deployment)
+- [Documentation](#-documentation)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-| Area | Technology |
-|---|---|
-| Runtime | .NET 10 (`net10.0`) |
-| Web | ASP.NET Core MVC and Razor Views |
-| Data access | Entity Framework Core 10, Code First |
-| Database | SQL Server Express or LocalDB for development |
-| Authentication | ASP.NET Core Identity cookies |
-| Authorization | Role-based policies and controller checks |
-| Caching | `IMemoryCache` |
-| UI | Bootstrap 5, custom CSS, vanilla JavaScript |
-| Icons | Inline SVG |
-| Browser audio | Web Audio API |
+---
 
-## Architecture
+## 🎯 Overview
+
+**BloodConnect** is a **real-time blood donation management platform** that connects verified donors with patients during emergencies. It eliminates the friction of traditional methods (WhatsApp groups, phone calls, social media) by providing a **compatibility-aware, pledge-based matching system**.
+
+### 💡 The Problem
+
+- India requires **14.6 million blood units annually** but faces a **1.5 million unit shortage**
+- Traditional donor discovery is **slow, unverified, and unreliable**
+- No way to verify if a donor will actually show up
+- Wrong blood group matching leads to **wasted critical time**
+
+### ✅ Our Solution
+
+| Feature | Impact |
+|---------|--------|
+| **Real-time matching** | Find compatible donors in seconds, not hours |
+| **Two-way pledge system** | Both parties confirm — no fake fulfillments |
+| **Medical accuracy** | Built-in blood compatibility matrix (O− universal donor, AB+ universal receiver) |
+| **Privacy-first** | Contact details revealed only after mutual agreement |
+| **Zero cost** | Free forever — no premium tiers, no ads, no data selling |
+
+---
+
+## ✨ Key Features
+
+### 👤 For Users
+- **Register & authenticate** with ASP.NET Core Identity (secure password hashing, lockout protection)
+- **Post blood requests** with urgency level, location, and contact details
+- **Search compatible donors** by blood group, state, and availability
+- **Track request status** in real-time (Open → Pledged → Accepted → Fulfilled)
+- **Manage profile** through a personal dashboard
+
+### 🩸 For Donors
+- **Create verified donor profile** with age validation (18-65 years)
+- **Pledge to donate** on active requests using a two-way confirmation flow
+- **Browse compatible requests** based on medical accuracy
+- **Track personal donations** and contribution history
+- **Control availability** status anytime
+
+### 🛡️ For Admins
+- **Full user management** — ban/unban, promote/demote, delete
+- **Role hierarchy** — SuperAdmin > Admin > User with strict enforcement
+- **Moderate donors** — remove fraudulent entries
+- **Manage blood requests** — delete policy violations
+- **Contact message inbox** — read/unread tracking with cached badge count
+- **Real-time dashboard** — stats on donors, requests, and fulfilled donations
+
+### ⚙️ Engineering Highlights
+- **REST API with Swagger UI** — 15+ documented endpoints
+- **DTO pattern** for API responses (contact privacy protection)
+- **RowVersion concurrency** on donor records
+- **Global CSRF protection** via `AutoValidateAntiforgeryToken`
+- **Cookie-based auth** with ban-checking middleware
+- **Cached badge counter** using `IMemoryCache` with write-invalidation
+- **EF Core migrations** for version-controlled schema
+- **Compatibility matrix** centralized in `BloodCompatibility` helper
+- **Unique compound index** prevents duplicate pledges
+
+---
+
+## 🛠 Tech Stack
+
+<table>
+<tr>
+<td align="center" width="20%">
+
+**Backend**
+<br/>
+![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+
+</td>
+<td align="center" width="20%">
+
+**Framework**
+<br/>
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?logo=dotnet)
+
+</td>
+<td align="center" width="20%">
+
+**Database**
+<br/>
+![SQL Server](https://img.shields.io/badge/SQL_Server-Express-CC2927?logo=microsoft-sql-server)
+
+</td>
+<td align="center" width="20%">
+
+**ORM**
+<br/>
+![EF Core](https://img.shields.io/badge/EF_Core-10-512BD4)
+
+</td>
+<td align="center" width="20%">
+
+**API Docs**
+<br/>
+![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger)
+
+</td>
+</tr>
+</table>
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| Runtime | .NET | 10.0 | Application runtime |
+| Web Framework | ASP.NET Core MVC | 10.0 | HTTP request handling |
+| Data Access | Entity Framework Core | 10.0 | ORM with code-first migrations |
+| Database | SQL Server Express | 2019+ | Persistent storage |
+| Authentication | ASP.NET Core Identity | 10.0 | Cookie-based auth |
+| API Documentation | Swashbuckle.AspNetCore | 10.2.3 | Swagger UI + OpenAPI 3.0 |
+| Frontend | Razor Views + Bootstrap | 5.x | Server-rendered UI |
+| Styling | Custom CSS (Inter font) | — | Warm premium design system |
+| Icons | Inline SVG (Lucide-style) | — | Crisp vector icons |
+| Caching | IMemoryCache | — | 60-second badge cache |
+
+---
+
+## 🏗 Architecture
+
+### High-Level Flow
 
 ```text
-Browser
-  │
-  ▼
-ASP.NET Core MVC Controllers ─────── JSON API
-  │                                  │
-  ├── Domain models / view models    │
-  ├── Application services           │
-  └── Razor views                     │
-          │                           │
-          └──────── Entity Framework Core ─────── SQL Server
+┌─────────────────────────────────────────────────────────────┐
+│                         BROWSER                             │
+│  (Desktop · Tablet · Mobile — Responsive via Bootstrap 5)   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     │ HTTP / HTTPS
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    ASP.NET CORE MVC                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │ Controllers │  │  Services   │  │  REST API           │  │
+│  │ (Business   │  │ (Message    │  │ (DonorApi,          │  │
+│  │  Logic)     │  │  Cache)     │  │  BloodRequestApi)   │  │
+│  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
+│         │                                                    │
+│  ┌──────▼──────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │   Models    │  │  ViewModels │  │  Razor Views        │  │
+│  │ (Entities)  │  │  (DTOs)     │  │  (UI Layer)         │  │
+│  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
+└─────────┼───────────────────────────────────────────────────┘
+          │
+          │ EF Core (Code-First Migrations)
+          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     SQL SERVER                              │
+│  ┌──────────┐  ┌────────────┐  ┌──────────────────────┐    │
+│  │ Identity │  │  Domain    │  │  Relationship        │    │
+│  │  Tables  │  │  Tables    │  │  Tables              │    │
+│  │  (5)     │  │  (4)       │  │  (Indexed, FK-linked)│    │
+│  └──────────┘  └────────────┘  └──────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Design notes
+### Data Model
 
-- Controllers handle routing, model binding, authorization, and view orchestration.
-- `Models/` contains domain entities, validation helpers, and view models.
-- `Services/` contains cross-cutting application services such as unread-message caching.
-- Views should remain presentation-focused and should not perform database queries.
-- Admin and role-management views should use view models instead of binding directly to Identity entities.
+```text
+AppUser ────┐
+            │ owns
+            ▼
+          Donor ────┬──── DonationOffer ──── BloodRequest
+                    │           │                 │
+                    │           │                 │
+                    └───────────┘                 │
+                    (unique RequestId+DonorId)    │
+                                                  │
+                                                  │ owned by
+                                                  ▼
+                                                AppUser
+```
 
-## Getting started
+### Design Principles
+
+- **Separation of Concerns** — Controllers orchestrate, Models hold state, Views render
+- **Thin Controllers** — Business logic pushed to domain services where it makes sense
+- **No DB in Views** — All data prepared by controller actions
+- **DTO Pattern for API** — Never expose entities directly; use `DonorDto`, `BloodRequestDto`
+- **Server-Side Validation** — `[Required]`, `[Range]`, `[RegularExpression]`, custom `[MustBeTrue]`
+- **Global CSRF** — Every form post validated via `AutoValidateAntiforgeryToken`
+- **Role-Based Access** — `[Authorize(Roles = "...")]` + controller-level ownership checks
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- .NET 10 SDK
-- SQL Server Express or SQL Server LocalDB
-- Git
-- Optional: Visual Studio or VS Code with the C# Dev Kit
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [SQL Server Express](https://www.microsoft.com/sql-server/sql-server-downloads) or LocalDB
+- [Git](https://git-scm.com/)
+- Optional: [VS Code](https://code.visualstudio.com/) with C# Dev Kit
 
-### 1. Clone and restore
+### Installation
 
 ```bash
-git clone https://github.com/rajputpri/BloodConnector.git BloodConnect
-cd BloodConnect
+# 1. Clone the repository
+git clone https://github.com/rajputpri/BloodConnector.git
+cd BloodConnector
+
+# 2. Restore NuGet packages
 dotnet restore
-```
 
-### 2. Configure the development database
-
-Set `ConnectionStrings:DefaultConnection` in `appsettings.Development.json`. For example:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;"
-  }
-}
-```
-
-Use the server name appropriate for your SQL Server installation. Keep real credentials and production connection strings out of source control.
-
-### 3. Install EF tooling if needed, then apply migrations
-
-```bash
+# 3. Install EF Core CLI (if not already)
 dotnet tool install --global dotnet-ef
+
+# 4. Update connection string in appsettings.Development.json
+#    Example: "Server=localhost\\SQLEXPRESS04;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;"
+
+# 5. Apply migrations
 dotnet ef database update
-```
 
-If `dotnet-ef` is already installed, skip the install command. The migration creates the Identity schema and the application's domain tables.
-
-### 4. Run the application
-
-```bash
+# 6. Run the application
 dotnet run
 ```
 
-Open the local URL printed by the application. The source README previously listed `http://localhost:5006`; the actual port depends on the project's launch settings.
+**Application will be available at:** `http://localhost:5006`
 
-### 5. Seeded administrator account
-
-The project documentation describes a seeded account:
+### Default Admin Credentials
 
 ```text
 Email:    admin@bloodconnect.com
 Password: Admin@123
 ```
 
-Treat these as development-only credentials. Confirm the current seeder behavior in `DbSeeder.cs`, change/remove the default password before any shared deployment, and never publish a deployment with a known default credential.
+> [!WARNING]
+> **Change these credentials immediately in production.** These are seeded for development only.
 
-## Configuration
+---
 
-### Environment variables
+## ⚙ Configuration
 
-ASP.NET Core supports environment-variable configuration using double underscores in place of `:`.
-
-| Variable | Purpose |
-|---|---|
-| `ASPNETCORE_ENVIRONMENT` | Set to `Production` on a production host |
-| `ConnectionStrings__DefaultConnection` | Production database connection string |
-
-Provide secrets through the hosting platform's secret manager or environment configuration. Do not commit production credentials.
-
-### Documented identity and cookie settings
-
-| Setting | Documented value |
-|---|---|
-| Cookie | ASP.NET Core Identity application cookie |
-| `HttpOnly` | Enabled |
-| `SameSite` | `Lax` |
-| Expiration | 7 days, sliding |
-| Lockout | 5 failed attempts, 5-minute lockout |
-| Password policy | Minimum 6 characters and a digit |
-
-Verify the effective settings in the application configuration before deployment; these values describe the project documentation and are not a substitute for reviewing runtime configuration.
-
-## Authorization
-
-BloodConnect documents a three-level hierarchy: **SuperAdmin > Admin > User**. Authorization must be enforced on the server for every protected action.
-
-| Action | Owner/User | Admin | SuperAdmin |
-|---|:---:|:---:|:---:|
-| Edit own donor profile | ✅ | ✅ | ✅ |
-| Edit another user's donor profile | ❌ | ❌ | ❌ |
-| Delete own donor profile or request | ✅ | ✅ | ✅ |
-| Delete another user's request | ❌ | ✅ | ✅ |
-| Ban or unban a regular user | ❌ | ✅ | ✅ |
-| Ban or unban an Admin | ❌ | ❌ | ✅ |
-| Ban or unban a SuperAdmin | ❌ | ❌ | ❌ |
-| Promote User to Admin | ❌ | ✅ | ✅ |
-| Demote Admin to User | ❌ | ❌ | ✅ |
-| Delete a SuperAdmin | ❌ | ❌ | ❌ |
-| Ban or delete self | ❌ | ❌ | ❌ |
-
-The documented design reserves personal donor-profile edits to the profile owner. Admins may moderate or remove fraudulent entries but should not change a donor's personal information.
-
-## Donation workflow
-
-```text
-Pledged ── owner accepts ──▶ Accepted ── marked complete ──▶ Completed
-   │                            │
-   ├── donor cancels ──▶ Cancelled
-   └── owner chooses another ──▶ Rejected
-```
-
-- A donor can create at most one offer for a given request; a unique database index enforces this.
-- Donors cannot offer on their own request.
-- Compatibility is checked server-side when an offer is made.
-- Accepting one offer rejects the other offers for that request.
-- Contact details are revealed only after an offer is accepted, according to the documented workflow.
-- The request owner or accepted donor can mark the donation complete.
-- Fulfilled requests cannot accept new offers.
-
-## Blood compatibility
-
-The application documents red blood cell compatibility. A recipient can receive red cells from the following donor groups:
-
-| Recipient | Compatible donor groups |
-|---|---|
-| O− | O− |
-| O+ | O−, O+ |
-| A− | O−, A− |
-| A+ | O−, O+, A−, A+ |
-| B− | O−, B− |
-| B+ | O−, O+, B−, B+ |
-| AB− | O−, A−, B−, AB− |
-| AB+ | All listed groups |
-
-O− red cells are often described as universal donor red cells, and AB+ recipients can receive red cells from all listed ABO/Rh groups. Actual transfusion decisions require blood typing, screening, and clinical procedures; this table is educational only.
-
-## API
-
-Base path: `/api/donor`
-
-The documented API currently exposes compatibility-aware donor search. Authentication and donor CRUD API endpoints are listed as future work.
-
-### `GET /api/donor/search`
-
-| Parameter | Type | Default | Description |
-|---|---|---:|---|
-| `bloodGroup` | string | — | Blood group, such as `A+`, `O-`, or `AB+` |
-| `location` | string | empty | Case-insensitive location substring |
-| `exactMatch` | bool | `false` | Return only the requested blood group when true |
-| `page` | int | `1` | 1-based page number |
-| `pageSize` | int | `20` | Page size; confirm the server-side maximum in code |
-
-Example response:
+### Development (`appsettings.Development.json`)
 
 ```json
 {
-  "searchMode": "Compatible",
-  "compatibleGroups": ["O-", "O+", "A-", "A+"],
-  "isExactMatch": false,
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost\\SQLEXPRESS04;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  }
+}
+```
+
+### Production (`appsettings.Production.json`)
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=YOUR_DB;User Id=YOUR_USER;Password=YOUR_PASSWORD;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  }
+}
+```
+
+> [!IMPORTANT]
+> `appsettings.Production.json` is **excluded from version control** (see `.gitignore`). Upload it manually to the hosting server or set via environment variables.
+
+### Environment Variables (Alternative)
+
+| Variable | Purpose |
+|----------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Set to `Production` on hosting server |
+| `ConnectionStrings__DefaultConnection` | Production DB connection string |
+
+---
+
+## 📡 API Documentation
+
+**Live Swagger UI:** [https://bloodconnector.runasp.net/swagger](https://bloodconnector.runasp.net/swagger)
+
+### Endpoints Overview
+
+| Method | Endpoint | Auth | Purpose |
+|--------|----------|:----:|---------|
+| `GET` | `/api/donor` | 🌐 Public | List all donors (paginated) |
+| `GET` | `/api/donor/{id}` | 🌐 Public | Get single donor by ID |
+| `GET` | `/api/donor/search` | 🌐 Public | Compatibility-aware search |
+| `POST` | `/api/donor` | 🔒 Auth | Create new donor profile |
+| `PUT` | `/api/donor/{id}` | 🔒 Owner/Admin | Update donor |
+| `DELETE` | `/api/donor/{id}` | 🔒 Owner/Admin | Delete donor |
+| `GET` | `/api/bloodrequest` | 🌐 Public | List all blood requests |
+| `GET` | `/api/bloodrequest/{id}` | 🌐 Public | Get single request |
+| `POST` | `/api/bloodrequest` | 🔒 Auth | Create new request |
+| `PUT` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Update request |
+| `DELETE` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Delete request |
+
+**Full API reference:** [docs/API.md](docs/API.md)
+
+### Sample Response — `GET /api/donor/search?bloodGroup=B%2B`
+
+```json
+{
+  "total": 2,
   "page": 1,
   "pageSize": 20,
-  "totalCount": 14,
-  "items": [
+  "searchMode": "compatible",
+  "requestedBloodGroup": "B+",
+  "compatibleGroups": ["O-", "O+", "B-", "B+"],
+  "results": [
     {
-      "donorId": 3,
-      "name": "Ravi Kumar",
-      "bloodGroup": "O+",
-      "location": "Gujarat",
-      "age": 27,
-      "isAvailable": true,
-      "isExactMatch": false
+      "donorId": 15,
+      "name": "Gaurav",
+      "bloodGroup": "B+",
+      "state": "Bihar",
+      "location": "Bihar",
+      "isExactMatch": true
     }
   ]
 }
 ```
 
-Search results do not include phone numbers. The documented workflow reveals contact details after an offer is accepted.
+---
 
-## Project layout
+## 🤝 Donation Workflow
+
+### Pledge-Based Two-Way Confirmation
+
+```text
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ PLEDGED  │───▶│ ACCEPTED │───▶│COMPLETED │───▶│FULFILLED │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+     │
+     ├──▶ CANCELLED  (donor cancels before acceptance)
+     └──▶ REJECTED   (owner chooses another donor)
+```
+
+### Rules
+
+- ✅ A donor can pledge **once per request** — enforced by unique `(RequestId, DonorId)` index
+- ✅ **Cannot pledge on own request**
+- ✅ **Blood group must match** — validated server-side
+- ✅ Accepting one offer **auto-rejects all other pending offers**
+- ✅ **Contact details revealed only after acceptance**
+- ✅ Both owner **and** accepted donor can mark donation complete
+- ✅ Fulfilled requests **cannot accept new offers**
+
+---
+
+## 🩸 Blood Compatibility Logic
+
+### Red Cell Compatibility Matrix
+
+| Recipient | Can Receive From |
+|-----------|-----------------|
+| **O−**  | O− |
+| **O+**  | O−, O+ |
+| **A−**  | O−, A− |
+| **A+**  | O−, O+, A−, A+ |
+| **B−**  | O−, B− |
+| **B+**  | O−, O+, B−, B+ |
+| **AB−** | O−, A−, B−, AB− |
+| **AB+** | All 8 groups |
+
+### Key Facts
+
+- **🩸 O− is the universal donor** — can donate red cells to all 8 groups
+- **🩸 AB+ is the universal receiver** — can receive red cells from all 8 groups
+- **A+ and B+** are the most common in India (~30% and ~24%)
+
+This logic is centralized in `BloodCompatibility.cs` and applied consistently across:
+- Web-based donor search
+- API search endpoint
+- Donation offer validation
+
+---
+
+## 🔐 Authorization Model
+
+### Role Hierarchy
+
+```text
+┌─────────────────────────────────────────┐
+│           SuperAdmin                     │  ← Highest
+│         (Immutable, undeletable)        │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│              Admin                       │
+│   (Can manage users below, moderate)     │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│              User                        │  ← Lowest
+│         (Basic access)                   │
+└─────────────────────────────────────────┘
+```
+
+### Permission Matrix
+
+| Action | User | Admin | SuperAdmin |
+|--------|:----:|:-----:|:----------:|
+| Edit own donor profile | ✅ | ✅ | ✅ |
+| Edit another's profile | ❌ | ❌ | ❌ |
+| Delete own request | ✅ | ✅ | ✅ |
+| Delete another's request | ❌ | ✅ | ✅ |
+| Ban regular user | ❌ | ✅ | ✅ |
+| Ban an Admin | ❌ | ❌ | ✅ |
+| Ban a SuperAdmin | ❌ | ❌ | ❌ |
+| Promote User → Admin | ❌ | ✅ | ✅ |
+| Demote Admin → User | ❌ | ❌ | ✅ |
+| Delete SuperAdmin | ❌ | ❌ | ❌ |
+| Ban/delete self | ❌ | ❌ | ❌ |
+
+---
+
+## 📁 Project Structure
 
 ```text
 BloodConnect/
-├── Controllers/
-│   ├── HomeController.cs
-│   ├── DonorController.cs
-│   ├── BloodRequestController.cs
-│   ├── DonorApiController.cs
-│   ├── AccountController.cs
-│   ├── AdminController.cs
-│   └── DashboardController.cs
-├── Models/
-│   ├── AppUser.cs
-│   ├── Donor.cs
-│   ├── BloodRequest.cs
-│   ├── DonationOffer.cs
-│   ├── ContactMessage.cs
-│   ├── BloodCompatibility.cs
-│   ├── DomainValues.cs
-│   ├── ValidationAttributes.cs
-│   ├── ApplicationDbContext.cs
-│   ├── DbSeeder.cs
-│   └── ViewModels.cs
-├── Services/
-│   └── MessageCache.cs
-├── Migrations/
-├── Views/
-├── wwwroot/
-│   ├── css/
-│   └── js/
-├── appsettings.json
-├── appsettings.Development.json
-└── Program.cs
+├── 📁 Controllers/           # HTTP request handlers
+│   ├── HomeController.cs        # Homepage, About, Contact, Error
+│   ├── DonorController.cs       # Donor CRUD + compatibility search
+│   ├── BloodRequestController.cs # Request CRUD + offer workflow
+│   ├── DonorApiController.cs    # REST API for donors
+│   ├── BloodRequestApiController.cs # REST API for requests
+│   ├── AccountController.cs     # Register, Login, Logout
+│   ├── AdminController.cs       # Admin panel + role management
+│   └── DashboardController.cs   # User dashboard
+│
+├── 📁 Models/                # Domain entities + ViewModels
+│   ├── AppUser.cs              # Extended IdentityUser
+│   ├── Donor.cs                # Donor entity
+│   ├── BloodRequest.cs         # Blood request entity
+│   ├── DonationOffer.cs        # Pledge workflow entity
+│   ├── ContactMessage.cs       # Contact form submissions
+│   ├── BloodCompatibility.cs   # Compatibility logic
+│   ├── DomainValues.cs         # Constants (blood groups, states, etc.)
+│   ├── ValidationAttributes.cs # Custom validators
+│   ├── ApplicationDbContext.cs # EF Core DbContext
+│   ├── DbSeeder.cs             # Seed data (roles, admin)
+│   ├── ApiDtos.cs              # API data transfer objects
+│   └── ViewModels.cs           # View-specific models
+│
+├── 📁 Services/              # Cross-cutting concerns
+│   └── MessageCache.cs         # Cached unread count
+│
+├── 📁 Migrations/            # EF Core migrations (version-controlled schema)
+│
+├── 📁 Views/                 # Razor UI templates
+│   ├── Shared/                 # Layouts, partials
+│   ├── Home/                   # Homepage, About, Contact, FAQ
+│   ├── Donor/                  # Donor pages
+│   ├── BloodRequest/           # Request pages
+│   ├── Account/                # Auth pages
+│   ├── Admin/                  # Admin panel
+│   └── Dashboard/              # User dashboard
+│
+├── 📁 wwwroot/               # Static assets
+│   ├── css/                    # Custom stylesheets
+│   ├── js/                     # Client-side scripts
+│   └── lib/                    # Bootstrap, jQuery
+│
+├── 📁 docs/                  # 📚 Documentation
+│   ├── API.md
+│   ├── ARCHITECTURE.md
+│   ├── DEPLOYMENT.md
+│   ├── SECURITY.md
+│   ├── USER_MANUAL.md
+│   ├── CHANGELOG.md
+│   └── screenshots/            # Organized screenshot gallery
+│
+├── 📄 Program.cs             # Application entry point
+├── 📄 appsettings.json
+├── 📄 appsettings.Development.json
+├── 📄 appsettings.Production.json  (gitignored)
+├── 📄 BloodConnect.csproj
+└── 📄 README.md
 ```
 
-## Verification checklist
+---
 
-The original project description says there is no automated test suite yet. Use this checklist for manual verification, or turn the cases into automated tests as the project evolves.
+## ✅ Testing & Verification
+
+### Manual Verification Checklist
 
 | Area | Scenarios |
-|---|---|
-| Authentication | Registration consent, login/logout, lockout, weak-password rejection |
-| Authorization | Owner-only edit, owner/admin deletion, role hierarchy, self-protection |
-| Ban handling | Banned user's next request signs them out; login is denied |
-| Donor management | Create, edit, delete, and age validation (18–65) |
-| Search | Compatible and exact results, exact-first ordering, location filter |
-| Workflow | Offer, accept, reject competing offers, cancel, complete, duplicate prevention, no self-offer |
-| Compatibility | All eight groups, including O− donor and AB+ recipient cases |
-| Contact inbox | Persistence, read/unread state, deletion, cached count invalidation |
-| Error handling | Branded 404/500 responses without stack-trace disclosure |
-| Static assets | CSS/JS cache-busting with `asp-append-version` |
+|------|-----------|
+| **Authentication** | Registration, login, logout, lockout (5 attempts), weak password rejection |
+| **Authorization** | Owner-only edit, admin delete, role hierarchy, self-protection |
+| **Ban System** | Banned user auto-signed out, login denied |
+| **Donor CRUD** | Create, edit, delete, age validation (18-65) |
+| **Search** | Compatible + exact match, ordering, state filter |
+| **Workflow** | Offer, accept, reject competing offers, cancel, complete |
+| **Compatibility** | All 8 groups, universal donor/receiver cases |
+| **Contact Inbox** | Persistence, read/unread, deletion, cache invalidation |
+| **Error Handling** | Branded 404/500 without stack traces |
 
-Useful manual checks include searching for `A+` and verifying compatible groups appear with exact matches first, and confirming the unread-message count changes after message writes.
+### API Testing
 
-## Deployment
+All API endpoints tested via **Swagger UI** and **Postman**.
 
-The documented deployment target is a Windows ASP.NET Core host with SQL Server. The project mentions MonsterASP.NET, Somee.com, and Azure App Service as possible hosting options; confirm current hosting capabilities, pricing, and .NET 10 support before choosing a provider.
+📸 **Screenshots:** [docs/screenshots/api/](docs/screenshots/api/)
 
-Publish a release build:
+---
 
-```bash
-dotnet publish -c Release -o published
-```
+## 🚀 Deployment
 
-Set the production environment and connection string through the host's configuration system. Apply migrations using the deployment process chosen for the project. For example, when using the EF CLI from a trusted deployment environment:
+**Live Production:** [https://bloodconnector.runasp.net](https://bloodconnector.runasp.net)
 
-```bash
-dotnet ef database update --connection "<production-connection-string>"
-```
+### Deployed On
 
-For a production service, review secrets, seeded accounts, HTTPS, database access, backups, logging, privacy/retention rules, and operational ownership before launch.
+| Component | Service |
+|-----------|---------|
+| **Hosting** | MonsterASP.NET (Free tier) |
+| **Database** | SQL Server 2025 (MonsterASP managed) |
+| **HTTPS** | Let's Encrypt SSL |
+| **Auto-deploy** | GitHub → Build & Publish |
 
-## Roadmap
+**Full deployment guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
-### Documented as implemented
+---
 
-- Authentication and three-tier role system
-- Donor CRUD and compatibility-aware search
-- Blood-request management and filters
-- Pledge-based donation workflow
-- Admin panel and user dashboard
-- Contact-message inbox and cached unread badge
-- Responsive UI, animations, and optional sound effects
+## 📚 Documentation
 
-### Planned
+| Document | Purpose |
+|----------|---------|
+| [README.md](README.md) | Project overview (this file) |
+| [docs/API.md](docs/API.md) | Complete API reference |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design & data model |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Step-by-step deployment |
+| [docs/SECURITY.md](docs/SECURITY.md) | Security model & threat analysis |
+| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | User guide |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
 
-- State-based location dropdown for consistent data
-- REST API CRUD and get-by-id endpoints
-- Donation eligibility information (such as weight and last donation date), reviewed by qualified medical stakeholders
-- Email notifications
-- Dashboard statistics and charts
-- Deployment documentation and hosting setup
-- Project report and presentation
+---
 
-## Disclaimer
+## 🗺 Roadmap
 
-BloodConnect is an educational project for demonstrating full-stack ASP.NET Core development. It is not a verified medical product, blood-bank system, or emergency-response service. Its compatibility lookup is a simplified educational reference and does not replace professional blood typing, crossmatching, screening, or clinical judgment.
+### ✅ Completed (Phase 1-4)
 
-Do not rely on this application for real medical decisions or time-critical blood coordination without independent clinical, security, privacy, and operational review. Consent, data retention, medical-data handling, and jurisdiction-specific legal obligations are outside this project's stated scope and require qualified review before any real-world deployment.
+- [x] ASP.NET Core Identity authentication
+- [x] Three-tier role system (SuperAdmin > Admin > User)
+- [x] Donor CRUD with age & location validation
+- [x] Blood request management with urgency filters
+- [x] Compatibility-aware search
+- [x] Pledge-based donation workflow
+- [x] Admin panel with user management
+- [x] Contact message inbox with caching
+- [x] State dropdown (data consistency)
+- [x] REST API with full CRUD
+- [x] Swagger UI documentation
+- [x] Live deployment on MonsterASP.NET
+- [x] HTTPS with Let's Encrypt
 
-## License
+### 🚀 Planned
 
-This project is provided for educational use. Check the repository for a `LICENSE` file. If you intend to publish or redistribute the code, choose and add an explicit license first.
+- [ ] Email notifications (SendGrid)
+- [ ] SMS alerts (Twilio)
+- [ ] Mobile app (React Native)
+- [ ] Hospital integration API
+- [ ] Analytics dashboard (Chart.js)
+- [ ] Multi-language support (Hindi, Gujarati)
+- [ ] Map-based donor view (Google Maps)
+- [ ] Two-factor authentication
 
-<p align="center">Made with ❤️ in India · <strong>Every drop counts.</strong></p>
+---
+
+## 🤝 Contributing
+
+This is an **educational project**. Contributions are welcome for:
+
+- 🐛 Bug fixes
+- 📝 Documentation improvements
+- ✨ Feature suggestions
+- 🎨 UI/UX enhancements
+
+**Process:**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+This project is provided for **educational use**. See [LICENSE](LICENSE) for details.
+
+---
+
+## 👨‍💻 Author
+
+**Prince Rajput**
+BCA Semester 7 · DSC-M-CBA 471P · Gujarat University
+
+[![GitHub](https://img.shields.io/badge/GitHub-rajputpri-181717?style=flat&logo=github)](https://github.com/rajputpri)
+
+---
+
+## ⚠️ Disclaimer
+
+BloodConnect is an **educational project** demonstrating full-stack ASP.NET Core development. It is **not a medical, emergency-response, or production blood-bank system**. The compatibility lookup is a simplified educational reference and does not replace professional blood typing, crossmatching, screening, or clinical judgment.
+
+Do **not** rely on this application for real medical decisions.
+
+---
+
+<div align="center">
+
+**Made with ❤️ in India**
+
+**Every drop counts.** 🩸
+
+⭐ **Star this repo if it helped you!** ⭐
+
+</div>

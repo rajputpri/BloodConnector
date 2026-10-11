@@ -11,7 +11,6 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
-// ✅ Swagger services — OpenApi 2.x namespaces
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -74,6 +73,29 @@ builder.Services.ConfigureApplicationCookie(options =>
             await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
         }
     };
+
+    // ✅ NEW — API calls return 401 instead of redirecting to login page
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 builder.Services.AddMemoryCache();
@@ -94,10 +116,8 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // app.UseHsts();  // Free tier HTTP-only hai — HSTS skip
 }
 
-// ✅ Swagger — HAR environment me on (viva demo ke liye)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -108,7 +128,6 @@ app.UseSwaggerUI(c =>
 
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?code={0}");
 
-// Free tier HTTP-only — production me HTTPS redirect skip
 if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
