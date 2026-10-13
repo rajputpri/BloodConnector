@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BloodConnect.Hubs;
 using BloodConnect.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,15 +29,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' not found.");
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, sql =>
-        sql.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null)));
+        sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)));
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
@@ -63,9 +60,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     {
         if (context.Principal?.Identity?.IsAuthenticated != true) return;
 
-        var userManager = context.HttpContext.RequestServices
-            .GetRequiredService<UserManager<AppUser>>();
-
+        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
         var user = await userManager.GetUserAsync(context.Principal);
         if (user == null || user.IsBanned)
         {
@@ -74,7 +69,6 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 
-    // API calls → return 401/403 instead of redirecting to login page
     options.Events.OnRedirectToLogin = context =>
     {
         if (context.Request.Path.StartsWithSegments("/api"))
@@ -100,8 +94,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+// ============ SERVICES ============
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<BloodConnect.Services.MessageCache>();
+builder.Services.AddScoped<BloodConnect.Services.NotificationService>();
+
+// ============ SIGNALR — Real-time WebSocket notifications ============
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -118,10 +117,8 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // app.UseHsts();  // Free tier HTTP-only hai — HSTS skip
 }
 
-// ✅ Swagger — HAR environment me on (viva demo ke liye)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -130,14 +127,11 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "BloodConnect API Docs";
 });
 
-// ✅ FIXED — API routes ko clean JSON status codes, MVC routes ko styled HTML error page
-// UseStatusCodePagesWithReExecute 401 ko 400 me convert kar deta tha
 app.UseStatusCodePages(async context =>
 {
     var request = context.HttpContext.Request;
     var response = context.HttpContext.Response;
 
-    // API routes → clean JSON with proper status code
     if (request.Path.StartsWithSegments("/api"))
     {
         response.ContentType = "application/json";
@@ -146,7 +140,6 @@ app.UseStatusCodePages(async context =>
         return;
     }
 
-    // MVC routes → styled HTML error page (original behaviour preserved)
     if (response.StatusCode >= 400)
     {
         var originalPath = request.Path;
@@ -163,12 +156,10 @@ app.UseStatusCodePages(async context =>
     }
 });
 
-// Free tier HTTP-only — production me HTTPS redirect skip
 if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -178,5 +169,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+// ============ SIGNALR HUB ============
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

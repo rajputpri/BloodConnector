@@ -13,15 +13,18 @@ namespace BloodConnect.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly MessageCache _messageCache;
+        private readonly NotificationService _notifications;
 
         public AdminController(
             ApplicationDbContext context,
             UserManager<AppUser> userManager,
-            MessageCache messageCache)
+            MessageCache messageCache,
+            NotificationService notifications)
         {
             _context = context;
             _userManager = userManager;
             _messageCache = messageCache;
+            _notifications = notifications;
         }
 
         private bool IsSuperAdmin => User.IsInRole(DbSeeder.SuperAdminRole);
@@ -111,6 +114,10 @@ namespace BloodConnect.Controllers
             {
                 _context.BloodRequests.Remove(request);
                 await _context.SaveChangesAsync();
+
+                // ✅ Invalidate admin notification cache
+                _notifications.InvalidateAdmin();
+
                 TempData["Success"] = "Blood request deleted.";
             }
             catch (DbUpdateException)
@@ -285,7 +292,7 @@ namespace BloodConnect.Controllers
             return RedirectToAction(nameof(UserList));
         }
 
-        // ==================== CONTACT MESSAGES (NEW) ====================
+        // ==================== CONTACT MESSAGES ====================
         public async Task<IActionResult> Messages()
         {
             var messages = await _context.ContactMessages
@@ -310,6 +317,9 @@ namespace BloodConnect.Controllers
 
             _messageCache.Invalidate();
 
+            // ✅ Invalidate notification cache — badge update ho jaye
+            _notifications.InvalidateAdmin();
+
             TempData["Success"] = message.IsRead
                 ? "Marked as read."
                 : "Marked as unread.";
@@ -329,6 +339,9 @@ namespace BloodConnect.Controllers
             await _context.SaveChangesAsync();
 
             _messageCache.Invalidate();
+
+            // ✅ Invalidate notification cache
+            _notifications.InvalidateAdmin();
 
             TempData["Success"] = "Message deleted.";
             return RedirectToAction(nameof(Messages));

@@ -39,3 +39,6 @@ postman/flows/
 postman/globals/
 postman/mocks/
 postman/specs/
+# ============ Dev/Docs tools (not part of project) ============
+take_screenshots.py
+generate_ppt.py

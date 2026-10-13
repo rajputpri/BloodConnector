@@ -10,16 +10,18 @@ namespace BloodConnect.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
+        private readonly BloodConnect.Services.NotificationService _notifications;
 
         public BloodRequestController(
             ApplicationDbContext context,
-            UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager,
+            BloodConnect.Services.NotificationService notifications)
         {
             _context = context;
             _userManager = userManager;
+            _notifications = notifications;
         }
 
-        // ----- Helpers -----
         private bool IsSuperAdmin => User.IsInRole(DbSeeder.SuperAdminRole);
         private bool IsAdmin => User.IsInRole(DbSeeder.AdminRole) || IsSuperAdmin;
 
@@ -55,7 +57,6 @@ namespace BloodConnect.Controllers
                 .OrderByDescending(r => r.RequestDate)
                 .ToListAsync();
 
-            // ---- Viewer context (donor info, offers) ----
             var currentUserId = _userManager.GetUserId(User);
             int? myDonorId = null;
             string? myBloodGroup = null;
@@ -116,6 +117,10 @@ namespace BloodConnect.Controllers
 
                 _context.BloodRequests.Add(request);
                 await _context.SaveChangesAsync();
+
+                // ✅ Push real-time notification to all admins
+                await _notifications.PushNewRequestToAdminsAsync(request);
+
                 TempData["Success"] = "Blood request created successfully.";
                 return RedirectToAction(nameof(Index));
             }
@@ -126,7 +131,7 @@ namespace BloodConnect.Controllers
             }
         }
 
-        // ----- Edit (OWNER ONLY) -----
+        // ----- Edit -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Edit(int id)
@@ -176,7 +181,6 @@ namespace BloodConnect.Controllers
             }
         }
 
-        // ✅ FIXED — state nullable accept karta hai (purane rows ke liye safety)
         private void ValidateLocation(string? state, string? city)
         {
             if (!DomainValues.IsValidState(state))
@@ -188,7 +192,6 @@ namespace BloodConnect.Controllers
                     "City cannot exceed 50 characters.");
         }
 
-        // ✅ FIXED — state nullable handle karta hai ("" return ho sakta hai but validation already rokega)
         private static string BuildLocation(string? city, string? state)
         {
             if (string.IsNullOrWhiteSpace(state))
@@ -196,7 +199,7 @@ namespace BloodConnect.Controllers
             return string.IsNullOrWhiteSpace(city) ? state : $"{city.Trim()}, {state}";
         }
 
-        // ----- Delete (owner OR admin) -----
+        // ----- Delete -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Delete(int id)
@@ -235,7 +238,6 @@ namespace BloodConnect.Controllers
         // ============ DONATION OFFER WORKFLOW ============
         // ==================================================
 
-        // ----- Offers list (owner / admin) -----
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Offers(int id)
@@ -331,12 +333,18 @@ namespace BloodConnect.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Rejected/Cancelled/Completed — reuse record, reset to Pledged
                 existing.Status = DomainValues.Pledged;
                 existing.CreatedAt = DateTime.UtcNow;
                 existing.RespondedAt = null;
                 existing.CompletedAt = null;
                 await _context.SaveChangesAsync();
+
+                // ✅ Notify owner
+                var refreshed = await _context.DonationOffers
+                    .Include(o => o.Donor)
+                    .FirstOrDefaultAsync(o => o.Id == existing.Id);
+                if (refreshed != null)
+                    await _notifications.PushNewOfferToOwnerAsync(request, refreshed);
 
                 TempData["Success"] = "Your offer has been renewed.";
                 return RedirectToAction(nameof(Index));
@@ -352,6 +360,14 @@ namespace BloodConnect.Controllers
 
             _context.DonationOffers.Add(offer);
             await _context.SaveChangesAsync();
+
+            // ✅ Notify owner
+            var newOffer = await _context.DonationOffers
+                .Include(o => o.Donor)
+                .FirstOrDefaultAsync(o => o.Id == offer.Id);
+            if (newOffer != null)
+                await _notifications.PushNewOfferToOwnerAsync(request, newOffer);
+
             TempData["Success"] = "Your offer has been sent to the requester.";
             return RedirectToAction(nameof(Index));
         }
@@ -415,7 +431,6 @@ namespace BloodConnect.Controllers
                 return RedirectToAction(nameof(Offers), new { id = offer.RequestId });
             }
 
-            // Auto-reject all other Pledged offers
             var otherPledged = await _context.DonationOffers
                 .Where(o => o.RequestId == offer.RequestId
                     && o.Id != offer.Id
@@ -433,6 +448,15 @@ namespace BloodConnect.Controllers
 
             await _context.SaveChangesAsync();
 
+            // ✅ Notify the donor
+            if (!string.IsNullOrEmpty(offer.Donor.UserId))
+                await _notifications.PushOfferStatusToDonorAsync(
+                    offer.Donor.UserId, DomainValues.Accepted, offer.RequestId);
+
+            // ✅ Invalidate owner's cache
+            if (!string.IsNullOrEmpty(offer.Request.UserId))
+                _notifications.InvalidateUser(offer.Request.UserId);
+
             TempData["Success"] = $"You accepted {offer.Donor.Name}'s offer. Contact: {offer.Donor.ContactNumber}";
             return RedirectToAction(nameof(Offers), new { id = offer.RequestId });
         }
@@ -445,6 +469,7 @@ namespace BloodConnect.Controllers
         {
             var offer = await _context.DonationOffers
                 .Include(o => o.Request)
+                .Include(o => o.Donor)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (offer == null) return NotFound();
@@ -463,11 +488,16 @@ namespace BloodConnect.Controllers
             offer.RespondedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
+            // ✅ Notify donor
+            if (!string.IsNullOrEmpty(offer.Donor.UserId))
+                await _notifications.PushOfferStatusToDonorAsync(
+                    offer.Donor.UserId, DomainValues.Rejected, offer.RequestId);
+
             TempData["Success"] = "Offer rejected.";
             return RedirectToAction(nameof(Offers), new { id = offer.RequestId });
         }
 
-        // ----- Complete donation (owner / admin / accepted donor) -----
+        // ----- Complete donation -----
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -493,15 +523,11 @@ namespace BloodConnect.Controllers
                 return RedirectToAction(nameof(Offers), new { id = offer.RequestId });
             }
 
-            // Mark offer completed
             offer.Status = DomainValues.Completed;
             offer.CompletedAt = DateTime.UtcNow;
-
-            // Mark request fulfilled
             offer.Request.Status = DomainValues.Fulfilled;
             offer.Request.FulfilledByDonorId = offer.DonorId;
 
-            // Any remaining Pledged offers → rejected
             var remaining = await _context.DonationOffers
                 .Where(o => o.RequestId == offer.RequestId
                     && o.Id != offer.Id
@@ -515,6 +541,11 @@ namespace BloodConnect.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // ✅ Notify donor
+            if (!string.IsNullOrEmpty(offer.Donor.UserId))
+                await _notifications.PushOfferStatusToDonorAsync(
+                    offer.Donor.UserId, DomainValues.Completed, offer.RequestId);
 
             TempData["Success"] = "Donation marked as completed. Request fulfilled!";
             return RedirectToAction(nameof(Index));

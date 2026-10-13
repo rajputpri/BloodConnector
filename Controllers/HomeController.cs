@@ -10,11 +10,16 @@ namespace BloodConnect.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly MessageCache _messageCache;
+        private readonly NotificationService _notifications;
 
-        public HomeController(ApplicationDbContext context, MessageCache messageCache)
+        public HomeController(
+            ApplicationDbContext context,
+            MessageCache messageCache,
+            NotificationService notifications)
         {
             _context = context;
             _messageCache = messageCache;
+            _notifications = notifications;
         }
 
         public async Task<IActionResult> Index()
@@ -72,8 +77,10 @@ namespace BloodConnect.Controllers
             _context.ContactMessages.Add(message);
             await _context.SaveChangesAsync();
 
-            // ✅ Invalidate admin badge cache — naya message aaya
             _messageCache.Invalidate();
+
+            // ✅ Push real-time notification to admins
+            await _notifications.PushNewMessageToAdminsAsync(message);
 
             TempData["Success"] = "Thank you! Your message has been received. We'll get back within 24 hours.";
             return RedirectToAction(nameof(Contact));

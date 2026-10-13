@@ -4,6 +4,7 @@
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
 @inject MessageCache MessageCache
+@inject NotificationService NotificationService
 @inject ApplicationDbContext DbContext
 
 @if (SignInManager.IsSignedIn(User))
@@ -12,90 +13,165 @@
     var displayName = user?.FullName ?? User.Identity?.Name ?? "User";
     var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
     var isSuperAdmin = User.IsInRole("SuperAdmin");
+    var userId = user?.Id ?? "";
 
     var unreadMessages = 0;
+    var adminNotif = new AdminNotification();
+    var userNotif = new UserNotification();
+
     if (isAdmin)
     {
-        // ✅ Cached — max 1 DB query per 60s per app instance
         unreadMessages = await MessageCache.GetUnreadCountAsync(DbContext);
+        adminNotif = await NotificationService.GetAdminNotificationsAsync();
+    }
+    else if (!string.IsNullOrEmpty(userId))
+    {
+        userNotif = await NotificationService.GetUserNotificationsAsync(userId);
     }
 
-    <div class="dropdown">
-        <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button"
-                data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-            @displayName
-            @if (isAdmin && unreadMessages > 0)
-            {
-                <span class="nav-msg-badge" title="@unreadMessages unread message(s)">@unreadMessages</span>
-            }
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-                <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-                    My Dashboard
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
+    var bellCount = isAdmin ? adminNotif.TotalCount : userNotif.TotalCount;
+    var bellItems = isAdmin ? adminNotif.Items : userNotif.Items;
+    var bellTitle = isAdmin ? "Admin Alerts" : "Your Activity";
+    var bellSubtitle = isAdmin
+        ? $"{adminNotif.OpenRequests} open requests · {adminNotif.UnreadMessages} unread messages"
+        : $"{userNotif.PendingOffers} pending offers on your requests";
 
-            @if (isAdmin)
-            {
-                <li>
-                    <a class="dropdown-item fw-bold text-danger" asp-controller="Admin" asp-action="Index">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Admin Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item d-flex align-items-center" asp-controller="Admin" asp-action="Messages">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        <span class="ms-2">Messages</span>
-                        @if (unreadMessages > 0)
+    <div class="d-flex align-items-center gap-2">
+
+        <!-- ============ BELL ICON ============ -->
+        <div class="dropdown bc-bell-wrap">
+            <button class="bc-bell-btn" type="button" data-bs-toggle="dropdown"
+                    data-bs-display="static" aria-expanded="false" title="@bellTitle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                @if (bellCount > 0)
+                {
+                    <span class="bc-bell-badge">@(bellCount > 99 ? "99+" : bellCount.ToString())</span>
+                }
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end bc-bell-menu">
+                <div class="bc-bell-header">
+                    <div class="bc-bell-header-title">@bellTitle</div>
+                    <div class="bc-bell-header-sub">@bellSubtitle</div>
+                </div>
+
+                @if (bellItems.Any())
+                {
+                    <div class="bc-bell-list">
+                        @foreach (var item in bellItems)
                         {
-                            <span class="ms-auto badge rounded-pill bg-danger">@unreadMessages</span>
+                            <a href="@item.Url" class="bc-bell-item">
+                                <span class="bc-bell-item-icon bc-bell-@item.Type">
+                                    @if (item.Type == "request")
+                                    {
+                                        <text>🩸</text>
+                                    }
+                                    else if (item.Type == "message")
+                                    {
+                                        <text>✉</text>
+                                    }
+                                    else if (item.Type == "offer")
+                                    {
+                                        <text>🤝</text>
+                                    }
+                                </span>
+                                <span class="bc-bell-item-body">
+                                    <span class="bc-bell-item-text">@item.Text</span>
+                                    <span class="bc-bell-item-sub">@item.SubText</span>
+                                    <span class="bc-bell-item-time">@item.Timestamp.ToLocalTime().ToString("dd MMM, HH:mm")</span>
+                                </span>
+                            </a>
                         }
-                    </a>
-                </li>
+                    </div>
+                }
+                else
+                {
+                    <div class="bc-bell-empty">
+                        <div class="bc-bell-empty-icon">✓</div>
+                        <div class="bc-bell-empty-text">All caught up</div>
+                        <div class="bc-bell-empty-sub">No new activity right now.</div>
+                    </div>
+                }
+
+                <div class="bc-bell-footer">
+                    @if (isAdmin)
+                    {
+                        <a asp-controller="Admin" asp-action="Messages">View Messages</a>
+                        <span class="bc-bell-dot">·</span>
+                        <a asp-controller="BloodRequest" asp-action="Index">View Requests</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index">Open Dashboard</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ USER DROPDOWN ============ -->
+        <div class="dropdown">
+            <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                @displayName
+                @if (isAdmin && unreadMessages > 0)
+                {
+                    <span class="nav-msg-badge">@unreadMessages</span>
+                }
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                    <a class="dropdown-item" asp-controller="Admin" asp-action="UserList">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        Manage Users
-                    </a>
+                    <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">My Dashboard</a>
                 </li>
-                @if (isSuperAdmin)
+                <li><hr class="dropdown-divider"></li>
+
+                @if (isAdmin)
                 {
                     <li>
-                        <span class="dropdown-item-text">SuperAdmin</span>
+                        <a class="dropdown-item fw-bold text-danger" asp-controller="Admin" asp-action="Index">
+                            Admin Dashboard
+                        </a>
                     </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" asp-controller="Admin" asp-action="Messages">
+                            <span class="ms-2">Messages</span>
+                            @if (unreadMessages > 0)
+                            {
+                                <span class="ms-auto badge rounded-pill bg-danger">@unreadMessages</span>
+                            }
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-controller="Admin" asp-action="UserList">Manage Users</a>
+                    </li>
+                    @if (isSuperAdmin)
+                    {
+                        <li><span class="dropdown-item-text small text-muted">SuperAdmin</span></li>
+                    }
+                    <li><hr class="dropdown-divider"></li>
                 }
-                <li><hr class="dropdown-divider"></li>
-            }
 
-            <li>
-                <a class="dropdown-item" asp-controller="Donor" asp-action="Index">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Browse Donors
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item" asp-controller="BloodRequest" asp-action="Index">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C12 2 5 9.5 5 14.5C5 18.0899 8.13401 21 12 21C15.866 21 19 18.0899 19 14.5C19 9.5 12 2 12 2Z"/></svg>
-                    Blood Requests
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit" class="dropdown-item text-danger">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                        Sign Out
-                    </button>
-                </form>
-            </li>
-        </ul>
+                <li>
+                    <a class="dropdown-item" asp-controller="Donor" asp-action="Index">Browse Donors</a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="BloodRequest" asp-action="Index">Blood Requests</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="dropdown-item text-danger">Sign Out</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <style>
+        /* ============ NAV BADGE ============ */
         .nav-msg-badge {
             display: inline-flex;
             align-items: center;
@@ -105,15 +181,210 @@
             padding: 0 5px;
             margin-left: 6px;
             border-radius: 999px;
-            background: var(--bc-primary, #DC2626);
+            background: #DC2626;
             color: #fff;
             font-size: 0.68rem;
             font-weight: 700;
             line-height: 1;
-            vertical-align: middle;
-            animation: pulseSoft 1.6s ease-in-out infinite;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
         }
+
+        /* ============ BELL BUTTON ============ */
+        .bc-bell-wrap { position: relative; }
+        .bc-bell-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid #EAE3D8;
+            color: #1A1414;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            padding: 0;
+        }
+        .bc-bell-btn:hover {
+            background: #FEF2F2;
+            border-color: rgba(220, 38, 38, 0.4);
+            color: #DC2626;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px -6px rgba(220, 38, 38, 0.35);
+        }
+        .bc-bell-btn.is-ringing {
+            animation: bcBellRing 0.6s ease-in-out;
+        }
+        @@keyframes bcBellRing {
+            0%, 100% { transform: rotate(0); }
+            20% { transform: rotate(-15deg) scale(1.08); }
+            40% { transform: rotate(15deg) scale(1.08); }
+            60% { transform: rotate(-10deg) scale(1.05); }
+            80% { transform: rotate(10deg) scale(1.05); }
+        }
+
+        .bc-bell-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #DC2626, #991B1B);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
+            box-shadow: 0 0 0 2px #fff;
+            animation: bcBadgePulse 1.8s ease-in-out infinite;
+        }
+        .bc-bell-badge.is-pulsing {
+            animation: bcBadgeBounce 0.5s ease-out;
+        }
+        @@keyframes bcBadgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+        @@keyframes bcBadgeBounce {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        /* ============ BELL DROPDOWN ============ */
+        .bc-bell-menu {
+            width: 380px;
+            max-width: calc(100vw - 24px);
+            padding: 0;
+            border: 1px solid #EAE3D8;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px -20px rgba(60, 20, 20, 0.25);
+            overflow: hidden;
+        }
+        .bc-bell-header {
+            padding: 16px 18px 12px;
+            background: linear-gradient(135deg, #FEF2F2, #FDF5F5);
+            border-bottom: 1px solid #EAE3D8;
+        }
+        .bc-bell-header-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1A1414;
+        }
+        .bc-bell-header-sub {
+            font-size: 0.72rem;
+            color: #7A6D6D;
+            margin-top: 2px;
+        }
+        .bc-bell-list {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .bc-bell-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid #F5EFE6;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s ease;
+        }
+        .bc-bell-item:hover {
+            background: #FAF7F2;
+            color: inherit;
+        }
+        .bc-bell-item:last-child { border-bottom: none; }
+        .bc-bell-item.is-new {
+            background: linear-gradient(90deg, #FEF2F2 0%, #fff 100%);
+            animation: bcItemHighlight 3s ease-out;
+        }
+        @@keyframes bcItemHighlight {
+            0% { background-color: #FEE2E2; }
+            100% { background-color: transparent; }
+        }
+
+        .bc-bell-item-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .bc-bell-request { background: #FEF2F2; }
+        .bc-bell-message { background: #F5EFE6; }
+        .bc-bell-offer   { background: #ECFDF5; }
+        .bc-bell-item-body {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+        .bc-bell-item-text {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #1A1414;
+            line-height: 1.3;
+        }
+        .bc-bell-item-sub {
+            font-size: 0.72rem;
+            color: #7A6D6D;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bc-bell-item-time {
+            font-size: 0.65rem;
+            color: #A89B8B;
+            margin-top: 4px;
+        }
+        .bc-bell-empty {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .bc-bell-empty-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            background: #ECFDF5;
+            color: #16A34A;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .bc-bell-empty-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1A1414;
+        }
+        .bc-bell-empty-sub {
+            font-size: 0.72rem;
+            color: #7A6D6D;
+            margin-top: 4px;
+        }
+        .bc-bell-footer {
+            padding: 10px 18px;
+            background: #FAF7F2;
+            border-top: 1px solid #EAE3D8;
+            font-size: 0.72rem;
+            text-align: center;
+        }
+        .bc-bell-footer a {
+            color: #DC2626;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .bc-bell-footer a:hover { text-decoration: underline; }
+        .bc-bell-dot { color: #C7BCB0; margin: 0 6px; }
     </style>
 }
 else
