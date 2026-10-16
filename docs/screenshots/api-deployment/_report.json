@@ -1,0 +1,334 @@
+[
+  {
+    "num": 9,
+    "name": "GET Non-Existent Donor (404)",
+    "method": "GET",
+    "url": "http://localhost:5006/api/donor/99999",
+    "body": null,
+    "status": 404,
+    "status_text": "Not Found",
+    "response": "{\n  \"error\": \"Donor not found.\"\n}",
+    "elapsed": 81.4814567565918,
+    "size": 28,
+    "file": "09-postman-get-404.png"
+  },
+  {
+    "num": 10,
+    "name": "Search Exact Match Mode",
+    "method": "GET",
+    "url": "http://localhost:5006/api/donor/search?bloodGroup=A%2B&exactMatch=true",
+    "body": null,
+    "status": 200,
+    "status_text": "OK",
+    "response": "{\n  \"total\": 0,\n  \"page\": 1,\n  \"pageSize\": 20,\n  \"searchMode\": \"exact\",\n  \"requestedBloodGroup\": \"A+\",\n  \"compatibleGroups\": [\n    \"A+\"\n  ],\n  \"results\": []\n}",
+    "elapsed": 124.76086616516113,
+    "size": 121,
+    "file": "10-postman-get-200.png"
+  },
+  {
+    "num": 11,
+    "name": "Search Invalid Blood Group",
+    "method": "GET",
+    "url": "http://localhost:5006/api/donor/search?bloodGroup=XYZ",
+    "body": null,
+    "status": 200,
+    "status_text": "OK",
+    "response": "{\n  \"total\": 4,\n  \"page\": 1,\n  \"pageSize\": 20,\n  \"searchMode\": \"compatible\",\n  \"requestedBloodGroup\": \"XYZ\",\n  \"compatibleGroups\": [],\n  \"results\": [\n    {\n      \"donorId\": 15,\n      \"name\": \"gaurav \",\n      \"bloodGroup\": \"B+\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"bihar\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 13,\n      \"name\": \"sameer\",\n      \"bloodGroup\": \"A-\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"telangana\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 14,\n      \"name\": \"yuvraj\",\n      \"bloodGroup\": \"B+\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"ahmedabad\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 12,\n      \"name\": \"yuvraj\",\n      \"bloodGroup\": \"AB-\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"chattisgarh\",\n      \"isExactMatch\": false\n    }\n  ]\n}",
+    "elapsed": 81.48932456970215,
+    "size": 594,
+    "file": "11-postman-get-200.png"
+  },
+  {
+    "num": 12,
+    "name": "Search By State",
+    "method": "GET",
+    "url": "http://localhost:5006/api/donor/search?state=Gujarat",
+    "body": null,
+    "status": 200,
+    "status_text": "OK",
+    "response": "{\n  \"total\": 0,\n  \"page\": 1,\n  \"pageSize\": 20,\n  \"searchMode\": \"compatible\",\n  \"requestedBloodGroup\": null,\n  \"compatibleGroups\": [],\n  \"results\": []\n}",
+    "elapsed": 104.95829582214355,
+    "size": 122,
+    "file": "12-postman-get-200.png"
+  },
+  {
+    "num": 13,
+    "name": "POST Duplicate Donor (409)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "Duplicate Test",
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Gujarat",
+      "city": "Surat",
+      "contactNumber": "9876500001",
+      "isAvailable": true
+    },
+    "status": 201,
+    "status_text": "Created",
+    "response": "{\n  \"donorId\": 16,\n  \"name\": \"Duplicate Test\",\n  \"bloodGroup\": \"O+\",\n  \"age\": 25,\n  \"state\": \"Gujarat\",\n  \"city\": \"Surat\",\n  \"location\": \"Surat, Gujarat\",\n  \"isAvailable\": true,\n  \"contactNumber\": \"9876500001\"\n}",
+    "elapsed": 496.1271286010742,
+    "size": 174,
+    "file": "13-postman-post-201.png"
+  },
+  {
+    "num": 14,
+    "name": "POST Invalid Blood Group (400)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "Bad BG",
+      "bloodGroup": "XYZ",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9876500002"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"type\": \"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"BloodGroup\": [\n      \"Invalid blood group\"\n    ]\n  },\n  \"traceId\": \"00-deb9dc3f5756f6ce7107f73e4a092659-ebbc575c23049ff7-00\"\n}",
+    "elapsed": 38.701772689819336,
+    "size": 240,
+    "file": "14-postman-post-400.png"
+  },
+  {
+    "num": 15,
+    "name": "POST Invalid State (400)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "Bad State",
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Atlantis",
+      "contactNumber": "9876500003"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"error\": \"Invalid Indian state or union territory.\"\n}",
+    "elapsed": 12.141227722167969,
+    "size": 52,
+    "file": "15-postman-post-400.png"
+  },
+  {
+    "num": 16,
+    "name": "POST Age Below 18 (400)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "Too Young",
+      "bloodGroup": "O+",
+      "age": 17,
+      "state": "Gujarat",
+      "contactNumber": "9876500004"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"type\": \"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Age\": [\n      \"Age must be between 18 and 65\"\n    ]\n  },\n  \"traceId\": \"00-9457f995044fc3d454b19369a8449718-7df2ed3f8a26ceb8-00\"\n}",
+    "elapsed": 7.342815399169922,
+    "size": 243,
+    "file": "16-postman-post-400.png"
+  },
+  {
+    "num": 17,
+    "name": "POST Age Above 65 (400)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "Too Old",
+      "bloodGroup": "O+",
+      "age": 66,
+      "state": "Gujarat",
+      "contactNumber": "9876500005"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"type\": \"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Age\": [\n      \"Age must be between 18 and 65\"\n    ]\n  },\n  \"traceId\": \"00-5485ac6672acaff66270d49188141506-587c9e20927696fd-00\"\n}",
+    "elapsed": 7.951021194458008,
+    "size": 243,
+    "file": "17-postman-post-400.png"
+  },
+  {
+    "num": 18,
+    "name": "POST Missing Name (400)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9876500006"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"type\": \"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"Name\": [\n      \"Name is required\",\n      \"The field Name must be a string with a minimum length of 2 and a maximum length of 100.\"\n    ]\n  },\n  \"traceId\": \"00-2d2f6437767ad84b290e105f449fda93-5016768f41c027cf-00\"\n}",
+    "elapsed": 8.074760437011719,
+    "size": 321,
+    "file": "18-postman-post-400.png"
+  },
+  {
+    "num": 19,
+    "name": "PUT Update Own Donor (200)",
+    "method": "PUT",
+    "url": "http://localhost:5006/api/donor/15",
+    "body": {
+      "name": "Updated Name",
+      "bloodGroup": "O+",
+      "age": 26,
+      "state": "Gujarat",
+      "city": "Ahmedabad",
+      "contactNumber": "9876543210",
+      "isAvailable": false
+    },
+    "status": 200,
+    "status_text": "OK",
+    "response": "{\n  \"donorId\": 15,\n  \"name\": \"Updated Name\",\n  \"bloodGroup\": \"O+\",\n  \"age\": 26,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"Ahmedabad, Gujarat\",\n  \"isAvailable\": false,\n  \"contactNumber\": \"9876543210\"\n}",
+    "elapsed": 83.2059383392334,
+    "size": 181,
+    "file": "19-postman-put-200.png"
+  },
+  {
+    "num": 20,
+    "name": "PUT Other User's Donor (403)",
+    "method": "PUT",
+    "url": "http://localhost:5006/api/donor/1",
+    "body": {
+      "name": "IDOR Attempt",
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9999999999"
+    },
+    "status": 404,
+    "status_text": "Not Found",
+    "response": "{\n  \"error\": \"Donor not found.\"\n}",
+    "elapsed": 9.241819381713867,
+    "size": 28,
+    "file": "20-postman-put-404.png"
+  },
+  {
+    "num": 21,
+    "name": "PUT Non-Existent Donor (404)",
+    "method": "PUT",
+    "url": "http://localhost:5006/api/donor/99999",
+    "body": {
+      "name": "Ghost",
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9999999999"
+    },
+    "status": 404,
+    "status_text": "Not Found",
+    "response": "{\n  \"error\": \"Donor not found.\"\n}",
+    "elapsed": 18.20659637451172,
+    "size": 28,
+    "file": "21-postman-put-404.png"
+  },
+  {
+    "num": 22,
+    "name": "PUT Invalid Blood Group (400)",
+    "method": "PUT",
+    "url": "http://localhost:5006/api/donor/15",
+    "body": {
+      "name": "Bad Update",
+      "bloodGroup": "XYZ",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9999999999"
+    },
+    "status": 400,
+    "status_text": "Bad Request",
+    "response": "{\n  \"type\": \"https://tools.ietf.org/html/rfc9110#section-15.5.1\",\n  \"title\": \"One or more validation errors occurred.\",\n  \"status\": 400,\n  \"errors\": {\n    \"BloodGroup\": [\n      \"The field BloodGroup must match the regular expression '^(A|B|AB|O)[+-]$'.\"\n    ]\n  },\n  \"traceId\": \"00-215a39a33bfb942fd22197d6631ebbf7-e6e026e0b42ceb3f-00\"\n}",
+    "elapsed": 8.066415786743164,
+    "size": 295,
+    "file": "22-postman-put-400.png"
+  },
+  {
+    "num": 23,
+    "name": "DELETE Own Donor (204)",
+    "method": "DELETE",
+    "url": "http://localhost:5006/api/donor/15",
+    "body": null,
+    "status": 204,
+    "status_text": "No Content",
+    "response": "(empty)",
+    "elapsed": 117.74778366088867,
+    "size": 0,
+    "file": "23-postman-delete-204.png"
+  },
+  {
+    "num": 24,
+    "name": "DELETE Other's Donor (403)",
+    "method": "DELETE",
+    "url": "http://localhost:5006/api/donor/1",
+    "body": null,
+    "status": 404,
+    "status_text": "Not Found",
+    "response": "{\n  \"error\": \"Donor not found.\"\n}",
+    "elapsed": 8.317232131958008,
+    "size": 28,
+    "file": "24-postman-delete-404.png"
+  },
+  {
+    "num": 25,
+    "name": "DELETE Non-Existent (404)",
+    "method": "DELETE",
+    "url": "http://localhost:5006/api/donor/99999",
+    "body": null,
+    "status": 404,
+    "status_text": "Not Found",
+    "response": "{\n  \"error\": \"Donor not found.\"\n}",
+    "elapsed": 8.508682250976562,
+    "size": 28,
+    "file": "25-postman-delete-404.png"
+  },
+  {
+    "num": 26,
+    "name": "Login With Wrong Password (401)",
+    "method": "POST",
+    "url": "http://localhost:5006/api/auth/login",
+    "body": {
+      "email": "admin@bloodconnect.com",
+      "password": "WrongPass@999"
+    },
+    "status": 401,
+    "status_text": "Unauthorized",
+    "response": "{\n  \"error\": \"Invalid credentials.\"\n}",
+    "elapsed": 232.1624755859375,
+    "size": 32,
+    "file": "26-postman-post-401.png"
+  },
+  {
+    "num": 27,
+    "name": "XSS Attempt in Name Field",
+    "method": "POST",
+    "url": "http://localhost:5006/api/donor",
+    "body": {
+      "name": "<script>alert(1)</script>",
+      "bloodGroup": "O+",
+      "age": 25,
+      "state": "Gujarat",
+      "contactNumber": "9876500010"
+    },
+    "status": 409,
+    "status_text": "Conflict",
+    "response": "{\n  \"error\": \"You already have a donor profile.\"\n}",
+    "elapsed": 13.698816299438477,
+    "size": 45,
+    "file": "27-postman-post-409.png"
+  },
+  {
+    "num": 28,
+    "name": "SQL Injection Attempt",
+    "method": "GET",
+    "url": "http://localhost:5006/api/donor/search?bloodGroup=' OR '1'='1",
+    "body": null,
+    "status": 200,
+    "status_text": "OK",
+    "response": "{\n  \"total\": 4,\n  \"page\": 1,\n  \"pageSize\": 20,\n  \"searchMode\": \"compatible\",\n  \"requestedBloodGroup\": \"' OR '1'='1\",\n  \"compatibleGroups\": [],\n  \"results\": [\n    {\n      \"donorId\": 16,\n      \"name\": \"Duplicate Test\",\n      \"bloodGroup\": \"O+\",\n      \"state\": \"Gujarat\",\n      \"city\": \"Surat\",\n      \"location\": \"Surat, Gujarat\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 13,\n      \"name\": \"sameer\",\n      \"bloodGroup\": \"A-\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"telangana\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 14,\n      \"name\": \"yuvraj\",\n      \"bloodGroup\": \"B+\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"ahmedabad\",\n      \"isExactMatch\": false\n    },\n    {\n      \"donorId\": 12,\n      \"name\": \"yuvraj\",\n      \"bloodGroup\": \"AB-\",\n      \"state\": null,\n      \"city\": null,\n      \"location\": \"chattisgarh\",\n      \"isExactMatch\": false\n    }\n  ]\n}",
+    "elapsed": 16.691923141479492,
+    "size": 626,
+    "file": "28-postman-get-200.png"
+  }
+]
