@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/donor/search?state=Gujarat%27%20OR%20%271%27%3D%271"
+method: GET
+queryParams:
+  state: Gujarat%27%20OR%20%271%27%3D%271
+order: 6000

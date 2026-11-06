@@ -1,1 +1,4 @@
 $kind: collection
+description: Complete API collection for BloodConnect project. Uses Cookie Authentication.
+variables:
+  baseUrl: http://localhost:5006

@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/donor"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Bad BG",
+      "bloodGroup": "ZZ",
+      "age": 25,
+      "state": "Gujarat",
+      "city": "Ahmedabad",
+      "location": "Test",
+      "contactNumber": "9876543210",
+      "isAvailable": true
+    }
+order: 3000

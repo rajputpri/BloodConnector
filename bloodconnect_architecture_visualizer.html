@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BloodConnect — Ultimate Interactive Architecture & Workflow Engine</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --panel: #131a2a;
+    --card: #1c2539;
+    --border: #2d3b58;
+    --crimson: #e11d48;
+    --gold: #f59e0b;
+    --emerald: #10b981;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+  body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Top Header */
+  header {
+    background: linear-gradient(90deg, #131a2a 0%, #2a121d 50%, #131a2a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand h1 { font-size: 1.25rem; font-weight: 800; color: #fff; }
+  .badge { background: var(--crimson); color: #fff; padding: 3px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    padding: 7px 13px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--crimson); background: #261b2c; }
+  .btn.active { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+  .btn-gold { background: #3b2a10; border-color: var(--gold); color: #fcd34d; }
+  .btn-gold:hover { background: var(--gold); color: #000; }
+
+  /* Main Layout */
+  .workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+  /* Left Sidebar: Scenarios & Layer Legend */
+  .sidebar-left {
+    width: 310px; background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 10; overflow-y: auto; padding: 14px; gap: 14px;
+  }
+  .section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+  .scenario-btn {
+    width: 100%; text-align: left; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 8px;
+    transition: 0.2s; position: relative;
+  }
+  .scenario-btn:hover { border-color: var(--gold); transform: translateX(3px); }
+  .scenario-btn.running { border-color: var(--emerald); background: #112a26; }
+  .scenario-btn strong { display: block; font-size: 0.86rem; color: #fff; margin-bottom: 3px; }
+  .scenario-btn span { font-size: 0.75rem; color: var(--muted); }
+
+  /* Live Step Ticker Box */
+  .live-box {
+    background: #0f1624; border: 1px solid var(--gold); border-radius: 10px; padding: 12px;
+    min-height: 150px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .step-counter { font-size: 0.72rem; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .step-desc { font-size: 0.85rem; line-height: 1.45; margin: 8px 0; color: #fff; }
+  .step-controls { display: flex; gap: 6px; }
+
+  /* Center Zoomable Canvas */
+  .canvas-wrapper {
+    flex: 1; position: relative; overflow: hidden;
+    background-image: radial-gradient(#26324d 1px, transparent 1px);
+    background-size: 24px 24px;
+    cursor: grab;
+  }
+  .canvas-wrapper:active { cursor: grabbing; }
+  #viewport {
+    width: 1700px; height: 1050px; position: absolute; top: 0; left: 0;
+    transform-origin: 0 0; transition: transform 0.08s ease-out;
+  }
+
+  /* Layer Swimlanes on Canvas */
+  .lane {
+    position: absolute; border: 1px dashed rgba(255,255,255,0.12); border-radius: 14px;
+    background: rgba(19, 26, 42, 0.45); padding: 10px 16px;
+  }
+  .lane-label { font-size: 0.75rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.7; }
+
+  /* Architecture Nodes (Files) */
+  .node {
+    position: absolute; width: 205px; background: var(--card); border: 2px solid var(--border);
+    border-radius: 12px; padding: 10px 12px; cursor: pointer; user-select: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.45); transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    z-index: 5;
+  }
+  .node:hover { transform: translateY(-3px) scale(1.02); border-color: #fff; }
+  .node.selected { border-color: var(--gold); box-shadow: 0 0 22px rgba(245, 158, 11, 0.5); }
+  .node.active-step {
+    border-color: var(--emerald);
+    box-shadow: 0 0 28px rgba(16, 185, 129, 0.85);
+    animation: pulseNode 1s infinite alternate;
+  }
+  @keyframes pulseNode {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+  }
+  .node-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 4px; }
+  .node-title { font-size: 0.88rem; font-weight: 700; color: #fff; margin-bottom: 3px; word-break: break-word; }
+  .node-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.3; }
+
+  /* Tag Colors */
+  .tag-boot { background: var(--gold); color: #000; }
+  .tag-ui { background: var(--blue); color: #fff; }
+  .tag-ctrl { background: var(--crimson); color: #fff; }
+  .tag-api { background: #ec4899; color: #fff; }
+  .tag-svc { background: var(--purple); color: #fff; }
+  .tag-model { background: var(--emerald); color: #000; }
+  .tag-db { background: #f97316; color: #fff; }
+
+  /* Right Sidebar: Deep File Inspector */
+  .sidebar-right {
+    width: 390px; background: var(--panel); border-left: 1px solid var(--border);
+    padding: 16px; overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 14px;
+  }
+  .inspector-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 13px;
+  }
+  .inspector-card h3 { font-size: 0.82rem; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
+  .inspector-card p, .inspector-card li { font-size: 0.84rem; line-height: 1.5; color: #e2e8f0; }
+  .inspector-card ul { padding-left: 18px; }
+  .danger-box { border-color: var(--crimson); background: rgba(225, 29, 72, 0.1); }
+  .danger-box h3 { color: #fda4af; }
+  .viva-box { border-color: var(--emerald); background: rgba(16, 185, 129, 0.1); }
+  .viva-box h3 { color: #6ee7b7; }
+
+  /* Floating Zoom Bar */
+  .zoom-bar {
+    position: absolute; bottom: 16px; left: 16px; background: rgba(19,26,42,0.9);
+    border: 1px solid var(--border); border-radius: 10px; padding: 6px; display: flex; gap: 6px; z-index: 15;
+  }
+
+  /* Toast Simulation Popup */
+  #sim-toast {
+    position: absolute; top: 18px; right: 18px; background: #111827; border-left: 5px solid var(--crimson);
+    border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 12px 16px; border-radius: 10px; box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+    z-index: 30; display: none; max-width: 320px; animation: slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* SVG Connections Layer */
+  #connections { position: absolute; top: 0; left: 0; width: 1700px; height: 1050px; pointer-events: none; z-index: 2; }
+  .conn-line { stroke: #334155; stroke-width: 2; fill: none; stroke-dasharray: 5 5; }
+  .conn-line.highlight { stroke: var(--gold); stroke-width: 3.5; stroke-dasharray: none; }
+  .packet { fill: var(--emerald); filter: drop-shadow(0 0 8px #10b981); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span style="font-size:1.6rem;">🩸</span>
+    <div>
+      <h1>BloodConnect — System Architecture & Live Workflow Visualizer</h1>
+      <div style="font-size:0.75rem; color:var(--muted);">Prince Rajput · BCA Sem 7 · .NET 10 MVC + EF Core 10 + SignalR WebSockets</div>
+    </div>
+    <span class="badge">INTERACTIVE ENGINE</span>
+  </div>
+  <div class="controls">
+    <button class="btn btn-gold" onclick="playChime()">🔔 Test SignalR Sound (880Hz+1174Hz)</button>
+    <button class="btn" onclick="resetZoom()">🎯 Reset Zoom</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <!-- LEFT SIDEBAR: LIVE WORKFLOW SIMULATIONS -->
+  <div class="sidebar-left">
+    <div>
+      <div class="section-title">🎬 Live Workflow Animations (Click to Run)</div>
+      <button class="scenario-btn" id="scen-0" onclick="startScenario(0)">
+        <strong>1. Urgent Blood Request + SignalR Rocket 🚀</strong>
+        <span>Patient form bhar ke submit karta hai → DB mein save → Admin ko bina refresh turant घंटी (Bell + Toast) bajti hai!</span>
+      </button>
+      <button class="scenario-btn" id="scen-1" onclick="startScenario(1)">
+        <strong>2. Medical Compatibility Search 🩸</strong>
+        <span>User B+ search karta hai → BloodCompatibility.cs 4 groups (O-, O+, B-, B+) nikalta hai → Exact match upar aate hain.</span>
+      </button>
+      <button class="scenario-btn" id="scen-2" onclick="startScenario(2)">
+        <strong>3. Two-Way Pledge & Contact Unlock 🤝</strong>
+        <span>Donor Pledge karta hai → Owner Accept karta hai → Baaki offers auto-reject → Phone number unlock hota hai!</span>
+      </button>
+      <button class="scenario-btn" id="scen-3" onclick="startScenario(3)">
+        <strong>4. Postman API + Cookie + IDOR Guard 🛡️</strong>
+        <span>Postman /api/auth/login se Cookie leta hai → DTO phone chhupata hai → Dusre ka record edit karne par 403 Forbidden!</span>
+      </button>
+      <button class="scenario-btn" id="scen-4" onclick="startScenario(4)">
+        <strong>5. Admin Ban + Instant Kickout ⚡</strong>
+        <span>Admin user ko Ban karta hai → OnValidatePrincipal har request par IsBanned check karke turant Logout fekta hai!</span>
+      </button>
+    </div>
+
+    <div class="live-box">
+      <div>
+        <div class="step-counter" id="step-title">SIMULATION READY</div>
+        <div class="step-desc" id="step-text">Upar diye gaye kisi bhi Workflow button par click kar, ya seedha map ke kisi bhi File Box par click karke usकी kundali dekh!</div>
+      </div>
+      <div class="step-controls">
+        <button class="btn" style="flex:1" onclick="prevStep()">◀ Prev Step</button>
+        <button class="btn active" style="flex:1" onclick="nextStep()">Next Step ▶</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">🧭 Color Coding (Kaunsa Box Kya Hai)</div>
+      <div style="font-size:0.76rem; color:var(--muted); display:grid; gap:5px;">
+        <div><span class="node-tag tag-boot">STARTUP</span> <b>Program.cs</b> (Sabka Boss / Switchboard)</div>
+        <div><span class="node-tag tag-ui">FRONTEND</span> <b>Browser / Razor / JS</b> (Jo User dekhta hai)</div>
+        <div><span class="node-tag tag-ctrl">MVC CTRL</span> <b>Controllers</b> (Dimag / Traffic Police)</div>
+        <div><span class="node-tag tag-api">REST API</span> <b>API Controllers</b> (Postman / Swagger)</div>
+        <div><span class="node-tag tag-svc">REALTIME</span> <b>SignalR Hub & Cache</b> (Rocket Pipeline)</div>
+        <div><span class="node-tag tag-model">MODELS</span> <b>Entities & Logic</b> (Rules & Blueprint)</div>
+        <div><span class="node-tag tag-db">DATABASE</span> <b>EF Core & SQL Server</b> (Permanent Tijori)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: ZOOMABLE INTERACTIVE CANVAS -->
+  <div class="canvas-wrapper" id="canvas-wrap">
+    <div id="sim-toast">
+      <div style="font-size:0.72rem; color:var(--crimson); font-weight:800;">🔔 LIVE SIGNALR NOTIFICATION</div>
+      <div id="toast-title" style="font-weight:700; font-size:0.9rem; margin:3px 0;">New A+ Request Posted!</div>
+      <div id="toast-msg" style="font-size:0.78rem; color:var(--muted);">Rahul Sharma · Ahmedabad, Gujarat</div>
+    </div>
+
+    <div class="zoom-bar">
+      <button class="btn" onclick="zoomBy(0.15)">➕ Zoom In</button>
+      <button class="btn" onclick="zoomBy(-0.15)">➖ Zoom Out</button>
+      <button class="btn" onclick="resetZoom()">🔄 Fit Screen</button>
+    </div>
+
+    <div id="viewport">
+      <!-- Swimlanes -->
+      <div class="lane" style="left:20px; top:20px; width:1640px; height:150px;">
+        <div class="lane-label" style="color:#60a5fa;">1. Client Layer — Browser, Razor Views, Vanilla JS, SignalR WebSocket Client & Postman</div>
+      </div>
+      <div class="lane" style="left:20px; top:190px; width:1640px; height:140px;">
+        <div class="lane-label" style="color:#fbbf24;">2. Startup & Security Pipeline — Program.cs, Cookie Auth, CSRF Guard & Ban Middleware</div>
+      </div>
+      <div class="lane" style="left:20px; top:350px; width:1640px; height:220px;">
+        <div class="lane-label" style="color:#f43f5e;">3. Controller & Real-Time Hub Layer — MVC Controllers, REST API Controllers & SignalR Hub</div>
+      </div>
+      <div class="lane" style="left:20px; top:590px; width:1640px; height:210px;">
+        <div class="lane-label" style="color:#34d399;">4. Services & Domain Models Layer — NotificationService, Cache, Compatibility Matrix & Entities</div>
+      </div>
+      <div class="lane" style="left:20px; top:820px; width:1640px; height:190px;">
+        <div class="lane-label" style="color:#fb923c;">5. Data Persistence Layer — Entity Framework Core 10 (ApplicationDbContext) & SQL Server</div>
+      </div>
+
+      <!-- SVG Lines + Moving Packet -->
+      <svg id="connections"></svg>
+
+      <!-- Nodes Container -->
+      <div id="nodes-layer"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR: FILE INSPECTOR -->
+  <div class="sidebar-right">
+    <div class="section-title">🔍 Deep File Inspector (Kundali)</div>
+    <div id="inspector-content"></div>
+  </div>
+</div>
+
+<script>
+// --- WEB AUDIO API WHATSAPP-STYLE CHIME (EXACT 880Hz + 1174Hz FROM BLOODCONNECT) ---
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    const notes = [880, 1174.66]; // A5 -> D6 two-tone harmonic chime
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.11);
+      gain.gain.setValueAtTime(0.001, now + idx * 0.11);
+      gain.gain.exponentialRampToValueAtTime(0.25, now + idx * 0.11 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.11 + 0.45);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.11);
+      osc.stop(now + idx * 0.11 + 0.46);
+    });
+  } catch (e) { console.log("Audio blocked until user interaction"); }
+}
+
+function showSimToast(title, msg) {
+  const t = document.getElementById('sim-toast');
+  document.getElementById('toast-title').innerText = title;
+  document.getElementById('toast-msg').innerText = msg;
+  t.style.display = 'block';
+  playChime();
+  setTimeout(() => { t.style.display = 'none'; }, 5500);
+}
+
+// --- COMPLETE FILE DATABASE OF BLOODCONNECT ---
+const NODES = [
+  // Layer 1: Client
+  {
+    id: "razor_views", x: 60, y: 55, tag: "FRONTEND", tagClass: "tag-ui",
+    title: "Views/*.cshtml (Razor UI)",
+    sub: "Server-rendered HTML + Bootstrap 5 forms",
+    simple: "Yeh teri website ka chehra (Front-end) hai. Jab user Homepage, Donor Search, ya Request Form kholta hai, toh Razor Views C# data ko सुंदर HTML aur Bootstrap 5 mein badal kar browser mein dikhate hain.",
+    connects: ["Program.cs", "BloodRequestController.cs", "DonorController.cs", "AdminController.cs"],
+    withoutIt: "Agar Views hata diye toh user ko koi button, form ya dashboard nahi dikhega—sirf kora JSON ya blank screen aayegi.",
+    viva: "Sir, Razor Views server-side rendering use karte hain aur har input ko automatically HTML-encode karte hain, jisse Cross-Site Scripting (XSS) attack 100% ruk jaata hai."
+  },
+  {
+    id: "notif_js", x: 420, y: 55, tag: "REALTIME JS", tagClass: "tag-ui",
+    title: "wwwroot/js/notifications.js",
+    sub: "SignalR WebSocket Client + Bell + Web Audio",
+    simple: "Yeh browser ke andar baitha 'Live Walkie-Talkie Receiver' hai! Page khulte hi yeh Server ke NotificationHub se ek permanent tar (WebSocket) jod leta hai. Jaise hi server se 'ReceiveNotification' signal aata hai, yeh bina page refresh kiye घंटी (Bell Badge) badhata hai, 880Hz+1174Hz sound bajata hai aur Toast popup dikhata hai.",
+    connects: ["NotificationHub.cs", "Views/*.cshtml"],
+    withoutIt: "Agar yeh JS file na ho, toh server notification bhejta reh jayega par browser mein na bell bajegi, na popup aayega—user ko baar-baar F5 (refresh) dabana padega!",
+    viva: "Sir, notifications.js @microsoft/signalr client use karke persistent WebSocket connection banata hai aur Web Audio API se two-tone chime generate karta hai bina किसी external MP3 file ke."
+  },
+  {
+    id: "postman_client", x: 860, y: 55, tag: "API TESTER", tagClass: "tag-api",
+    title: "Postman / Swagger UI",
+    sub: "REST API Testing + Cookie Jar",
+    simple: "Yeh developer ka testing radar hai. Bina HTML form bhare hum seedha JSON bhej kar `/api/auth/login` aur `/api/donor` ko check karte hain. Postman pehle login karke Cookie save kar leta hai aur agle har request mein wohi Cookie dikha kar entry paata hai.",
+    connects: ["AuthApiController.cs", "DonorApiController.cs", "BloodRequestApiController.cs"],
+    withoutIt: "Application chalegi, par hum backend APIs ka security audit (SQLi, XSS, IDOR, 401/403 status codes) prove nahi kar payenge.",
+    viva: "Sir, humne JWT ki jagah unified Cookie Authentication use kiya hai. Postman `/api/auth/login` hit karke `.AspNetCore.Identity.Application` HttpOnly cookie capture karta hai."
+  },
+  {
+    id: "admin_browser", x: 1300, y: 55, tag: "ADMIN SCREEN", tagClass: "tag-ui",
+    title: "Admin Live Dashboard",
+    sub: "Joined to 'admins' SignalR Group",
+    simple: "Jab koi Admin login karta hai, toh SignalR uske browser ko ek special VIP room ('admins' group) mein daal deta hai. Duniya mein kahin bhi nayi Blood Request ya Contact Message aaye, sabhi online Admins ki screen par ek saath घंटी bajti hai.",
+    connects: ["NotificationHub.cs", "AdminController.cs", "MessageCache.cs"],
+    withoutIt: "Admin ko pata hi nahi chalega ki kisi patient ne Critical request daali hai jab tak woh khud page refresh na kare.",
+    viva: "Sir, Admin browsers `admins` SignalR group mein auto-subscribe hote hain, aur initial page load par `IMemoryCache` se 60-second cached badge count lete hain taaki DB par zero load pade."
+  },
+
+  // Layer 2: Startup & Middleware Pipeline
+  {
+    id: "program_cs", x: 640, y: 215, tag: "STARTUP BOSS", tagClass: "tag-boot",
+    title: "Program.cs (Middleware Pipeline)",
+    sub: "DI Container + CSRF + Cookie Ban Check + Routes",
+    simple: "Yeh poore project ka 'Main Power House aur Security Gate' hai. App chalu hote hi sabse pehle `Program.cs` chalta hai. Yeh SQL Server, Identity, SignalR, Swagger, aur Cache ko register karta hai. Saath hi har aane wali request ko Security Gate (CSRF check + `OnValidatePrincipal` Ban check) se guzarta hai.",
+    connects: ["ApplicationDbContext.cs", "NotificationHub.cs", "NotificationService.cs", "MessageCache.cs", "AccountController.cs"],
+    withoutIt: "Iske bina project start hi nahi ho sakta! Na database judega, na login chalega, na koi Controller खुलेगा.",
+    viva: "Sir, `Program.cs` mein humne `AutoValidateAntiforgeryToken` global CSRF ke liye aur Cookie `OnValidatePrincipal` event lagaya hai, jo banned user ko agle hi click par sign-out kar deta hai."
+  },
+
+  // Layer 3: Controllers & SignalR Hub
+  {
+    id: "account_ctrl", x: 50, y: 390, tag: "MVC AUTH", tagClass: "tag-ctrl",
+    title: "AccountController.cs",
+    sub: "Register, Login, Logout, Lockout (5 tries)",
+    simple: "Yeh website ka 'ID Card Counter' hai. Naye user ka registration, password hashing, aur login yahi sambhalta hai. Agar koi 5 baar galat password daale, toh yeh 5 minute ke liye account lock kar deta hai.",
+    connects: ["Program.cs", "AppUser.cs", "ApplicationDbContext.cs"],
+    withoutIt: "Koi bhi user website par Register ya Login nahi kar payega.",
+    viva: "Sir, `SignInManager` aur `UserManager` ke zariye yeh PBKDF2 password hashing aur brute-force lockout protection enforce karta hai."
+  },
+  {
+    id: "donor_ctrl", x: 300, y: 390, tag: "MVC DONOR", tagClass: "tag-ctrl",
+    title: "DonorController.cs",
+    sub: "Donor CRUD + Compatibility Search",
+    simple: "Yeh Donors ka manager hai. Donor profile banana (18-65 age check ke saath), availability on/off karna, aur sabse important: jab patient blood dhundhta hai, toh `BloodCompatibility.cs` se puch kar exact aur compatible donors ki list laana iska kaam hai.",
+    connects: ["Donor.cs", "BloodCompatibility.cs", "ApplicationDbContext.cs"],
+    withoutIt: "Na koi donor ban payega, na hi patient apne blood group ke hisaab se donor search kar payega.",
+    viva: "Sir, Donor edit mein humne IDOR check (`donor.UserId != currentUserId`) aur `DbUpdateConcurrencyException` (`RowVersion`) handle kiya hai."
+  },
+  {
+    id: "request_ctrl", x: 560, y: 390, tag: "CORE WORKFLOW", tagClass: "tag-ctrl",
+    title: "BloodRequestController.cs",
+    sub: "Request CRUD + Pledge/Accept/Complete Flow",
+    simple: "Yeh poore project ka 'Emergency Operations Room' hai! Blood request post karna, Donor ka Pledge (`Offer`) lena, Owner ka `AcceptOffer` karna (jisse baaki pending offers auto-reject ho jaate hain), aur donation `Complete` hone par request ko `Fulfilled` mark karna—aur har step par `NotificationService` ko bolna ki घंटी bajao!",
+    connects: ["BloodRequest.cs", "DonationOffer.cs", "NotificationService.cs", "BloodCompatibility.cs", "ApplicationDbContext.cs"],
+    withoutIt: "Project ka main heart (Pledge workflow aur Emergency request system) band ho jayega.",
+    viva: "Sir, `AcceptOffer` ek atomic transaction mein chalta hai: ek offer Accept hote hi us request ke baaki saare `Pledged` offers automatically `Rejected` ho jaate hain aur donor ka contact number unlock hota hai."
+  },
+  {
+    id: "admin_ctrl", x: 830, y: 390, tag: "GOVERNANCE", tagClass: "tag-ctrl",
+    title: "AdminController.cs",
+    sub: "Ban/Unban, Role Hierarchy, Inbox Moderation",
+    simple: "Yeh 'Supreme Court' hai. Admin yahan se fake donors ya requests delete karta hai, users ko Ban/Unban karta hai, aur SuperAdmin kisi User ko Admin promote ya demote karta hai. Yeh ensure karta hai ki koi Admin kabhi SuperAdmin ko haath na laga sake.",
+    connects: ["AppUser.cs", "MessageCache.cs", "ApplicationDbContext.cs"],
+    withoutIt: "System mein koi moderation nahi rahega; spam ya fake requests ko rokna namumkin ho jayega.",
+    viva: "Sir, humne 3-tier Role Hierarchy (`SuperAdmin` -> `Admin` -> `User`) banayi hai jisme strict server-side checks hain ki koi khud ko ya SuperAdmin ko ban/delete nahi kar sakta."
+  },
+  {
+    id: "api_ctrls", x: 1100, y: 390, tag: "REST APIs", tagClass: "tag-api",
+    title: "DonorApi / BloodRequestApi / AuthApi",
+    sub: "18+ JSON Endpoints + DTO Mapping",
+    simple: "Yeh mobile apps, Postman aur Swagger ke liye JSON दरवाजा hai. Yeh HTML nahi bhejta, balki `ApiDtos.cs` ka use karke clean JSON data deta hai (jisme donor ka phone number chhupa diya jaata hai taaki koi data scrape na kar sake).",
+    connects: ["Postman / Swagger UI", "ApiDtos.cs", "BloodCompatibility.cs", "ApplicationDbContext.cs"],
+    withoutIt: "Postman testing aur Swagger documentation kaam nahi karenge; project sirf browser forms tak seemit reh jayega.",
+    viva: "Sir, API controllers mein `[IgnoreAntiforgeryToken]` sirf JSON endpoints par hai aur humne Entity expose karne ke bajaye `DonorDto` use kiya hai taaki phone numbers leak na hon."
+  },
+  {
+    id: "notif_hub", x: 1380, y: 390, tag: "SIGNALR ROCKET", tagClass: "tag-svc",
+    title: "Hubs/NotificationHub.cs",
+    sub: "WebSocket Hub (/hubs/notifications)",
+    simple: "Yahi hai tera asli 'SignalR Rocket Launcher'! Jab bhi koi user website kholta hai, `OnConnectedAsync` chalta hai. Agar user Admin hai toh usko `admins` group mein daal deta hai, aur har user ko uske personal `user_{userId}` group mein jod deta hai.",
+    connects: ["wwwroot/js/notifications.js", "Admin Live Dashboard", "NotificationService.cs"],
+    withoutIt: "Real-time notifications ka Rocket toot jayega! Server se browser tak live WebSocket push nahi ja payega.",
+    viva: "Sir, `NotificationHub` `Hub` class ko inherit karta hai aur connection time par Claims se userId aur Role padh kar `Groups.AddToGroupAsync` se targeted channels banata hai."
+  },
+
+  // Layer 4: Services & Domain Models
+  {
+    id: "compat_cs", x: 80, y: 635, tag: "MEDICAL BRAIN", tagClass: "tag-model",
+    title: "Models/BloodCompatibility.cs",
+    sub: "Static RBC Compatibility Switch Matrix",
+    simple: "Yeh project ka 'Medical Doctor' hai. Isme 8 blood groups ka asli medical rule likha hai (O- sabko de sakta hai, AB+ sabse le sakta hai, B+ ko O-, O+, B-, B+ chadh sakta hai). Search aur Pledge dono waqt yahi file check karti hai ki khoon match hoga ya nahi.",
+    connects: ["DonorController.cs", "BloodRequestController.cs", "DonorApi / BloodRequestApi / AuthApi"],
+    withoutIt: "Galat blood group ka donor pledge kar dega aur medical compatibility search fail ho jayegi!",
+    viva: "Sir, humne logic ko Views ya Controllers mein duplicate karne ke bajaye `BloodCompatibility.GetCompatibleDonorGroups()` mein centralize kiya hai (DRY Principle)."
+  },
+  {
+    id: "domain_models", x: 450, y: 635, tag: "ENTITIES", tagClass: "tag-model",
+    title: "AppUser, Donor, BloodRequest, DonationOffer",
+    sub: "C# Classes + Validation Attributes + RowVersion",
+    simple: "Yeh tere project ke '4 Pillars (Sanche)' hain. `AppUser` login/ban sambhalta hai, `Donor` khoon dene wale ka data (aur `RowVersion` lock), `BloodRequest` marij ki zaroorat, aur `DonationOffer` dono ke beech ka rishta (Pledged -> Accepted -> Completed).",
+    connects: ["ApplicationDbContext.cs", "BloodRequestController.cs", "DonorController.cs"],
+    withoutIt: "Na koi table banegi, na validation (`[Range(18,65)]`, BloodGroup Regex) chalega.",
+    viva: "Sir, `Donor` mein `[Timestamp] byte[] RowVersion` optimistic concurrency ke liye hai, aur `DonationOffer` mein `(RequestId, DonorId)` par Unique Index hai taaki duplicate pledge na ho."
+  },
+  {
+    id: "api_dtos", x: 820, y: 635, tag: "PRIVACY SHIELD", tagClass: "tag-model",
+    title: "Models/ApiDtos.cs & ViewModels.cs",
+    sub: "Data Transfer Objects (Hides Phone & PasswordHash)",
+    simple: "Yeh 'Security Filter Chhanni' hai. Database ke `Donor` model mein phone number aur `UserId` hota hai. Agar hum seedha `Donor` API mein bhej dein toh sabke phone number chori ho jayenge. `DonorDto` sirf safe cheezein (Name, BloodGroup, State) bahar bhejta hai.",
+    connects: ["DonorApi / BloodRequestApi / AuthApi", "AppUser, Donor, BloodRequest, DonationOffer"],
+    withoutIt: "Public API mein har donor ka personal mobile number aur internal IDs leak ho jayengi (Over-posting / Data Exposure vulnerability).",
+    viva: "Sir, DTO pattern use karke humne API payloads ko decouple kiya hai aur sensitive PII (ContactNumber, UserId) ko public endpoints se strip kiya hai."
+  },
+  {
+    id: "notif_svc", x: 1220, y: 635, tag: "PUSH ENGINE", tagClass: "tag-svc",
+    title: "Services/NotificationService.cs & MessageCache.cs",
+    sub: "IHubContext Pusher + 60s IMemoryCache",
+    simple: "Yeh Controller aur SignalR Rocket ke beech ka 'Commander' hai. Jab `BloodRequestController` mein nayi request save hoti hai, toh woh `NotificationService` ko bolta hai. Yeh service turant cache clear karti hai (`MessageCache`) aur `IHubContext` ke zariye SignalR Hub ko order deti hai ki Admin ya Donor ko live alert bhejo!",
+    connects: ["BloodRequestController.cs", "Hubs/NotificationHub.cs", "AdminController.cs"],
+    withoutIt: "Controllers ko har jagah lamba SignalR aur Cache code likhna padta; code ganda aur slow ho jaata.",
+    viva: "Sir, `NotificationService` `IHubContext<NotificationHub>` inject karta hai aur `MessageCache` `IMemoryCache` (60s TTL + explicit invalidation on write) use karta hai."
+  },
+
+  // Layer 5: Database
+  {
+    id: "db_context", x: 420, y: 865, tag: "EF CORE 10 ORM", tagClass: "tag-db",
+    title: "Models/ApplicationDbContext.cs & DbSeeder.cs",
+    sub: "Code-First Migrations + Parameterized SQL",
+    simple: "Yeh C# aur SQL Server ke beech ka 'Translator (Duhbhashiya)' hai. Hum C# mein `_context.Donors.Where(...)` likhte hain, aur `ApplicationDbContext` usko safe SQL query mein badal kar SQL Server se data le aata hai. `DbSeeder.cs` pehli baar app chalne par SuperAdmin aur dummy donors bhar deta hai.",
+    connects: ["Program.cs", "AppUser, Donor, BloodRequest, DonationOffer", "SQL Server Database"],
+    withoutIt: "C# code kabhi SQL Server se baat hi nahi kar payega.",
+    viva: "Sir, `ApplicationDbContext` `IdentityDbContext<AppUser>` se inherit karta hai aur `OnModelCreating` mein Fluent API se Unique Compound Index aur Cascade rules configure karta hai."
+  },
+  {
+    id: "sql_server", x: 950, y: 865, tag: "STORAGE TIJORI", tagClass: "tag-db",
+    title: "SQL Server Database (BloodConnectDb)",
+    sub: "5 Identity Tables + 4 Domain Tables (Indexed)",
+    simple: "Yeh asli 'Lohe ki Tijori' hai jahan saara data (Users, Donors, BloodRequests, DonationOffers, ContactMessages) permanent save rehta hai. Laptop band bhi ho jaaye, data yahan safe rehta hai.",
+    connects: ["Models/ApplicationDbContext.cs & DbSeeder.cs"],
+    withoutIt: "Koi bhi data save nahi hoga; page band karte hi sab gayab!",
+    viva: "Sir, database mein 5 ASP.NET Identity tables aur 4 domain tables (`Donors`, `BloodRequests`, `DonationOffers`, `ContactMessages`) hain with foreign keys aur concurrency tokens."
+  }
+];
+
+// Connections between nodes
+const LINKS = [
+  ["razor_views", "program_cs"],
+  ["razor_views", "request_ctrl"],
+  ["razor_views", "donor_ctrl"],
+  ["notif_js", "notif_hub"],
+  ["admin_browser", "notif_hub"],
+  ["admin_browser", "admin_ctrl"],
+  ["postman_client", "api_ctrls"],
+  ["program_cs", "account_ctrl"],
+  ["program_cs", "donor_ctrl"],
+  ["program_cs", "request_ctrl"],
+  ["program_cs", "admin_ctrl"],
+  ["program_cs", "api_ctrls"],
+  ["program_cs", "db_context"],
+  ["donor_ctrl", "compat_cs"],
+  ["donor_ctrl", "domain_models"],
+  ["request_ctrl", "compat_cs"],
+  ["request_ctrl", "domain_models"],
+  ["request_ctrl", "notif_svc"],
+  ["admin_ctrl", "domain_models"],
+  ["admin_ctrl", "notif_svc"],
+  ["api_ctrls", "api_dtos"],
+  ["api_ctrls", "compat_cs"],
+  ["api_dtos", "domain_models"],
+  ["notif_svc", "notif_hub"],
+  ["domain_models", "db_context"],
+  ["db_context", "sql_server"]
+];
+
+// 5 Interactive Step-by-Step Scenarios
+const SCENARIOS = [
+  {
+    name: "Scenario 1: Urgent Blood Request + SignalR Rocket",
+    steps: [
+      { node: "razor_views", text: "STEP 1: Patient 'Views/BloodRequest/Create.cshtml' form bharta hai (BloodGroup: A+, Urgency: Critical) aur Submit dabata hai. Form ke saath chhupa hua CSRF Token bhi jaata hai." },
+      { node: "program_cs", text: "STEP 2: Request sabse pehle 'Program.cs' ke Security Gate par aati hai. Global AutoValidateAntiforgeryToken check karta hai ki CSRF token asli hai ya nahi." },
+      { node: "request_ctrl", text: "STEP 3: Ab 'BloodRequestController.Create' action chalta hai. Yeh ModelState check karta hai ki saare fields valid hain ya nahi." },
+      { node: "domain_models", text: "STEP 4: 'BloodRequest.cs' entity object banta hai jisme Status = 'Active' aur RequestDate = DateTime.UtcNow set hota hai." },
+      { node: "db_context", text: "STEP 5: 'ApplicationDbContext' C# object ko parameterized SQL INSERT command mein badalta hai (SQL Injection se 100% safe)." },
+      { node: "sql_server", text: "STEP 6: 'SQL Server' ke BloodRequests table mein nayi row permanent save ho jaati hai aur RequestId generate hoti hai." },
+      { node: "notif_svc", text: "STEP 7: Ab asli jaadu! Controller 'NotificationService.PushNewRequestToAdminsAsync()' ko call karta hai." },
+      { node: "notif_hub", text: "STEP 8: 'NotificationHub' (/hubs/notifications) WebSocket Rocket ke zariye 'admins' group mein JSON payload shoot karta hai!" },
+      { node: "admin_browser", toast: ["New A+ Critical Request!", "Rahul Sharma · Ahmedabad, Gujarat"], text: "STEP 9: BOOM! Online Admin ke browser mein 'notifications.js' signal pakadta hai, 880Hz+1174Hz chime bajti hai, Bell badge +1 hota hai aur Toast slide-in hota hai—BINA PAGE REFRESH KIYE!" }
+    ]
+  },
+  {
+    name: "Scenario 2: Medical Compatibility Search (B+ Needed)",
+    steps: [
+      { node: "razor_views", text: "STEP 1: Patient Donor Search page par 'B+' aur State 'Gujarat' select karke Search dabata hai." },
+      { node: "donor_ctrl", text: "STEP 2: 'DonorController.Index' request receive karta hai aur puchta hai: 'B+ patient ko kaun-kaun khoon de sakta hai?'" },
+      { node: "compat_cs", text: "STEP 3: 'BloodCompatibility.cs' ka switch matrix jawab deta hai: B+ patient ko 4 groups chadh sakte hain -> ['O-', 'O+', 'B-', 'B+']!" },
+      { node: "db_context", text: "STEP 4: 'ApplicationDbContext' SQL query banata hai: WHERE IsAvailable = 1 AND State = 'Gujarat' AND BloodGroup IN ('O-','O+','B-','B+')." },
+      { node: "sql_server", text: "STEP 5: 'SQL Server' compatible donors ki list nikal kar wapas deta hai, jisme exact match (B+) ko sabse upar sort kiya jaata hai." },
+      { node: "razor_views", text: "STEP 6: User ko screen par Compatible Donors dikhte hain with 'Exact Match' aur 'Compatible' badges!" }
+    ]
+  },
+  {
+    name: "Scenario 3: Two-Way Pledge & Contact Unlock",
+    steps: [
+      { node: "razor_views", text: "STEP 1: Ek Donor active request dekh kar 'Pledge to Donate' button dabata hai." },
+      { node: "request_ctrl", text: "STEP 2: 'BloodRequestController.Offer' check karta hai: (1) Kya yeh khud ki request toh nahi? (2) Kya Donor ka blood group patient ke saath medically compatible hai?" },
+      { node: "domain_models", text: "STEP 3: 'DonationOffer.cs' mein naya pledge banta hai (Status = 'Pledged'). Unique Index (RequestId + DonorId) rokta hai ki wohi donor dobara pledge na kar de." },
+      { node: "notif_svc", text: "STEP 4: 'NotificationService' Request ke malik (Patient) ke personal 'user_{ownerId}' channel par SignalR alert bhejta hai ki Donor mil gaya!" },
+      { node: "request_ctrl", text: "STEP 5: Patient apna dashboard khol kar 'Accept Offer' dabata hai. 'AcceptOffer' action us offer ko 'Accepted' karta hai aur BAAKI SAARE pending offers ko auto-reject kar deta hai!" },
+      { node: "notif_hub", toast: ["Offer Accepted! 🎉", "Patient accepted your pledge. Contact unlocked!"], text: "STEP 6: SignalR Rocket Donor ke browser par घंटी bajata hai ('Your Offer Was Accepted!') aur ab dono ko ek-dusre ka Phone Number dikhna shuru ho jaata hai!" }
+    ]
+  },
+  {
+    name: "Scenario 4: Postman API + Cookie + IDOR Security",
+    steps: [
+      { node: "postman_client", text: "STEP 1: Tester Postman se 'POST /api/auth/login' par email aur password JSON mein bhejta hai." },
+      { node: "api_ctrls", text: "STEP 2: 'AuthApiController' credentials check karke '200 OK' aur '.AspNetCore.Identity.Application' HttpOnly Cookie wapas bhejta hai." },
+      { node: "postman_client", text: "STEP 3: Ab Tester 'GET /api/donor' call karta hai. Postman automatically wohi Cookie header mein bhejta hai." },
+      { node: "api_dtos", text: "STEP 4: 'DonorApiController' data laata hai par seedha Entity nahi deta—'ApiDtos.cs' (DonorDto) ke zariye ContactNumber aur UserId chhupa kar safe JSON deta hai!" },
+      { node: "api_ctrls", text: "STEP 5: Agar User A chalaaki se User B ka Donor ID daal kar 'PUT /api/donor/99' edit karne ki koshish kare, toh Controller ka IDOR Ownership check pakad leta hai aur '403 Forbidden' maar kar bhaga deta hai!" }
+    ]
+  },
+  {
+    name: "Scenario 5: Admin Ban + Instant Cookie Kickout",
+    steps: [
+      { node: "admin_browser", text: "STEP 1: Admin dashboard par ek बदमाश user ke aage 'Ban User' button click karta hai." },
+      { node: "admin_ctrl", text: "STEP 2: 'AdminController' pehle Role Hierarchy check karta hai (Admin kisi SuperAdmin ya doosre Admin ko ban nahi kar sakta). Phir user ka 'IsBanned = true' kar deta hai." },
+      { node: "sql_server", text: "STEP 3: 'SQL Server' ke AspNetUsers table mein IsBanned = 1 save ho jaata hai." },
+      { node: "program_cs", text: "STEP 4: Jaise hi woh Banned user apni खुली hui website par kisi bhi link par click karta hai, 'Program.cs' ka 'OnValidatePrincipal' event har request par database/user state check karta hai, uski Cookie reject karta hai aur turant SignOut karke Login page par fek deta hai!" }
+    ]
+  }
+];
+
+// Render Nodes & SVG Lines
+const nodesLayer = document.getElementById('nodes-layer');
+const svgLayer = document.getElementById('connections');
+const nodeMap = {};
+
+NODES.forEach(n => {
+  nodeMap[n.id] = n;
+  const div = document.createElement('div');
+  div.className = 'node';
+  div.id = 'node-' + n.id;
+  div.style.left = n.x + 'px';
+  div.style.top = n.y + 'px';
+  div.innerHTML = `
+    <span class="node-tag ${n.tagClass}">${n.tag}</span>
+    <div class="node-title">${n.title}</div>
+    <div class="node-sub">${n.sub}</div>
+  `;
+  div.onclick = (e) => { e.stopPropagation(); selectNode(n.id); };
+  nodesLayer.appendChild(div);
+});
+
+function drawConnections(highlightPair = null) {
+  svgLayer.innerHTML = '';
+  LINKS.forEach(([aId, bId]) => {
+    const a = nodeMap[aId];
+    const b = nodeMap[bId];
+    const x1 = a.x + 102, y1 = a.y + 48;
+    const x2 = b.x + 102, y2 = b.y + 48;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const midY = (y1 + y2) / 2;
+    line.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+    const isHigh = highlightPair && ((highlightPair[0]===aId && highlightPair[1]===bId) || (highlightPair[0]===bId && highlightPair[1]===aId));
+    line.setAttribute('class', isHigh ? 'conn-line highlight' : 'conn-line');
+    svgLayer.appendChild(line);
+
+    if (isHigh) {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', '7');
+      circle.setAttribute('class', 'packet');
+      const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+      anim.setAttribute('dur', '0.8s');
+      anim.setAttribute('repeatCount', 'indefinite');
+      const p1x = highlightPair[0]===aId ? x1 : x2;
+      const p1y = highlightPair[0]===aId ? y1 : y2;
+      const p2x = highlightPair[0]===aId ? x2 : x1;
+      const p2y = highlightPair[0]===aId ? y2 : y1;
+      const mY = (p1y + p2y) / 2;
+      anim.setAttribute('path', `M ${p1x} ${p1y} C ${p1x} ${mY}, ${p2x} ${mY}, ${p2x} ${p2y}`);
+      circle.appendChild(anim);
+      svgLayer.appendChild(circle);
+    }
+  });
+}
+drawConnections();
+
+function selectNode(id) {
+  document.querySelectorAll('.node').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('node-' + id);
+  if (el) el.classList.add('selected');
+  const n = nodeMap[id];
+  document.getElementById('inspector-content').innerHTML = `
+    <div class="inspector-card">
+      <span class="node-tag ${n.tagClass}">${n.tag}</span>
+      <h2 style="font-size:1.05rem; margin:6px 0; color:#fff;">${n.title}</h2>
+      <p style="color:var(--muted); font-size:0.78rem;">${n.sub}</p>
+    </div>
+    <div class="inspector-card">
+      <h3>💡 Asli Kaam (Desi Bhasha Mein)</h3>
+      <p>${n.simple}</p>
+    </div>
+    <div class="inspector-card">
+      <h3>🔗 Kin-Kin Files Se Juda Hai?</h3>
+      <ul>${n.connects.map(c => `<li>${c}</li>`).join('')}</ul>
+    </div>
+    <div class="inspector-card danger-box">
+      <h3>⚠️ Agar Yeh File Hata Di Toh Kya Tootega?</h3>
+      <p>${n.withoutIt}</p>
+    </div>
+    <div class="inspector-card viva-box">
+      <h3>🎓 External Viva Master Answer</h3>
+      <p>"${n.viva}"</p>
+    </div>
+  `;
+}
+
+// Scenario Runner
+let currentScen = 0;
+let currentStep = 0;
+
+function startScenario(idx) {
+  currentScen = idx;
+  currentStep = 0;
+  document.querySelectorAll('.scenario-btn').forEach((b, i) => {
+    b.classList.toggle('running', i === idx);
+  });
+  renderStep();
+}
+
+function renderStep() {
+  const scen = SCENARIOS[currentScen];
+  const step = scen.steps[currentStep];
+  document.getElementById('step-title').innerText = `${scen.name} — (${currentStep + 1}/${scen.steps.length})`;
+  document.getElementById('step-text').innerText = step.text;
+
+  document.querySelectorAll('.node').forEach(el => el.classList.remove('active-step'));
+  const activeEl = document.getElementById('node-' + step.node);
+  if (activeEl) activeEl.classList.add('active-step');
+
+  selectNode(step.node);
+
+  if (currentStep > 0) {
+    const prevNode = scen.steps[currentStep - 1].node;
+    drawConnections([prevNode, step.node]);
+  } else {
+    drawConnections();
+  }
+
+  if (step.toast) {
+    showSimToast(step.toast[0], step.toast[1]);
+  }
+}
+
+function nextStep() {
+  const scen = SCENARIOS[currentScen];
+  if (currentStep < scen.steps.length - 1) {
+    currentStep++;
+    renderStep();
+  } else {
+    currentStep = 0;
+    renderStep();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+  }
+}
+
+// Zoom & Pan Logic
+let scale = 0.72, panX = 20, panY = 10, isDragging = false, startX = 0, startY = 0;
+const viewport = document.getElementById('viewport');
+const wrap = document.getElementById('canvas-wrap');
+
+function updateTransform() {
+  viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+}
+updateTransform();
+
+function zoomBy(delta) {
+  scale = Math.min(1.6, Math.max(0.4, scale + delta));
+  updateTransform();
+}
+function resetZoom() {
+  scale = 0.72; panX = 20; panY = 10;
+  updateTransform();
+}
+
+wrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoomBy(e.deltaY < 0 ? 0.08 : -0.08);
+});
+wrap.addEventListener('mousedown', (e) => {
+  isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+});
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  panX = e.clientX - startX; panY = e.clientY - startY;
+  updateTransform();
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+
+// Initialize with Program.cs selected
+selectNode('program_cs');
+</script>
+</body>
+</html>

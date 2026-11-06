@@ -2,612 +2,308 @@
 
 # 🩸 BloodConnect
 
-### Real-Time Blood Donation Network
+### Every Drop Counts. A real-time blood donation network.
 
-**A production-grade full-stack platform connecting blood donors with patients in urgent need**
+A full-stack platform that connects verified blood donors with patients in urgent need, using compatibility-aware search, a two-way pledge workflow, and live push notifications.
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?style=for-the-badge&logo=dotnet)](https://learn.microsoft.com/aspnet/core)
 [![EF Core](https://img.shields.io/badge/EF_Core-10.0-512BD4?style=for-the-badge)](https://learn.microsoft.com/ef/core)
 [![SQL Server](https://img.shields.io/badge/SQL_Server-Express-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)](https://www.microsoft.com/sql-server)
 [![SignalR](https://img.shields.io/badge/SignalR-Real--Time-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/apps/aspnet/signalr)
-[![License](https://img.shields.io/badge/License-Educational-D4A24C?style=for-the-badge)](LICENSE)
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-bloodconnector.runasp.net-DC2626?style=for-the-badge)](https://bloodconnector.runasp.net)
-[![Swagger](https://img.shields.io/badge/📖_API_Docs-Swagger-85EA2D?style=for-the-badge&logo=swagger)](https://bloodconnector.runasp.net/swagger)
-[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github)](https://github.com/rajputpri/BloodConnector)
-
-**[🌐 Live Demo](https://bloodconnector.runasp.net)** · **[📖 API Docs](https://bloodconnector.runasp.net/swagger)** · **[🐛 Report Bug](https://github.com/rajputpri/BloodConnector/issues)** · **[✨ Request Feature](https://github.com/rajputpri/BloodConnector/issues)**
+**[Live Demo](https://bloodconnector.runasp.net)** · **[Swagger API Docs](https://bloodconnector.runasp.net/swagger)** · **[Source](https://github.com/rajputpri/BloodConnector)** · **[Report a Bug](https://github.com/rajputpri/BloodConnector/issues)**
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## Table of Contents
+
+1. [The Problem and the Solution](#1-the-problem-and-the-solution)
+2. [Screenshots](#2-screenshots)
+3. [Key Features](#3-key-features)
+4. [Tech Stack](#4-tech-stack)
+5. [Architecture](#5-architecture)
+6. [Domain Model](#6-domain-model)
+7. [Donation Workflow](#7-donation-workflow)
+8. [Blood Compatibility Logic](#8-blood-compatibility-logic)
+9. [Real-Time Notifications](#9-real-time-notifications)
+10. [Security and Identity](#10-security-and-identity)
+11. [Authorization Model](#11-authorization-model)
+12. [API Documentation](#12-api-documentation)
+13. [Quick Start](#13-quick-start)
+14. [Configuration](#14-configuration)
+15. [Project Structure](#15-project-structure)
+16. [Testing and Verification](#16-testing-and-verification)
+17. [Deployment](#17-deployment)
+18. [Design Decisions](#18-design-decisions)
+19. [Known Limitations](#19-known-limitations)
+20. [Roadmap](#20-roadmap)
+21. [Documentation Index](#21-documentation-index)
+22. [Contributing, License, Author](#22-contributing-license-author)
+
+---
+
+## 1. The Problem and the Solution
+
+### 😟 The problem
+
+- 📱 **Scattered coordination.** Blood requests travel through WhatsApp groups, phone calls and social media, with no single place to see who needs what.
+- ❓ **No verification.** Nobody knows if a donor is genuine, available, or will actually show up.
+- 🧪 **Wrong-group matching wastes time.** People contact donors who cannot medically donate to the patient.
+- 📞 **Privacy leaks.** Phone numbers get posted publicly and end up in spam lists.
+- 🙈 **Zero visibility.** The requester cannot see whether anyone has responded.
+
+### ✅ The solution
+
+| Problem | BloodConnect answer | Design guarantee |
+|---|---|---|
+| Scattered coordination | One network with a live request board | One source of truth |
+| Unverified donors | Pledge, then accept, then complete (two-way confirmation) | No fulfilment without both sides |
+| Wrong-group matches | Built-in red-cell compatibility matrix | Search returns only compatible donors |
+| Privacy leaks | Contact details hidden until an offer is accepted | 0 phone numbers shown before consent |
+| Duplicate or fake pledges | Unique `(RequestId, DonorId)` index plus server-side rules | 0 duplicate pledges, enforced by the database |
+| No visibility | SignalR push to the right person at every state change | 0 polling requests |
+
+> The guarantees above come from the design and the database constraints, not from load testing. No performance benchmarks are claimed.
+
+---
+
+## 2. Screenshots
 
 <table>
   <tr>
-    <td width="50%">
-      <h4>🏠 Homepage</h4>
-      <img src="docs/screenshots/public/01-homepage.png" alt="Homepage" />
-    </td>
-    <td width="50%">
-      <h4>🔔 Real-Time Notifications</h4>
-      <img src="docs/screenshots/notifications/01-bell-badge.png" alt="Notifications" />
-    </td>
+    <td width="50%"><h4>Homepage</h4><img src="docs/screenshots/public/01-homepage.png" alt="Homepage" /></td>
+    <td width="50%"><h4>Real-time notifications</h4><img src="docs/screenshots/notifications/01-bell-badge.png" alt="Notifications" /></td>
   </tr>
   <tr>
-    <td width="50%">
-      <h4>🩸 Blood Compatibility Chart</h4>
-      <img src="docs/screenshots/public/05-about.png" alt="Blood Compatibility" />
-    </td>
-    <td width="50%">
-      <h4>🔍 Compatibility-Aware Search</h4>
-      <img src="docs/screenshots/public/03-search.png" alt="Donor Search" />
-    </td>
+    <td width="50%"><h4>Blood compatibility chart</h4><img src="docs/screenshots/public/05-about.png" alt="Blood compatibility" /></td>
+    <td width="50%"><h4>Compatibility-aware search</h4><img src="docs/screenshots/public/03-search.png" alt="Donor search" /></td>
   </tr>
   <tr>
-    <td width="50%">
-      <h4>📊 Admin Dashboard</h4>
-      <img src="docs/screenshots/admin/01-admin-dashboard.png" alt="Admin Dashboard" />
-    </td>
-    <td width="50%">
-      <h4>📖 Swagger API Docs</h4>
-      <img src="docs/screenshots/admin/05-swagger.png" alt="Swagger UI" />
-    </td>
+    <td width="50%"><h4>Admin dashboard</h4><img src="docs/screenshots/admin/01-admin-dashboard.png" alt="Admin dashboard" /></td>
+    <td width="50%"><h4>Swagger API docs</h4><img src="docs/screenshots/admin/05-swagger.png" alt="Swagger UI" /></td>
   </tr>
 </table>
 
 ---
 
-## 📖 Table of Contents
+## 3. Key Features
 
-- [Overview](#-overview)
-- [Real-Time Notifications](#-real-time-notifications)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Configuration](#-configuration)
-- [API Documentation](#-api-documentation)
-- [Donation Workflow](#-donation-workflow)
-- [Blood Compatibility Logic](#-blood-compatibility-logic)
-- [Authorization Model](#-authorization-model)
-- [Real-Time Architecture](#-real-time-architecture)
-- [Project Structure](#-project-structure)
-- [Testing & Verification](#-testing--verification)
-- [Deployment](#-deployment)
-- [Documentation](#-documentation)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
+### 👤 For users
+- Register and sign in with ASP.NET Core Identity (hashed passwords, lockout protection).
+- Post blood requests with urgency level, location and contact details.
+- Search compatible donors by blood group, state and availability.
+- Track a request live: `Active → InProgress → Fulfilled`.
+- Manage everything from a personal dashboard.
 
----
+### 🩸 For donors
+- Create a donor profile with age validation (18 to 65).
+- Pledge on requests through the two-way confirmation flow.
+- Browse only the requests your blood group can medically serve.
+- Control availability at any time and get instant alerts when an offer is accepted.
 
-## 🎯 Overview
+### 🛡️ For admins
+- Ban, unban, promote, demote and delete users, with a strict role hierarchy.
+- Moderate donors and blood requests.
+- Contact-message inbox with read/unread tracking and a cached badge count.
+- Dashboard statistics and a live notification feed.
 
-**BloodConnect** is a **real-time blood donation management platform** that connects verified donors with patients during emergencies. It eliminates the friction of traditional methods (WhatsApp groups, phone calls, social media) by providing a **compatibility-aware, pledge-based matching system** with **live push notifications**.
-
-### 💡 The Problem
-
-- India requires **14.6 million blood units annually** but faces a **1.5 million unit shortage**
-- Traditional donor discovery is **slow, unverified, and unreliable**
-- No way to verify if a donor will actually show up
-- Wrong blood group matching leads to **wasted critical time**
-- Emergency coordination is fragmented across multiple channels with **zero visibility**
-
-### ✅ Our Solution
-
-| Feature | Impact |
-|---------|--------|
-| **Real-time matching** | Find compatible donors in seconds, not hours |
-| **Two-way pledge system** | Both parties confirm — no fake fulfillments |
-| **Medical accuracy** | Built-in blood compatibility matrix (O− universal donor, AB+ universal receiver) |
-| **Privacy-first** | Contact details revealed only after mutual agreement |
-| **Live notifications** | SignalR-powered real-time alerts with sound |
-| **Zero cost** | Free forever — no premium tiers, no ads, no data selling |
+### ⚙️ Engineering highlights
+- SignalR WebSocket push with no polling.
+- REST API with Swagger/OpenAPI, using DTOs so contact data is never leaked.
+- `RowVersion` optimistic concurrency on donor records.
+- Global CSRF protection through `AutoValidateAntiforgeryToken`.
+- Hybrid caching: `IMemoryCache` plus SignalR plus explicit invalidation on writes.
+- Web Audio notification chime (two tones, 880 Hz and 1174 Hz) with a persisted mute toggle.
+- Compatibility rules centralised in one `BloodCompatibility` helper.
+- EF Core migrations, branded 404/500 pages, and reduced-motion support.
 
 ---
 
-## 🔔 Real-Time Notifications
+## 4. Tech Stack
 
-**The killer feature that makes BloodConnect feel alive.**
-
-### What Happens
-
-| Trigger | Who Gets Notified | How |
-|---------|------------------|-----|
-| New blood request posted | **All Admins** | Bell badge + Toast + Sound |
-| New contact message | **All Admins** | Bell badge + Toast + Sound |
-| Donor pledges on a request | **Request Owner** | Bell badge + Toast + Sound |
-| Owner accepts an offer | **Donor** | Bell badge + Toast + Sound |
-| Owner rejects an offer | **Donor** | Bell badge + Toast + Sound |
-| Donation completed | **Donor** | Bell badge + Toast + Sound |
-
-### How It Works
-
-- **SignalR WebSocket** — Persistent connection between browser and server
-- **Role-based groups** — `admins` group for admin alerts, `user_{id}` group for personal alerts
-- **WhatsApp-style chime** — Web Audio API with two-tone harmonic sound (880Hz + 1174Hz)
-- **Animated bell** — Ring animation on new notification + bouncing badge
-- **Toast popup** — Slide-in from top-right, auto-dismiss after 7 seconds, clickable
-- **IMemoryCache fallback** — 60-second cached counts for initial page load
-- **Explicit invalidation** — Cache cleared on every write operation
-
-### Technical Highlights
-
-- **Zero DB queries for non-admins** — Only admins hit the message count query (cached)
-- **Automatic reconnection** — SignalR reconnects with exponential backoff
-- **Sound persistence** — User toggle stored in `localStorage`
-- **Reduced-motion support** — Respects `prefers-reduced-motion` for accessibility
+| Layer | Technology | Purpose |
+|---|---|---|
+| Runtime | .NET 10 | Application runtime |
+| Web framework | ASP.NET Core 10 MVC | Server-rendered pages and REST controllers |
+| Real-time | ASP.NET Core SignalR | WebSocket notifications |
+| Data access | Entity Framework Core 10 (Code First) | ORM and migrations |
+| Database | SQL Server Express (local), SQL Server (live) | Persistent storage |
+| Authentication | ASP.NET Core Identity, cookie authentication | Sessions, roles, lockout |
+| API docs | Swashbuckle.AspNetCore (Swagger / OpenAPI 3) | Interactive API reference |
+| Frontend | Razor views, Bootstrap 5, vanilla JavaScript | Responsive UI |
+| Styling | Custom CSS, Inter font | Warm design system (cream, burgundy, gold) |
+| Caching | `IMemoryCache` | 60-second unread-count cache |
+| Sound | Web Audio API | Notification chime |
+| Real-time client | `@microsoft/signalr` | Browser WebSocket client |
+| API testing | Postman (cookie-based) | 28 recorded tests |
 
 ---
 
-## ✨ Key Features
+## 5. Architecture
 
-### 👤 For Users
-- **Register & authenticate** with ASP.NET Core Identity (secure password hashing, lockout protection)
-- **Post blood requests** with urgency level, location, and contact details
-- **Search compatible donors** by blood group, state, and availability
-- **Track request status** in real-time (Open → Pledged → Accepted → Fulfilled)
-- **Manage profile** through a personal dashboard
-- **Receive live notifications** when donors pledge on your requests
-
-### 🩸 For Donors
-- **Create verified donor profile** with age validation (18-65 years)
-- **Pledge to donate** on active requests using a two-way confirmation flow
-- **Browse compatible requests** based on medical accuracy
-- **Track personal donations** and contribution history
-- **Control availability** status anytime
-- **Get instant alerts** when your offer is accepted
-
-### 🛡️ For Admins
-- **Full user management** — ban/unban, promote/demote, delete
-- **Role hierarchy** — SuperAdmin > Admin > User with strict enforcement
-- **Moderate donors** — remove fraudulent entries
-- **Manage blood requests** — delete policy violations
-- **Contact message inbox** — read/unread tracking with cached badge count
-- **Real-time dashboard** — stats on donors, requests, and fulfilled donations
-- **Live notification feed** — instant alerts for new requests and messages
-
-### ⚙️ Engineering Highlights
-- **Real-time SignalR notifications** — WebSocket push with zero polling
-- **REST API with Swagger UI** — 18+ documented endpoints
-- **DTO pattern** for API responses (contact privacy protection)
-- **RowVersion concurrency** on donor records
-- **Global CSRF protection** via `AutoValidateAntiforgeryToken`
-- **Cookie-based auth** with ban-checking middleware
-- **Hybrid caching strategy** — `IMemoryCache` + SignalR + explicit invalidation
-- **WhatsApp-style sound system** — Web Audio API with compressor + harmonic layering
-- **EF Core migrations** for version-controlled schema
-- **Compatibility matrix** centralized in `BloodCompatibility` helper
-- **Unique compound index** prevents duplicate pledges
-- **Web Audio API** — Real-time notification chimes
-- **Responsive design** — Works on desktop, tablet, mobile
-
----
-
-## 🛠 Tech Stack
-
-<table>
-<tr>
-<td align="center" width="16%">
-
-**Backend**
-<br/>
-![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
-
-</td>
-<td align="center" width="16%">
-
-**Framework**
-<br/>
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?logo=dotnet)
-
-</td>
-<td align="center" width="16%">
-
-**Real-Time**
-<br/>
-![SignalR](https://img.shields.io/badge/SignalR-WebSocket-512BD4?logo=dotnet)
-
-</td>
-<td align="center" width="16%">
-
-**Database**
-<br/>
-![SQL Server](https://img.shields.io/badge/SQL_Server-Express-CC2927?logo=microsoft-sql-server)
-
-</td>
-<td align="center" width="16%">
-
-**ORM**
-<br/>
-![EF Core](https://img.shields.io/badge/EF_Core-10-512BD4)
-
-</td>
-<td align="center" width="16%">
-
-**API Docs**
-<br/>
-![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger)
-
-</td>
-</tr>
-</table>
-
-| Layer | Technology | Version | Purpose |
-|-------|-----------|---------|---------|
-| Runtime | .NET | 10.0 | Application runtime |
-| Web Framework | ASP.NET Core MVC | 10.0 | HTTP request handling |
-| Real-Time | ASP.NET Core SignalR | 10.0 | WebSocket notifications |
-| Data Access | Entity Framework Core | 10.0 | ORM with code-first migrations |
-| Database | SQL Server Express | 2019+ | Persistent storage |
-| Authentication | ASP.NET Core Identity | 10.0 | Cookie-based auth |
-| API Documentation | Swashbuckle.AspNetCore | 10.2.3 | Swagger UI + OpenAPI 3.0 |
-| Frontend | Razor Views + Bootstrap | 5.x | Server-rendered UI |
-| Styling | Custom CSS (Inter font) | — | Warm premium design system |
-| Icons | Inline SVG (Lucide-style) | — | Crisp vector icons |
-| Caching | IMemoryCache | — | 60-second badge cache |
-| Sound | Web Audio API | — | Two-tone notification chime |
-| Real-Time Client | @microsoft/signalr | 8.0.7 | Browser WebSocket client |
-
----
-
-## 🏗 Architecture
-
-### High-Level Flow
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                         BROWSER                             │
-│  (Desktop · Tablet · Mobile — Responsive via Bootstrap 5)   │
-│  ┌────────────────┐  ┌────────────────┐  ┌───────────────┐  │
-│  │  Razor Views   │  │  notifications │  │  SignalR      │  │
-│  │  + Vanilla JS  │  │  .js (client)  │  │  WebSocket    │  │
-│  └────────────────┘  └────────────────┘  └───────┬───────┘  │
-└────────────────────┬─────────────────────────────┼──────────┘
-                     │                             │
-                     │ HTTP / HTTPS                │ WebSocket
-                     ▼                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    ASP.NET CORE MVC                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Controllers │  │  Services   │  │  SignalR Hub        │  │
-│  │ (Business   │  │ (Message    │  │  (NotificationHub)  │  │
-│  │  Logic)     │  │  Cache +    │  │                     │  │
-│  │             │  │  Notif.)    │  │  Groups:            │  │
-│  │             │  │             │  │  • admins           │  │
-│  │             │  │             │  │  • user_{id}        │  │
-│  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
-│         │                                                    │
-│  ┌──────▼──────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Models    │  │  ViewModels │  │  Razor Views        │  │
-│  │ (Entities)  │  │  (DTOs)     │  │  (UI Layer)         │  │
-│  └──────┬──────┘  └─────────────┘  └─────────────────────┘  │
-└─────────┼───────────────────────────────────────────────────┘
-          │
-          │ EF Core (Code-First Migrations)
-          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     SQL SERVER                              │
-│  ┌──────────┐  ┌────────────┐  ┌──────────────────────┐    │
-│  │ Identity │  │  Domain    │  │  Relationship        │    │
-│  │  Tables  │  │  Tables    │  │  Tables              │    │
-│  │  (5)     │  │  (4)       │  │  (Indexed, FK-linked)│    │
-│  └──────────┘  └────────────┘  └──────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Client
+        B["Browser<br/>Razor views + vanilla JS"]
+        WS["notifications.js<br/>SignalR client"]
+    end
+    subgraph Server["ASP.NET Core 10"]
+        MW["Middleware<br/>HTTPS, antiforgery, auth cookie, ban check"]
+        C["Controllers<br/>MVC pages and REST APIs"]
+        S["Services<br/>NotificationService, MessageCache"]
+        H["NotificationHub<br/>/hubs/notifications"]
+    end
+    DB[("SQL Server<br/>EF Core Code First")]
+    B -->|HTTP request| MW --> C
+    C -->|EF Core| DB
+    C --> S
+    S -->|IHubContext| H
+    H -.->|WebSocket push| WS
 ```
 
-### Data Model
+**How a request travels:** the browser sends an HTTP request. Middleware validates the anti-forgery token and the auth cookie, then routes to a controller. The controller validates input, applies business rules, and talks to SQL Server through EF Core. After a successful save, `NotificationService` pushes the event through the SignalR hub to the right group.
 
-```text
-AppUser ────┐
-            │ owns
-            ▼
-          Donor ────┬──── DonationOffer ──── BloodRequest
-                    │           │                 │
-                    │           │                 │
-                    └───────────┘                 │
-                    (unique RequestId+DonorId)    │
-                                                  │
-                                                  │ owned by
-                                                  ▼
-                                                AppUser
-```
-
-### Design Principles
-
-- **Separation of Concerns** — Controllers orchestrate, Models hold state, Views render
-- **Thin Controllers** — Business logic pushed to domain services where it makes sense
-- **No DB in Views** — All data prepared by controller actions
-- **DTO Pattern for API** — Never expose entities directly; use `DonorDto`, `BloodRequestDto`
-- **Server-Side Validation** — `[Required]`, `[Range]`, `[RegularExpression]`, custom `[MustBeTrue]`
-- **Global CSRF** — Every form post validated via `AutoValidateAntiforgeryToken`
-- **Role-Based Access** — `[Authorize(Roles = "...")]` + controller-level ownership checks
-- **Real-Time First** — SignalR hub for push notifications, no polling
-- **Cache Wisely** — `IMemoryCache` for read-heavy paths, invalidate on every write
+### Design principles
+- **Thin controllers:** orchestration only. Notification and cache logic live in services.
+- **No database access in views:** controllers prepare everything a view needs.
+- **DTOs for the API:** entities are never exposed directly.
+- **Server-side validation always:** `[Required]`, `[Range]`, `[RegularExpression]` and a custom `[MustBeTrue]`.
+- **Ownership checks in every mutating action**, in addition to role attributes.
+- **Save first, then notify:** data is committed before any push is sent.
 
 ---
 
-## 🚀 Quick Start
+## 6. Domain Model
 
-### Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [SQL Server Express](https://www.microsoft.com/sql-server/sql-server-downloads) or LocalDB
-- [Git](https://git-scm.com/)
-- Optional: [VS Code](https://code.visualstudio.com/) with C# Dev Kit
-
-### Installation
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/rajputpri/BloodConnector.git
-cd BloodConnector
-
-# 2. Restore NuGet packages
-dotnet restore
-
-# 3. Install EF Core CLI (if not already)
-dotnet tool install --global dotnet-ef
-
-# 4. Update connection string in appsettings.Development.json
-#    Example: "Server=localhost\\SQLEXPRESS04;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;"
-
-# 5. Apply migrations
-dotnet ef database update
-
-# 6. Run the application
-dotnet run
+```mermaid
+erDiagram
+    APPUSER |o--o| DONOR : "owns one profile"
+    APPUSER |o--o{ BLOODREQUEST : "posts"
+    BLOODREQUEST ||--o{ DONATIONOFFER : "receives"
+    DONOR ||--o{ DONATIONOFFER : "pledges"
+    DONOR |o--o{ BLOODREQUEST : "fulfils"
 ```
 
-**Application will be available at:** `http://localhost:5006`
+| Entity | Responsibility | Important fields |
+|---|---|---|
+| **AppUser** (extends `IdentityUser`) | Account and role | `FullName`, `IsBanned`, `CreatedAt` |
+| **Donor** | A person who can donate | `DonorId`, `Name`, `BloodGroup`, `Location`, `ContactNumber`, `IsAvailable`, `Age`, `City`, `State`, `UserId`, `RowVersion` |
+| **BloodRequest** | A patient's need | `RequestId`, `RequesterName`, `BloodGroupNeeded`, `UrgencyLevel`, `Status`, `Location`, `City`, `State`, `ContactNumber`, `RequestDate`, `FulfilledByDonorId`, `UserId` |
+| **DonationOffer** | A donor's pledge on a request | `Id`, `RequestId`, `DonorId`, `Status`, `CreatedAt`, `AcceptedAt`, `CompletedAt` |
+| **ContactMessage** | Message from the contact form | `Id`, `Name`, `Email`, `Subject`, `Message`, `CreatedAt`, `IsRead`, `ReadAt` |
 
-### Default Admin Credentials
+**Constraints worth knowing**
+- Unique index on `DonationOffer (RequestId, DonorId)` stops duplicate pledges at the database level.
+- `Donor.RowVersion` provides optimistic concurrency.
+- `BloodRequest.UserId` is nullable to allow requests without an account.
+- `BloodRequest.UrgencyLevel` and `Status` are stored as strings, not enums.
 
-```text
-Email:    admin@bloodconnect.com
-Password: Admin@123
-```
-
-> [!WARNING]
-> **Change these credentials immediately in production.** These are seeded for development only.
+> **Naming note:** the SQL column names differ from some C# property names (`RequesterName` is `PatientName` in the model, `BloodGroupNeeded` is `BloodGroup`, `RequestDate` is `CreatedAt`). Use the actual column names in raw SQL and in documentation.
 
 ---
 
-## ⚙ Configuration
+## 7. Donation Workflow
 
-### Development (`appsettings.Development.json`)
+A request and an offer have **separate** status values:
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost\\SQLEXPRESS04;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
-  }
-}
+| Entity | Values |
+|---|---|
+| `BloodRequest.Status` | `Active`, `InProgress`, `Fulfilled`, `Cancelled` |
+| `DonationOffer.Status` | `Pledged`, `Accepted`, `Rejected`, `Cancelled`, `Completed` |
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Active : request created
+    Active --> InProgress : a donor pledges
+    InProgress --> Fulfilled : donation completed
+    Active --> Cancelled : owner cancels
+    InProgress --> Cancelled : owner cancels
 ```
 
-### Production (`appsettings.Production.json`)
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=YOUR_SERVER;Database=YOUR_DB;User Id=YOUR_USER;Password=YOUR_PASSWORD;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True"
-  }
-}
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Pledged : donor pledges
+    Pledged --> Accepted : owner accepts
+    Pledged --> Rejected : owner picks another donor
+    Pledged --> Cancelled : donor cancels
+    Accepted --> Completed : owner or donor confirms
 ```
 
-> [!IMPORTANT]
-> `appsettings.Production.json` is **excluded from version control** (see `.gitignore`). Upload it manually to the hosting server or set via environment variables.
+```mermaid
+sequenceDiagram
+    actor O as Requester
+    actor D as Donor
+    participant A as BloodConnect
+    participant H as SignalR Hub
+    O->>A: Post blood request
+    A->>A: Request = Active
+    A-->>H: Notify admins group
+    D->>A: Pledge
+    A->>A: Check group, ownership, duplicates
+    A->>A: Offer = Pledged, Request = InProgress
+    A-->>H: Notify requester
+    O->>A: Accept offer
+    A->>A: Other pending offers = Rejected
+    A-->>H: Notify donor, contact details unlock
+    D->>A: Mark complete (requester can too)
+    A->>A: Offer = Completed, Request = Fulfilled
+    A-->>H: Notify donor
+```
 
-### Environment Variables (Alternative)
-
-| Variable | Purpose |
-|----------|---------|
-| `ASPNETCORE_ENVIRONMENT` | Set to `Production` on hosting server |
-| `ConnectionStrings__DefaultConnection` | Production DB connection string |
+### Business rules
+- A donor can pledge **once per request** (unique index).
+- A user **cannot pledge on their own request**.
+- The donor's blood group must be **compatible** with the request (validated on the server).
+- Accepting one offer **auto-rejects** every other pending offer.
+- **Contact details unlock only after acceptance.**
+- Both the requester **and** the accepted donor can mark the donation complete.
+- A fulfilled request **cannot accept new offers**.
+- Every state change triggers a real-time notification.
 
 ---
 
-## 📡 API Documentation
+## 8. Blood Compatibility Logic
 
-**Live Swagger UI:** [https://bloodconnector.runasp.net/swagger](https://bloodconnector.runasp.net/swagger)
-
-### Endpoints Overview
-
-#### 🔐 Auth APIs
-
-| Method | Endpoint | Auth | Purpose |
-|--------|----------|:----:|---------|
-| `POST` | `/api/auth/login` | 🌐 Public | Login via JSON (returns cookie) |
-| `POST` | `/api/auth/logout` | 🔒 Auth | Logout current session |
-| `GET` | `/api/auth/me` | 🔒 Auth | Current user info + roles |
-
-#### 🩸 Donor APIs
-
-| Method | Endpoint | Auth | Purpose |
-|--------|----------|:----:|---------|
-| `GET` | `/api/donor` | 🌐 Public | List all donors (paginated) |
-| `GET` | `/api/donor/{id}` | 🌐 Public | Get single donor by ID |
-| `GET` | `/api/donor/search` | 🌐 Public | Compatibility-aware search |
-| `POST` | `/api/donor` | 🔒 Auth | Create new donor profile |
-| `PUT` | `/api/donor/{id}` | 🔒 Owner/Admin | Update donor |
-| `DELETE` | `/api/donor/{id}` | 🔒 Owner/Admin | Delete donor |
-
-#### 📋 Blood Request APIs
-
-| Method | Endpoint | Auth | Purpose |
-|--------|----------|:----:|---------|
-| `GET` | `/api/bloodrequest` | 🌐 Public | List all blood requests |
-| `GET` | `/api/bloodrequest/{id}` | 🌐 Public | Get single request |
-| `POST` | `/api/bloodrequest` | 🔒 Auth | Create new request |
-| `PUT` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Update request |
-| `DELETE` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Delete request |
-
-**Full API reference:** [docs/API.md](docs/API.md)
-
-### Sample Response — `GET /api/donor/search?bloodGroup=B%2B`
-
-```json
-{
-  "total": 2,
-  "page": 1,
-  "pageSize": 20,
-  "searchMode": "compatible",
-  "requestedBloodGroup": "B+",
-  "compatibleGroups": ["O-", "O+", "B-", "B+"],
-  "results": [
-    {
-      "donorId": 15,
-      "name": "Gaurav",
-      "bloodGroup": "B+",
-      "state": "Bihar",
-      "location": "Bihar",
-      "isExactMatch": true
-    }
-  ]
-}
-```
-
-### Sample Request — `POST /api/auth/login`
-
-```json
-{
-  "email": "admin@bloodconnect.com",
-  "password": "Admin@123"
-}
-```
-
-**Response:** `200 OK` + `Set-Cookie: .AspNetCore.Identity.Application=...`
-
----
-
-## 🤝 Donation Workflow
-
-### Pledge-Based Two-Way Confirmation
-
-```text
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│ PLEDGED  │───▶│ ACCEPTED │───▶│COMPLETED │───▶│FULFILLED │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-     │
-     ├──▶ CANCELLED  (donor cancels before acceptance)
-     └──▶ REJECTED   (owner chooses another donor)
-```
-
-### Rules
-
-- ✅ A donor can pledge **once per request** — enforced by unique `(RequestId, DonorId)` index
-- ✅ **Cannot pledge on own request**
-- ✅ **Blood group must match** — validated server-side
-- ✅ Accepting one offer **auto-rejects all other pending offers**
-- ✅ **Contact details revealed only after acceptance**
-- ✅ Both owner **and** accepted donor can mark donation complete
-- ✅ Fulfilled requests **cannot accept new offers**
-- ✅ **Every state change triggers a real-time SignalR notification**
-
----
-
-## 🩸 Blood Compatibility Logic
-
-### Red Cell Compatibility Matrix
-
-| Recipient | Can Receive From |
-|-----------|-----------------|
-| **O−**  | O− |
-| **O+**  | O−, O+ |
-| **A−**  | O−, A− |
-| **A+**  | O−, O+, A−, A+ |
-| **B−**  | O−, B− |
-| **B+**  | O−, O+, B−, B+ |
+| Recipient | Can receive red cells from |
+|---|---|
+| **O−** | O− |
+| **O+** | O−, O+ |
+| **A−** | O−, A− |
+| **A+** | O−, O+, A−, A+ |
+| **B−** | O−, B− |
+| **B+** | O−, O+, B−, B+ |
 | **AB−** | O−, A−, B−, AB− |
 | **AB+** | All 8 groups |
 
-### Key Facts
-
-- **🩸 O− is the universal donor** — can donate red cells to all 8 groups
-- **🩸 AB+ is the universal receiver** — can receive red cells from all 8 groups
-- **A+ and B+** are the most common in India (~30% and ~24%)
-
-This logic is centralized in `BloodCompatibility.cs` and applied consistently across:
-- Web-based donor search
-- API search endpoint
-- Donation offer validation
+- **O−** is the universal red-cell donor. **AB+** is the universal red-cell receiver.
+- The matrix lives in one place, `Models/BloodCompatibility.cs`, and is reused by the web search, the API search, and offer validation, so the three can never disagree.
 
 ---
 
-## 🔐 Authorization Model
+## 9. Real-Time Notifications
 
-### Role Hierarchy
+| Trigger | Who is notified | Delivery |
+|---|---|---|
+| New blood request posted | All admins | Bell badge, toast, sound |
+| New contact message | All admins | Bell badge, toast, sound |
+| Donor pledges on a request | Request owner | Bell badge, toast, sound |
+| Owner accepts or rejects an offer | The donor | Bell badge, toast, sound |
+| Donation completed | The donor | Bell badge, toast, sound |
 
-```text
-┌─────────────────────────────────────────┐
-│           SuperAdmin                     │  ← Highest
-│         (Immutable, undeletable)        │
-└────────────────┬────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────┐
-│              Admin                       │
-│   (Can manage users below, moderate)     │
-└────────────────┬────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────┐
-│              User                        │  ← Lowest
-│         (Basic access)                   │
-└─────────────────────────────────────────┘
-```
+**How it works**
+- A persistent **SignalR WebSocket** connects to `/hubs/notifications` on page load.
+- **Groups** decide who hears what: `admins` for admin alerts, `user_{id}` for personal ones.
+- Controllers never touch the hub directly. `NotificationService` pushes through `IHubContext`.
+- The client receives `ReceiveNotification` and then: bounces the badge, rings the bell for 0.6 s, prepends the dropdown item, plays the chime, shows a toast (auto-dismiss after 7 s) and makes the toast clickable to the target URL.
+- The client reconnects automatically with exponential backoff.
+- For first page load, unread counts come from `IMemoryCache` (60-second TTL) and are **invalidated on every write**. Non-admin users trigger no count query.
 
-### Permission Matrix
-
-| Action | User | Admin | SuperAdmin |
-|--------|:----:|:-----:|:----------:|
-| Edit own donor profile | ✅ | ✅ | ✅ |
-| Edit another's profile | ❌ | ❌ | ❌ |
-| Delete own request | ✅ | ✅ | ✅ |
-| Delete another's request | ❌ | ✅ | ✅ |
-| Ban regular user | ❌ | ✅ | ✅ |
-| Ban an Admin | ❌ | ❌ | ✅ |
-| Ban a SuperAdmin | ❌ | ❌ | ❌ |
-| Promote User → Admin | ❌ | ✅ | ✅ |
-| Demote Admin → User | ❌ | ❌ | ✅ |
-| Delete SuperAdmin | ❌ | ❌ | ❌ |
-| Ban/delete self | ❌ | ❌ | ❌ |
-
----
-
-## 🔄 Real-Time Architecture
-
-### SignalR Flow
-
-```text
-┌────────────────────────────────────────────────────────────┐
-│                       SIGNALR HUB                          │
-│                   (/hubs/notifications)                    │
-│                                                            │
-│  Connection Groups:                                        │
-│  • "admins"          ← All Admin + SuperAdmin users        │
-│  • "user_{userId}"   ← Individual user (personal alerts)   │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-                       │  OnWrite (Push)
-                       │
-    ┌──────────────────┼──────────────────┐
-    │                  │                  │
-    ▼                  ▼                  ▼
-┌─────────┐      ┌──────────┐      ┌──────────────┐
-│ New     │      │ New      │      │ Offer Status │
-│ Request │      │ Offer    │      │ Changed      │
-└────┬────┘      └────┬─────┘      └──────┬───────┘
-     │                │                    │
-     ▼                ▼                    ▼
-  admins          user_{id}            user_{id}
-  group           (request owner)      (donor)
-```
-
-### Notification Payload
+**Payload**
 
 ```json
 {
@@ -619,279 +315,367 @@ This logic is centralized in `BloodCompatibility.cs` and applied consistently ac
 }
 ```
 
-### Client-Side Handling
-
-1. **SignalR receives** → `ReceiveNotification` event
-2. **Bell badge** → Increment with bounce animation
-3. **Bell icon** → Ring animation for 0.6s
-4. **Dropdown** → Prepend new item with highlight fade
-5. **Sound** → Play two-tone chime (880Hz → 1174Hz)
-6. **Toast** → Slide in from top-right, auto-dismiss after 7s
-7. **Click** → Navigate to `payload.url`
-
-### Server-Side Push
-
-Every write operation triggers a push:
+**Server-side push (save first, then notify)**
 
 ```csharp
-// In BloodRequestController.Create
 _context.BloodRequests.Add(request);
 await _context.SaveChangesAsync();
 await _notifications.PushNewRequestToAdminsAsync(request);
-
-// In BloodRequestController.Offer
-await _notifications.PushNewOfferToOwnerAsync(request, newOffer);
-
-// In BloodRequestController.AcceptOffer
-await _notifications.PushOfferStatusToDonorAsync(
-    offer.Donor.UserId, DomainValues.Accepted, offer.RequestId);
 ```
 
 ---
 
-## 📁 Project Structure
+## 10. Security and Identity
+
+| Defence | Threat | How it is implemented |
+|---|---|---|
+| **Cookie authentication** | Session theft | Cookie `.AspNetCore.Identity.Application` with `HttpOnly = true` and `SameSite = Lax`. Sliding expiration of 7 days. No tokens in JavaScript-accessible storage. |
+| **Anti-forgery tokens** | CSRF | `AutoValidateAntiforgeryToken` applied globally to every state-changing request. |
+| **Ownership checks** | IDOR | Controllers compare the record's owner with the signed-in user. A mismatch returns `403 Forbidden`. Admins are the only exception. |
+| **Razor output encoding** | XSS | A stored `<script>` payload renders as plain text. |
+| **EF Core parameterised queries** | SQL injection | Search input is always a parameter, never concatenated SQL. |
+| **Identity password hashing and lockout** | Credential attacks | Passwords are hashed. Five failed attempts lock the account. Weak passwords are rejected. |
+| **Ban enforcement** | Abusive accounts | The cookie's `OnValidatePrincipal` event checks `IsBanned` on every request and signs the user out immediately. |
+| **Role hierarchy** | Privilege abuse | SuperAdmin (immutable) over Admin over User, enforced on the server. |
+| **Unique index and `RowVersion`** | Duplicate pledges and lost updates | Database-level uniqueness plus optimistic concurrency. |
+| **DTOs and consent-based contact reveal** | Data leakage | API responses use DTOs. Phone numbers appear only after an offer is accepted. |
+| **HTTPS** | Eavesdropping | Let's Encrypt certificate on the live site. |
+
+Security testing performed: XSS, SQL-injection and IDOR attempts were run against the app, and the API's `400`, `401`, `403`, `404` and `409` responses were exercised through Postman. See [docs/SECURITY.md](docs/SECURITY.md) for the full analysis.
+
+---
+
+## 11. Authorization Model
+
+```text
+SuperAdmin   (immutable, cannot be banned or deleted)
+   └── Admin     (manages users below, moderates content)
+          └── User   (basic access, owns own data)
+```
+
+| Action | User | Admin | SuperAdmin |
+|---|:---:|:---:|:---:|
+| Edit own donor profile | ✅ | ✅ | ✅ |
+| Edit another user's profile | ❌ | ❌ | ❌ |
+| Delete own request | ✅ | ✅ | ✅ |
+| Delete another user's request | ❌ | ✅ | ✅ |
+| Ban a regular user | ❌ | ✅ | ✅ |
+| Ban an Admin | ❌ | ❌ | ✅ |
+| Ban a SuperAdmin | ❌ | ❌ | ❌ |
+| Promote User → Admin | ❌ | ✅ | ✅ |
+| Demote Admin → User | ❌ | ❌ | ✅ |
+| Delete a SuperAdmin | ❌ | ❌ | ❌ |
+| Ban or delete yourself | ❌ | ❌ | ❌ |
+
+---
+
+## 12. API Documentation
+
+**Interactive docs:** [bloodconnector.runasp.net/swagger](https://bloodconnector.runasp.net/swagger) · **Postman collection:** [`docs/postman/`](docs/postman/) · **Reference:** [docs/API.md](docs/API.md)
+
+> 🔐 **Authentication.** Protected endpoints use **cookie authentication** (`.AspNetCore.Identity.Application`), not JWT. Call `POST /api/auth/login` first. The response sets the cookie, and Postman or Swagger sends it automatically on later calls.
+
+| Method | Endpoint | Auth | Purpose |
+|---|---|:---:|---|
+| `POST` | `/api/auth/login` | Public | Sign in with JSON, returns the auth cookie |
+| `POST` | `/api/auth/logout` | 🔒 | End the session |
+| `GET` | `/api/auth/me` | 🔒 | Current user and roles |
+| `GET` | `/api/donor` | Public | List donors (paginated) |
+| `GET` | `/api/donor/{id}` | Public | Get one donor |
+| `GET` | `/api/donor/search` | Public | Compatibility-aware search |
+| `POST` | `/api/donor` | 🔒 | Create a donor profile |
+| `PUT` | `/api/donor/{id}` | 🔒 Owner/Admin | Update a donor |
+| `DELETE` | `/api/donor/{id}` | 🔒 Owner/Admin | Delete a donor |
+| `GET` | `/api/bloodrequest` | Public | List blood requests |
+| `GET` | `/api/bloodrequest/{id}` | Public | Get one request |
+| `POST` | `/api/bloodrequest` | 🔒 | Create a request |
+| `PUT` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Update a request |
+| `DELETE` | `/api/bloodrequest/{id}` | 🔒 Owner/Admin | Delete a request |
+
+**Status codes returned:** `200`, `201`, `400` (validation), `401` (not signed in), `403` (not the owner), `404` (not found), `409` (duplicate donor profile).
+
+**Sign in**
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{ "email": "you@example.com", "password": "<your-password>" }
+```
+
+Response: `200 OK` with `Set-Cookie: .AspNetCore.Identity.Application=...`
+
+**Search compatible donors:** `GET /api/donor/search?bloodGroup=B%2B`
+
+```json
+{
+  "total": 2,
+  "page": 1,
+  "pageSize": 20,
+  "searchMode": "compatible",
+  "requestedBloodGroup": "B+",
+  "compatibleGroups": ["O-", "O+", "B-", "B+"],
+  "results": [
+    { "donorId": 15, "name": "Gaurav", "bloodGroup": "B+", "state": "Bihar", "location": "Bihar", "isExactMatch": true }
+  ]
+}
+```
+
+---
+
+## 13. Quick Start
+
+### Prerequisites
+
+| Requirement | Notes |
+|---|---|
+| [.NET 10 SDK](https://dotnet.microsoft.com/download) | Check with `dotnet --version` |
+| **SQL Server Express** *or* **SQL Server LocalDB** | One of the two is required. Install **before** running migrations. LocalDB ships with Visual Studio. |
+| [Git](https://git-scm.com/) | To clone the repository |
+| `dotnet-ef` tool | `dotnet tool install --global dotnet-ef` |
+| Optional | VS Code with C# Dev Kit, or Visual Studio 2022+ |
+
+### Install and run
+
+```bash
+# 1. Clone
+git clone https://github.com/rajputpri/BloodConnector.git
+cd BloodConnector
+
+# 2. Restore packages
+dotnet restore
+
+# 3. Install the EF Core CLI (skip if already installed)
+dotnet tool install --global dotnet-ef
+
+# 4. Set your connection string (see "Configuration" below)
+
+# 5. Create the database from the migrations
+dotnet ef database update
+
+# 6. Run
+dotnet run
+```
+
+The app starts at **http://localhost:5006**.
+
+On first run the seeder creates the roles and a development admin account (`admin@bloodconnect.com`). The seeded password is defined in `Models/DbSeeder.cs`. **Change it before any deployment.**
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `dotnet ef` is not recognised | Run `dotnet tool install --global dotnet-ef`, then reopen the terminal. |
+| `A network-related or instance-specific error` | The SQL Server instance name in your connection string is wrong or the service is stopped. Check the instance name in SSMS. |
+| Login to SQL fails | Keep `Trusted_Connection=True` for Windows auth on local machines. |
+| Port 5006 is already in use | Change the port in `Properties/launchSettings.json`. |
+| CSS or JS changes do not appear | Hard refresh with `Ctrl + F5`. |
+
+---
+
+## 14. Configuration
+
+**Development: `appsettings.Development.json`**
+
+SQL Server Express (the instance name may differ on your machine):
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.\\SQLEXPRESS;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  }
+}
+```
+
+SQL Server LocalDB:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=BloodConnectDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+  }
+}
+```
+
+**Production: `appsettings.Production.json`** (excluded from version control)
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=YOUR_DB;User Id=YOUR_USER;Password=YOUR_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  }
+}
+```
+
+| Environment variable | Purpose |
+|---|---|
+| `ASPNETCORE_ENVIRONMENT` | Set to `Production` on the host |
+| `ConnectionStrings__DefaultConnection` | Overrides the connection string without a file |
+
+> Never commit real credentials. Prefer environment variables or your host's secret store.
+
+---
+
+## 15. Project Structure
 
 ```text
 BloodConnect/
-├── 📁 Controllers/                      # HTTP request handlers
-│   ├── HomeController.cs                # Homepage, About, Contact, Error
-│   ├── DonorController.cs               # Donor CRUD + compatibility search
-│   ├── BloodRequestController.cs        # Request CRUD + offer workflow
-│   ├── DonorApiController.cs            # REST API for donors
-│   ├── BloodRequestApiController.cs     # REST API for requests
-│   ├── AuthApiController.cs             # 🆕 Auth API (login/logout/me)
-│   ├── AccountController.cs             # Register, Login, Logout (MVC)
-│   ├── AdminController.cs               # Admin panel + role management
-│   └── DashboardController.cs           # User dashboard
-│
-├── 📁 Hubs/                             # 🆕 SignalR Hubs
-│   └── NotificationHub.cs               # Real-time WebSocket hub
-│
-├── 📁 Models/                           # Domain entities + ViewModels
-│   ├── AppUser.cs                       # Extended IdentityUser
-│   ├── Donor.cs                         # Donor entity
-│   ├── BloodRequest.cs                  # Blood request entity
-│   ├── DonationOffer.cs                 # Pledge workflow entity
-│   ├── ContactMessage.cs                # Contact form submissions
-│   ├── BloodCompatibility.cs            # Compatibility logic
-│   ├── DomainValues.cs                  # Constants (blood groups, states, etc.)
-│   ├── ValidationAttributes.cs          # Custom validators
-│   ├── ApplicationDbContext.cs          # EF Core DbContext
-│   ├── DbSeeder.cs                      # Seed data (roles, admin)
-│   ├── ApiDtos.cs                       # API data transfer objects
-│   └── ViewModels.cs                    # View-specific models
-│
-├── 📁 Services/                         # Cross-cutting concerns
-│   ├── MessageCache.cs                  # Cached unread message count
-│   └── NotificationService.cs           # 🆕 SignalR + cache notifications
-│
-├── 📁 Migrations/                       # EF Core migrations
-│
-├── 📁 Views/                            # Razor UI templates
-│   ├── Shared/                          # Layouts, partials
-│   ├── Home/                            # Homepage, About, Contact, FAQ
-│   ├── Donor/                           # Donor pages
-│   ├── BloodRequest/                    # Request pages
-│   ├── Account/                         # Auth pages
-│   ├── Admin/                           # Admin panel
-│   └── Dashboard/                       # User dashboard
-│
-├── 📁 wwwroot/                          # Static assets
-│   ├── css/
-│   │   ├── site.css                     # Main design system
-│   │   ├── animations.css               # Toast, loader, splash
-│   │   └── notifications.css            # 🆕 Notification toasts
-│   ├── js/
-│   │   ├── site.js                      # Navbar, alerts, counters
-│   │   ├── animations.js                # Toast, modal, sound system
-│   │   └── notifications.js             # 🆕 SignalR client + bell + sound
-│   └── lib/                             # Bootstrap, jQuery
-│
-├── 📁 docs/                             # 📚 Documentation
-│   ├── API.md
-│   ├── ARCHITECTURE.md
-│   ├── DEPLOYMENT.md
-│   ├── SECURITY.md
-│   ├── USER_MANUAL.md
-│   ├── CHANGELOG.md
-│   ├── postman/                         # Postman collection
-│   └── screenshots/                     # Organized screenshot gallery
-│
-├── 📄 Program.cs                        # Application entry point
-├── 📄 appsettings.json
-├── 📄 appsettings.Development.json
-├── 📄 appsettings.Production.json       (gitignored)
-├── 📄 BloodConnect.csproj
-└── 📄 README.md
+├── Controllers/
+│   ├── HomeController.cs              # Home, About, FAQ, Contact, Privacy, Error
+│   ├── DonorController.cs             # Donor CRUD and compatibility search
+│   ├── BloodRequestController.cs      # Request CRUD and the offer workflow
+│   ├── AccountController.cs           # Register, login, logout (MVC)
+│   ├── AdminController.cs             # Admin panel and role management
+│   ├── DashboardController.cs         # User dashboard
+│   ├── DonorApiController.cs          # REST: donors
+│   ├── BloodRequestApiController.cs   # REST: requests
+│   └── AuthApiController.cs           # REST: login, logout, me
+├── Hubs/
+│   └── NotificationHub.cs             # SignalR hub
+├── Models/
+│   ├── AppUser.cs  Donor.cs  BloodRequest.cs  DonationOffer.cs  ContactMessage.cs
+│   ├── BloodCompatibility.cs          # Compatibility matrix
+│   ├── DomainValues.cs                # Blood groups, states, status constants
+│   ├── ValidationAttributes.cs        # Custom validators (MustBeTrue)
+│   ├── ApplicationDbContext.cs  DbSeeder.cs
+│   ├── ApiDtos.cs  ViewModels.cs
+├── Services/
+│   ├── MessageCache.cs                # Cached unread count
+│   └── NotificationService.cs         # SignalR push and cache invalidation
+├── Migrations/                        # EF Core migrations
+├── Views/                             # Razor views (Shared, Home, Donor, BloodRequest, Account, Admin, Dashboard)
+├── wwwroot/
+│   ├── css/  site.css  animations.css  notifications.css
+│   ├── js/   site.js   animations.js   notifications.js
+│   └── lib/                           # Bootstrap, jQuery
+├── docs/                              # API, architecture, deployment, security, manual, changelog, postman, screenshots
+├── Program.cs
+└── appsettings*.json
 ```
 
 ---
 
-## ✅ Testing & Verification
+## 16. Testing and Verification
 
-### Manual Verification Checklist
+Testing is currently **manual plus Postman**. Automated unit and integration tests are on the roadmap.
 
-| Area | Scenarios |
-|------|-----------|
-| **Authentication** | Registration, login, logout, lockout (5 attempts), weak password rejection |
-| **Authorization** | Owner-only edit, admin delete, role hierarchy, self-protection |
-| **Ban System** | Banned user auto-signed out, login denied |
-| **Donor CRUD** | Create, edit, delete, age validation (18-65) |
-| **Search** | Compatible + exact match, ordering, state filter |
-| **Workflow** | Offer, accept, reject competing offers, cancel, complete |
-| **Compatibility** | All 8 groups, universal donor/receiver cases |
-| **Contact Inbox** | Persistence, read/unread, deletion, cache invalidation |
-| **Real-Time Notifications** | Bell badge, toast, sound, dropdown live updates |
-| **Error Handling** | Branded 404/500 without stack traces |
+| Area | Scenarios covered |
+|---|---|
+| Authentication | Register, login, logout, lockout after 5 attempts, weak-password rejection |
+| Authorization | Owner-only edit, admin delete, role hierarchy, self-protection |
+| Ban system | Banned user signed out on the next request, login denied |
+| Donor CRUD | Create, edit, delete, age validation (18 to 65), duplicate profile (`409`) |
+| Search | Compatible and exact matches, ordering, state filter |
+| Workflow | Pledge, accept, reject competing offers, cancel, complete |
+| Compatibility | All 8 groups including the universal donor and receiver cases |
+| Contact inbox | Persistence, read/unread, deletion, cache invalidation |
+| Real-time | Bell badge, toast, sound, live dropdown updates |
+| Security | XSS payload stored as text, SQL-injection input in search, IDOR delete returns `403` |
+| Errors | Branded 404 and 500 pages without stack traces |
 
-### API Testing
+**API:** 28 Postman tests are recorded. Screenshots are in [`docs/screenshots/api-deployment/`](docs/screenshots/api-deployment/) and the collection is in [`docs/postman/`](docs/postman/).
 
-All API endpoints tested via **Swagger UI** and **Postman**.
-
-📸 **Screenshots:** [docs/screenshots/api-deployment/](docs/screenshots/api-deployment/)
-
-### Real-Time Testing
-
-Test with 2 browsers:
-1. **Browser A:** Login as admin
-2. **Browser B:** Login as normal user → post a blood request
-3. **Browser A:** Should receive toast + sound + bell badge **instantly** ⚡
+**Real-time test (two browsers):** sign in as admin in browser A, sign in as a normal user in browser B and post a request. Browser A should show the toast, sound and badge immediately.
 
 ---
 
-## 🚀 Deployment
+## 17. Deployment
 
-**Live Production:** [https://bloodconnector.runasp.net](https://bloodconnector.runasp.net)
-
-### Deployed On
+**Live:** [bloodconnector.runasp.net](https://bloodconnector.runasp.net)
 
 | Component | Service |
-|-----------|---------|
-| **Hosting** | MonsterASP.NET (Free tier) |
-| **Database** | SQL Server 2025 (MonsterASP managed) |
-| **HTTPS** | Let's Encrypt SSL |
-| **Auto-deploy** | GitHub → Build & Publish |
-| **Real-Time** | SignalR over WebSocket |
+|---|---|
+| Hosting | MonsterASP.NET (free tier) |
+| Database | SQL Server (managed by the host) |
+| HTTPS | Let's Encrypt |
+| Real-time | SignalR over WebSocket |
 
-**Full deployment guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Full steps: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
-## 📚 Documentation
+## 18. Design Decisions
+
+| Decision | Why |
+|---|---|
+| **Cookie authentication, not JWT** | The UI is server-rendered, so the browser sends the cookie automatically. `HttpOnly` keeps it out of JavaScript, and the server can invalidate a session instantly (for example when a user is banned). The REST API reuses the same cookie. |
+| **SignalR instead of polling** | One persistent connection pushes events as they happen. Polling would add constant requests for no benefit. |
+| **Pledge, accept, complete (two-way)** | Prevents fake fulfilment and gives both sides control. |
+| **Contact details hidden until acceptance** | Protects donors' privacy and reduces spam. |
+| **Unique index on `(RequestId, DonorId)`** | The database is the last line of defence even if application logic has a bug. |
+| **`RowVersion` on donors** | Detects two simultaneous edits instead of silently overwriting. |
+| **Notifications through a service** | Keeps controllers thin and the push logic reusable. |
+| **Save first, then notify** | A notification is never sent for data that failed to save. |
+| **Compatibility in one helper** | One source of truth for search, API and validation. |
+
+---
+
+## 19. Known Limitations
+
+Being upfront about what is not covered:
+
+- ⚠️ **Single-server caching.** `IMemoryCache` lives in one process. Running multiple instances would need a distributed cache, and SignalR would need a backplane (for example Redis).
+- ⚠️ **No automated test suite yet.** Verification is manual and Postman-based.
+- ⚠️ **No email or SMS delivery.** Notifications are in-app only. Two-factor authentication is not implemented.
+- ⚠️ **Simplified medical logic.** Compatibility covers red cells only. There is no eligibility check (weight, last donation date).
+- ⚠️ **Free-tier hosting.** The first request after idle time can be slow.
+
+---
+
+## 20. Roadmap
+
+**Completed**
+- [x] Identity auth, roles, ban system, role hierarchy
+- [x] Donor and blood-request CRUD with validation
+- [x] Compatibility-aware search (web and API)
+- [x] Pledge-based donation workflow
+- [x] Contact inbox with cached unread badge
+- [x] REST API with Swagger and cookie-based auth endpoints
+- [x] Live deployment with HTTPS
+- [x] SignalR notifications: bell, toast, sound
+
+**Planned**
+- [ ] Automated unit and integration tests
+- [ ] Email notifications (SendGrid) and SMS alerts (Twilio)
+- [ ] Donation eligibility check (weight, last donation date, cooldown)
+- [ ] Analytics dashboard (Chart.js)
+- [ ] Map-based donor and request view
+- [ ] Multi-language support (Hindi, Gujarati)
+- [ ] Two-factor authentication
+- [ ] Hospital integration API
+
+---
+
+## 21. Documentation Index
 
 | Document | Purpose |
-|----------|---------|
-| [README.md](README.md) | Project overview (this file) |
+|---|---|
 | [docs/API.md](docs/API.md) | Complete API reference |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design & data model |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design and data model |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Step-by-step deployment |
-| [docs/SECURITY.md](docs/SECURITY.md) | Security model & threat analysis |
-| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | User guide |
+| [docs/SECURITY.md](docs/SECURITY.md) | Security model and threat analysis |
+| [docs/USER_MANUAL.md](docs/USER_MANUAL.md) | End-user guide |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
+| [docs/postman/](docs/postman/) | Postman collection |
 
 ---
 
-## 🗺 Roadmap
+## 22. Contributing, License, Author
 
-### ✅ Completed (Phase 1-4.5)
+**Contributing.** This is an educational project. Bug fixes, documentation improvements and UI suggestions are welcome: fork, create a feature branch, commit, push and open a pull request.
 
-**Phase 1 — Foundation**
-- [x] ASP.NET Core MVC project scaffold
-- [x] ASP.NET Core Identity authentication
-- [x] Role-based authorization
-- [x] Bootstrap 5 UI + custom design system
-- [x] Homepage with hero section
-- [x] About, FAQ, Contact pages
+**License.** Shared for educational and review purposes. Unless a `LICENSE` file in this repository states otherwise, all rights are reserved by the author.
+<!-- TODO: add a LICENSE file (for example MIT) if you want others to reuse the code. -->
 
-**Phase 2 — Forms & Validation**
-- [x] Donor CRUD with validation
-- [x] Blood request management
-- [x] Compatibility-aware search
-- [x] Custom `MustBeTrue` validation
-- [x] Age validation (18-65)
-
-**Phase 3 — Database & CRUD**
-- [x] Contact message feature (admin inbox)
-- [x] Cached unread badge counter
-- [x] SuperAdmin protection rules
-- [x] Role management UI
-- [x] Pledge-based donation workflow
-
-**Phase 4 — API, Deployment & Real-Time**
-- [x] State dropdown (28 states + 8 UTs)
-- [x] REST API with full CRUD
-- [x] Swagger UI documentation
-- [x] Auth API endpoints (`/api/auth/*`)
-- [x] Live deployment on MonsterASP.NET
-- [x] HTTPS with Let's Encrypt
-- [x] **SignalR real-time notifications** 🆕
-- [x] **Bell icon with live badge** 🆕
-- [x] **WhatsApp-style sound chime** 🆕
-- [x] **Toast notifications** 🆕
-- [x] **Hybrid cache + push architecture** 🆕
-
-### 🚀 Planned
-
-- [ ] Email notifications (SendGrid)
-- [ ] SMS alerts (Twilio)
-- [ ] Mobile app (React Native)
-- [ ] Hospital integration API
-- [ ] Analytics dashboard (Chart.js)
-- [ ] Multi-language support (Hindi, Gujarati)
-- [ ] Map-based donor view (Google Maps)
-- [ ] Two-factor authentication
-- [ ] Donation eligibility check (weight, last donation)
-- [ ] Referral program
-
----
-
-## 🤝 Contributing
-
-This is an **educational project**. Contributions are welcome for:
-
-- 🐛 Bug fixes
-- 📝 Documentation improvements
-- ✨ Feature suggestions
-- 🎨 UI/UX enhancements
-
-**Process:**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📜 License
-
-This project is provided for **educational use**. See [LICENSE](LICENSE) for details.
-
----
-
-## 👨‍💻 Author
-
-**Prince Rajput**
-BCA Semester 7 · DSC-M-CBA 471P · Gujarat University
+**Author.** **Prince Rajput**, BCA (Honours) Semester 7, Lokmanya College of Computer Applications, Gujarat University. Course: Full Stack Web Development Project using ASP.NET Core (DSC-M-BCA-471P).
+<!-- TODO: confirm the course code against the official syllabus. -->
 
 [![GitHub](https://img.shields.io/badge/GitHub-rajputpri-181717?style=flat&logo=github)](https://github.com/rajputpri)
 
----
-
-## ⚠️ Disclaimer
-
-BloodConnect is an **educational project** demonstrating full-stack ASP.NET Core development. It is **not a medical, emergency-response, or production blood-bank system**. The compatibility lookup is a simplified educational reference and does not replace professional blood typing, crossmatching, screening, or clinical judgment.
-
-Do **not** rely on this application for real medical decisions.
-
----
+> ⚠️ **Disclaimer.** BloodConnect is an educational project. It is not a medical, emergency-response or blood-bank system. The compatibility lookup is a simplified reference and does not replace professional blood typing, crossmatching, screening or clinical judgement. Do not rely on it for real medical decisions.
 
 <div align="center">
 
-**Made with ❤️ in India**
-
-**Every drop counts.** 🩸
-
-⭐ **Star this repo if it helped you!** ⭐
+**Made in India · Every drop counts.** 🩸
 
 </div>

@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/donor"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "<script>alert('XSS')</script>",
+      "bloodGroup": "A+",
+      "age": 25,
+      "state": "Gujarat",
+      "city": "Ahmedabad",
+      "location": "<img src=x onerror=alert(1)>",
+      "contactNumber": "9876543210",
+      "isAvailable": true
+    }
+order: 5000

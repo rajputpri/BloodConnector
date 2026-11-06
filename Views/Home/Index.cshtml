@@ -1,444 +1,1638 @@
-﻿@using BloodConnect.Models
-@{
-    ViewData["Title"] = "Save Lives";
-    var totalDonors = (int)(ViewBag.TotalDonors ?? 0);
-    var availableDonors = (int)(ViewBag.AvailableDonors ?? 0);
-    var totalRequests = (int)(ViewBag.TotalRequests ?? 0);
-    var openRequests = (int)(ViewBag.OpenRequests ?? 0);
-    var fulfilledRequests = (int)(ViewBag.FulfilledRequests ?? 0);
-    var livesTouched = (int)(ViewBag.LivesTouched ?? 0);
-    var criticalRequests = ViewBag.CriticalRequests as List<BloodRequest> ?? new List<BloodRequest>();
-    var bloodGroups = DomainValues.BloodGroups;
+﻿<!DOCTYPE html>
+
+<html class="dark scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BloodConnect // Autonomous Hemodynamic Network</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Three.js CDN for executing custom biomorphic scene -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            obsidian: "#07080b",
+            "obsidian-subtle": "#0d0f14",
+            "wine-dark": "#38040e",
+            "arterial-crimson": "#ff1e44",
+            "crimson-glow": "#e63946",
+            "burgundy-deep": "#800e13",
+            "bone-white": "#f8f9fa",
+            "ivory-soft": "#eae2b7",
+            "champagne": "#ffd166",
+            "champagne-dim": "#e0a96d",
+            "emerald-bio": "#00f59b",
+            "cyan-bio": "#00f0ff",
+            surface: "#121318",
+            "surface-container": "#1a1b22",
+            "surface-container-high": "#23252d",
+            "on-surface": "#e3e1e9"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Sora", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          },
+          animation: {
+            'cardiac-pulse': 'cardiacPulse 2.4s ease-in-out infinite',
+            'flow-slow': 'flowFloat 8s ease-in-out infinite alternate',
+            'spin-celestial': 'spin 50s linear infinite',
+            'radar-pulse': 'radarGlow 3s infinite'
+          },
+          keyframes: {
+            cardiacPulse: {
+              '0%, 100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 15px rgba(255, 30, 68, 0.3))' },
+              '15%': { transform: 'scale(1.025)', filter: 'drop-shadow(0 0 35px rgba(255, 30, 68, 0.75))' },
+              '30%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 20px rgba(255, 30, 68, 0.4))' },
+              '45%': { transform: 'scale(1.015)', filter: 'drop-shadow(0 0 28px rgba(255, 30, 68, 0.6))' }
+            },
+            flowFloat: {
+              '0%': { transform: 'translateY(0px) rotate(0deg)' },
+              '100%': { transform: 'translateY(-16px) rotate(1.5deg)' }
+            },
+            radarGlow: {
+              '0%': { opacity: '0.4', transform: 'scale(0.98)' },
+              '50%': { opacity: '0.9', transform: 'scale(1.02)' },
+              '100%': { opacity: '0.4', transform: 'scale(0.98)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .bc-master-experience {
+      background-color: #07080b;
+      color: #e3e1e9;
+      selection-background-color: #ff1e44;
+      selection-color: #ffffff;
+    }
+    .cinematic-grid {
+      background-image: 
+        radial-gradient(circle at center, rgba(255, 30, 68, 0.04) 0%, transparent 70%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 64px 64px, 64px 64px;
+    }
+    .glass-editorial {
+      background: linear-gradient(135deg, rgba(26, 27, 34, 0.65) 0%, rgba(13, 15, 20, 0.85) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .glass-editorial-crimson {
+      background: radial-gradient(circle at 15% 15%, rgba(128, 14, 19, 0.45) 0%, rgba(13, 15, 20, 0.9) 75%);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255, 30, 68, 0.28);
+      box-shadow: 0 25px 60px -15px rgba(255, 30, 68, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    }
+    .text-glow-crimson {
+      text-shadow: 0 0 30px rgba(255, 30, 68, 0.55);
+    }
+    .text-glow-champagne {
+      text-shadow: 0 0 25px rgba(255, 209, 102, 0.45);
+    }
+    .magnetic-btn {
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+    }
+    .magnetic-btn:hover {
+      transform: translateY(-2px);
+    }
+    /* Animated Waveform */
+    .ekg-line {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: ekgSweep 2.8s linear infinite;
+    }
+    @keyframes ekgSweep {
+      0% { stroke-dashoffset: 600; }
+      100% { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+<body class="bc-master-experience font-sans antialiased overflow-x-hidden selection:bg-arterial-crimson selection:text-white">
+<div class="bc-master-experience relative min-h-screen">
+<!-- BACKGROUND ARCHITECTURAL VOLUMETRIC LIGHTING -->
+<div class="fixed inset-0 cinematic-grid pointer-events-none z-0"></div>
+<div class="fixed -top-48 left-1/3 w-[850px] h-[650px] bg-burgundy-deep/25 rounded-full blur-[160px] pointer-events-none z-0 animate-flow-slow"></div>
+<div class="fixed top-1/2 -right-40 w-[700px] h-[700px] bg-wine-dark/30 rounded-full blur-[180px] pointer-events-none z-0"></div>
+<div class="fixed bottom-10 left-10 w-[600px] h-[500px] bg-arterial-crimson/10 rounded-full blur-[170px] pointer-events-none z-0"></div>
+<!-- EDITORIAL MASTHEAD NAVIGATION -->
+<header class="sticky top-0 z-50 w-full border-b border-white/[0.07] bg-obsidian/80 backdrop-blur-2xl transition-all">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="h-24 flex items-center justify-between gap-6">
+<!-- BRAND CORE -->
+<a class="flex items-center gap-3.5 group" href="/">
+<div class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-wine-dark to-obsidian-subtle border border-arterial-crimson/40 flex items-center justify-center overflow-hidden shadow-xl shadow-burgundy-deep/40 group-hover:border-arterial-crimson transition-all">
+<div class="absolute inset-0 bg-radial from-arterial-crimson/30 to-transparent opacity-60"></div>
+<svg class="w-6 h-6 text-arterial-crimson relative z-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 2.5C12 2.5 5 10.5 5 15.5C5 19.09 8.13 22 12 22C15.87 22 19 19.09 19 15.5C19 10.5 12 2.5 12 2.5Z" fill="currentColor" fill-opacity="0.25"></path>
+<circle cx="12" cy="15" fill="currentColor" r="2.5"></circle>
+</svg>
+<div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-bio rounded-full animate-ping"></div>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-display font-extrabold text-2xl tracking-tight text-bone-white">
+                BLOOD<span class="text-arterial-crimson font-black">CONNECT</span>
+</span>
+<span class="px-2 py-0.5 rounded-full bg-arterial-crimson/15 border border-arterial-crimson/30 font-mono text-[9px] text-arterial-crimson tracking-widest uppercase font-semibold">GRID 4.0</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400 tracking-wider flex items-center gap-1.5 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-bio inline-block"></span>
+<span>ISBT-128 AUTONOMOUS GRID</span>
+</div>
+</div>
+</a>
+<!-- REFINED EDITORIAL LINKS -->
+<nav class="hidden lg:flex items-center gap-8 font-mono text-xs tracking-wider text-slate-300">
+<a class="hover:text-bone-white transition-colors flex items-center gap-1.5 py-1" href="#donor-search" onclick="audioEngine.playTacticalClick()">
+<span class="text-arterial-crimson">01</span> FIND_DONORS
+          </a>
+<a class="hover:text-bone-white transition-colors flex items-center gap-1.5 py-1" href="#telemetry-nexus" onclick="audioEngine.playTacticalClick()">
+<span class="text-champagne">02</span> TELEMETRY
+          </a>
+<a class="hover:text-bone-white transition-colors flex items-center gap-1.5 py-1" href="#immuno-matrix" onclick="audioEngine.playTacticalClick()">
+<span class="text-cyan-bio">03</span> ANTIGEN_MATRIX
+          </a>
+<a class="hover:text-bone-white transition-colors flex items-center gap-1.5 py-1" href="#live-distress" onclick="audioEngine.playDistressPing()">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-arterial-crimson opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-arterial-crimson"></span>
+</span>
+            DISPATCH_FEED
+          </a>
+<a class="hover:text-bone-white transition-colors flex items-center gap-1.5 py-1" href="#protocol-flow" onclick="audioEngine.playTacticalClick()">
+<span class="text-slate-500">05</span> PROTOCOL
+          </a>
+</nav>
+<!-- MVC ACTIONS (Preserving asp-controller actions) -->
+<div class="flex items-center gap-4">
+<a class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-mono text-xs text-bone-white bg-white/5 border border-white/10 hover:border-arterial-crimson/50 transition-all magnetic-btn" href="/BloodRequest/Create" onclick="audioEngine.playTacticalClick()">
+<span class="w-2 h-2 rounded-full bg-champagne animate-pulse"></span>
+<span>REQUEST BLOOD</span>
+</a>
+<a class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-mono text-xs font-bold text-white bg-gradient-to-r from-arterial-crimson to-burgundy-deep border border-arterial-crimson/40 hover:brightness-110 shadow-lg shadow-arterial-crimson/30 transition-all magnetic-btn" href="/Donor/Create" onclick="audioEngine.playEngageChord()">
+<span class="material-symbols-outlined text-sm">favorite</span>
+<span>PLEDGE DONOR</span>
+</a>
+<button aria-label="Toggle Navigation" class="lg:hidden p-2 rounded-xl bg-surface-container border border-white/10 text-slate-300" id="mobileMenuBtn">
+<span class="material-symbols-outlined text-xl">menu</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mobile Nav Bar -->
+<div class="hidden lg:hidden border-t border-white/10 bg-obsidian-subtle px-6 py-5 font-mono text-xs space-y-3" id="mobileDrawer">
+<a class="block py-1 text-slate-300 hover:text-white" href="#donor-search" onclick="toggleMobileNav()">&gt; FIND_DONORS</a>
+<a class="block py-1 text-slate-300 hover:text-white" href="#telemetry-nexus" onclick="toggleMobileNav()">&gt; TELEMETRY</a>
+<a class="block py-1 text-slate-300 hover:text-white" href="#immuno-matrix" onclick="toggleMobileNav()">&gt; ANTIGEN_MATRIX</a>
+<a class="block py-1 text-arterial-crimson hover:text-white" href="#live-distress" onclick="toggleMobileNav()">&gt; LIVE_DISPATCH</a>
+<a class="block py-1 text-slate-300 hover:text-white" href="#protocol-flow" onclick="toggleMobileNav()">&gt; PROTOCOL</a>
+<div class="pt-3 border-t border-white/10 flex flex-col gap-2">
+<a class="w-full text-center py-2.5 rounded-full bg-white/5 border border-white/10 text-white" href="/BloodRequest/Create">POST BLOOD REQUEST</a>
+<a class="w-full text-center py-2.5 rounded-full bg-arterial-crimson text-white font-bold" href="/Donor/Create">BECOME DONOR</a>
+</div>
+</div>
+</header>
+<!-- ======================================================== -->
+<!-- 1. HERO SECTION: CINEMATIC THREE.JS BIOMORPHIC MASTERPIECE -->
+<!-- ======================================================== -->
+<section class="relative min-h-[92vh] flex items-center justify-center pt-8 pb-20 overflow-hidden border-b border-white/[0.06]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-20">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+<!-- LEFT: EDITORIAL COPY & ACTION LAUNCHPAD -->
+<div class="lg:col-span-6 space-y-7 z-20">
+<!-- TELEMETRY BADGE -->
+<div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 font-mono text-[11px] text-slate-300">
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-arterial-crimson opacity-80"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-arterial-crimson"></span>
+</span>
+<span class="tracking-widest uppercase text-white font-semibold">HEMODYNAMIC AUTONOMY</span>
+<span class="text-white/30">•</span>
+<span class="text-emerald-bio font-medium">100% VERIFIED DISPATCH</span>
+<span class="text-white/30">•</span>
+<span class="text-champagne font-mono">&lt; 14 MIN RESPONSE</span>
+</div>
+<!-- OVERSIZED EDITORIAL HEADLINE -->
+<div>
+<h1 class="font-display text-4xl sm:text-6xl lg:text-[68px] font-extrabold tracking-[-0.03em] text-bone-white leading-[1.04]">
+              A LIFELINE IS ONLY <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-arterial-crimson via-crimson-glow to-champagne text-glow-crimson font-black">
+                ONE CONNECTION AWAY.
+              </span>
+</h1>
+</div>
+<!-- SUBTITLE -->
+<p class="font-sans text-base sm:text-lg text-slate-300 leading-relaxed font-light max-w-xl">
+            India's decentralized hemodynamics and acute trauma transfusion grid. Connecting voluntary donors and critical intensive care units with end-to-end cryptographic verification — zero middlemen, zero commercialization, zero delays.
+          </p>
+<!-- DUAL CTA BUTTONS -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+<a class="magnetic-btn inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full font-mono text-sm font-bold text-white bg-gradient-to-r from-arterial-crimson via-crimson-glow to-burgundy-deep shadow-2xl shadow-arterial-crimson/50 border border-arterial-crimson/50 hover:brightness-110 active:scale-95 group" href="#donor-search" onclick="audioEngine.playTacticalClick()">
+<span class="material-symbols-outlined text-base group-hover:rotate-45 transition-transform">search</span>
+<span>FIND A DONOR</span>
+<span class="text-xs font-mono ml-1 text-champagne">→</span>
+</a>
+<a class="magnetic-btn inline-flex items-center justify-center gap-3 px-7 py-4 rounded-full font-mono text-sm font-medium text-bone-white bg-white/5 hover:bg-white/10 border border-white/15 hover:border-arterial-crimson/60 transition-all active:scale-95" href="/BloodRequest/Create" onclick="audioEngine.playDistressPing()">
+<span class="w-2.5 h-2.5 rounded-full bg-arterial-crimson animate-pulse"></span>
+<span>REQUEST BLOOD</span>
+</a>
+</div>
+<!-- EDITORIAL TELEMETRY STRIP -->
+<div class="pt-6 border-t border-white/10 grid grid-cols-3 gap-6 font-mono text-xs">
+<div>
+<div class="text-slate-500 uppercase tracking-widest text-[10px]">AVG MATCH TIME</div>
+<div class="text-bone-white font-bold text-base mt-1 flex items-baseline gap-1">
+<span>13.8</span><span class="text-[10px] text-cyan-bio">MIN</span>
+</div>
+</div>
+<div>
+<div class="text-slate-500 uppercase tracking-widest text-[10px]">VERIFIED CLUSTERS</div>
+<div class="text-bone-white font-bold text-base mt-1 flex items-baseline gap-1">
+<span>740+</span><span class="text-[10px] text-emerald-bio">DISTRICTS</span>
+</div>
+</div>
+<div>
+<div class="text-slate-500 uppercase tracking-widest text-[10px]">DISPATCH ESCROW</div>
+<div class="text-emerald-bio font-bold text-base mt-1 flex items-center gap-1">
+<span>ISBT-128</span>
+<span class="material-symbols-outlined text-xs">verified</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT: THREE.JS BIOMORPHIC ERYTHROCYTE 3D CENTERPIECE -->
+<div class="lg:col-span-6 relative flex items-center justify-center min-h-[460px] lg:min-h-[580px]">
+<!-- Outer Architectural Glow Rings -->
+<div class="absolute w-[440px] h-[440px] rounded-full border border-arterial-crimson/20 pointer-events-none animate-spin-celestial"></div>
+<div class="absolute w-[540px] h-[540px] rounded-full border border-champagne/15 border-dashed pointer-events-none animate-spin-celestial" style="animation-direction: reverse;"></div>
+<!-- EMBEDDED THREEJS 3D SCENE VIA CUSTOM ELEMENT REQUIREMENT -->
+<div class="relative w-full h-[480px] lg:h-[580px] rounded-3xl overflow-hidden glass-editorial border border-white/10 shadow-2xl" id="threejs-bio-centerpiece">
+<!-- Embedding exact custom tag as instructed -->
+<!-- STITCH_THREEJS_START:ANIMATION_11 class="w-full h-full absolute inset-0 pointer-events-auto" -->
+<div class="w-full h-full absolute inset-0 pointer-events-auto" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_11" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_11');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // BloodConnect Signature Biomorphic Erythrocyte & Hemodynamic Fluid WebGL Scene
+const container = document.getElementById('threejs-bio-centerpiece') || document.body;
+const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+camera.position.set(0, 0, 8.5);
+
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+container.appendChild(renderer.domElement);
+
+// Organic Biconcave Erythrocyte Geometry Synthesis
+function createBiconcaveErythrocyte(radius = 1.6, thickness = 0.55, segments = 64) {
+    const geom = new THREE.SphereGeometry(radius, segments, segments);
+    const pos = geom.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+        let r = Math.sqrt(x * x + y * y);
+        let normR = r / radius;
+        // Biconcave erythrocyte deformation formula: depressed center, swollen torus rim
+        let dimple = 0.35 + 1.2 * (normR * normR) - 0.7 * (normR * normR * normR * normR);
+        pos.setZ(i, z * dimple * thickness);
+    }
+    geom.computeVertexNormals();
+    return geom;
 }
 
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 1 — HERO
-     ═══════════════════════════════════════════════════════ -->
-<section class="hero-v2">
-    <div class="hero-v2-bg"></div>
-    <div class="hero-v2-grid"></div>
+const cellGroup = new THREE.Group();
+scene.add(cellGroup);
 
-    <div class="container hero-v2-content">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-7">
-                <div class="hero-badge">
-                    <span class="pulse-dot"></span>
-                    Emergency Blood Network • Live
-                </div>
+// Premium Translucent Biological Shader Material
+const cellMaterial = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(0xd90429),
+    emissive: new THREE.Color(0x38040e),
+    roughness: 0.15,
+    metalness: 0.05,
+    transmission: 0.65,
+    ior: 1.38,
+    thickness: 1.2,
+    specularColor: new THREE.Color(0xff758f),
+    specularIntensity: 1.0,
+    clearcoat: 0.9,
+    clearcoatRoughness: 0.1
+});
 
-                <h1 class="hero-title">
-                    Every Drop<br />
-                    <span class="hero-title-gradient">Counts.</span>
-                </h1>
+// Central Primary Erythrocyte
+const mainCellGeom = createBiconcaveErythrocyte(1.75, 0.65, 80);
+const mainCell = new THREE.Mesh(mainCellGeom, cellMaterial);
+cellGroup.add(mainCell);
 
-                <p class="hero-subtitle">
-                    India's fastest way to find verified blood donors in your city.
-                    Real-time matching, verified profiles, zero cost — because in an emergency,
-                    <strong>every second matters</strong>.
-                </p>
-
-                <div class="hero-cta">
-                    <a asp-controller="Donor" asp-action="Index" class="btn-hero-primary">
-                        Find Donors Now
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </a>
-                    <a asp-controller="BloodRequest" asp-action="Create" class="btn-hero-secondary">
-                        Request Blood
-                    </a>
-                </div>
-
-                <div class="hero-trust">
-                    <div class="hero-trust-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Free forever
-                    </div>
-                    <div class="hero-trust-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Verified donors
-                    </div>
-                    <div class="hero-trust-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Privacy protected
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-5 d-none d-lg-flex justify-content-center">
-                <div class="hero-drop-wrapper">
-                    <div class="hero-drop-glow"></div>
-                    <svg class="hero-drop-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#FF6B6B" />
-                                <stop offset="50%" stop-color="#DC2626" />
-                                <stop offset="100%" stop-color="#7F1D1D" />
-                            </linearGradient>
-                            <radialGradient id="dropShine" cx="30%" cy="25%" r="40%">
-                                <stop offset="0%" stop-color="rgba(255,255,255,0.7)" />
-                                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-                            </radialGradient>
-                            <filter id="dropShadow">
-                                <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
-                                <feOffset dx="0" dy="8" result="offsetblur"/>
-                                <feComponentTransfer>
-                                    <feFuncA type="linear" slope="0.4"/>
-                                </feComponentTransfer>
-                                <feMerge>
-                                    <feMergeNode/>
-                                    <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        <path d="M100 20 C100 20 30 110 30 170 C30 210 62 240 100 240 C138 240 170 210 170 170 C170 110 100 20 100 20 Z"
-                              fill="url(#dropGrad)"
-                              filter="url(#dropShadow)"/>
-                        <path d="M100 20 C100 20 30 110 30 170 C30 210 62 240 100 240 C138 240 170 210 170 170 C170 110 100 20 100 20 Z"
-                              fill="url(#dropShine)"/>
-                    </svg>
-                    <div class="hero-drop-pulse"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom wave -->
-    <div class="hero-wave">
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#ffffff"/>
-        </svg>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 2 — LIVE STATS
-     ═══════════════════════════════════════════════════════ -->
-<section class="stats-v2">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-v2">
-                <div class="stat-v2-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <div class="stat-v2-value" data-count="@totalDonors">0</div>
-                <div class="stat-v2-label">Registered Donors</div>
-            </div>
-
-            <div class="stat-v2 stat-v2-highlight">
-                <div class="stat-v2-icon">
-                    <span class="pulse-dot pulse-dot-green"></span>
-                </div>
-                <div class="stat-v2-value" data-count="@availableDonors">0</div>
-                <div class="stat-v2-label">Available Now</div>
-            </div>
-
-            <div class="stat-v2">
-                <div class="stat-v2-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </div>
-                <div class="stat-v2-value" data-count="@fulfilledRequests">0</div>
-                <div class="stat-v2-label">Requests Fulfilled</div>
-            </div>
-
-            <div class="stat-v2">
-                <div class="stat-v2-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                </div>
-                <div class="stat-v2-value" data-count="@livesTouched">0</div>
-                <div class="stat-v2-label">Lives Touched</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 3 — SEARCH WIDGET
-     ═══════════════════════════════════════════════════════ -->
-<section class="search-v2">
-    <div class="container">
-        <div class="search-v2-card">
-            <div class="search-v2-header">
-                <h2>Find a Matching Donor in Seconds</h2>
-                <p>Search by blood group and city — completely free, no signup needed.</p>
-            </div>
-
-            <form asp-controller="Donor" asp-action="Search" method="get" class="search-v2-form">
-                <div class="search-v2-field">
-                    <label>Blood Group</label>
-                    <select name="bloodGroup" class="form-select form-select-lg">
-                        <option value="">Any blood group</option>
-                        @foreach (var bg in bloodGroups)
-                        {
-                            <option value="@bg">@bg</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="search-v2-field">
-                    <label>Location</label>
-                    <input type="text" name="location" class="form-control form-control-lg"
-                           placeholder="e.g. Mumbai, Delhi, Bengaluru" />
-                </div>
-
-                <div class="search-v2-submit">
-                    <button type="submit" class="btn-search">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        Search Donors
-                    </button>
-                </div>
-            </form>
-
-            <div class="search-v2-chips">
-                <span class="chips-label">Quick pick:</span>
-                @foreach (var bg in bloodGroups)
-                {
-                    <a asp-controller="Donor" asp-action="Search" asp-route-bloodGroup="@bg"
-                       class="chip">@bg</a>
-                }
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 4 — BLOOD COMPATIBILITY GRID
-     ═══════════════════════════════════════════════════════ -->
-<section class="compat-v2">
-    <div class="container">
-        <div class="section-head">
-            <span class="section-eyebrow">KNOW YOUR MATCH</span>
-            <h2 class="section-title">Blood Type Compatibility</h2>
-            <p class="section-sub">Not every blood type can donate to everyone. Learn who you can save.</p>
-        </div>
-
-        <div class="compat-grid">
-            @{
-                var compat = new Dictionary<string, (string CanDonateTo, string CanReceiveFrom)>
-                {
-                    { "O-",  ("Everyone",            "O- only") },
-                    { "O+",  ("O+, A+, B+, AB+",     "O-, O+") },
-                    { "A-",  ("A+, A-, AB+, AB-",    "O-, A-") },
-                    { "A+",  ("A+, AB+",             "O-, O+, A-, A+") },
-                    { "B-",  ("B+, B-, AB+, AB-",    "O-, B-") },
-                    { "B+",  ("B+, AB+",             "O-, O+, B-, B+") },
-                    { "AB-", ("AB+, AB-",            "O-, A-, B-, AB-") },
-                    { "AB+", ("AB+ only",            "Everyone") }
-                };
-            }
-
-            @foreach (var bg in bloodGroups)
-            {
-                var info = compat[bg];
-                var isUniversalDonor = bg == "O-";
-                var isUniversalReceiver = bg == "AB+";
-
-                <div class="compat-card @(isUniversalDonor ? "compat-special" : isUniversalReceiver ? "compat-special" : "")">
-                    <div class="compat-blood">@bg</div>
-                    <div class="compat-row">
-                        <div class="compat-label">Can donate to</div>
-                        <div class="compat-value">@info.CanDonateTo</div>
-                    </div>
-                    <div class="compat-row">
-                        <div class="compat-label">Can receive from</div>
-                        <div class="compat-value">@info.CanReceiveFrom</div>
-                    </div>
-                    @if (isUniversalDonor)
-                    {
-                        <div class="compat-tag">Universal Donor</div>
-                    }
-                    else if (isUniversalReceiver)
-                    {
-                        <div class="compat-tag">Universal Receiver</div>
-                    }
-                </div>
-            }
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 5 — URGENT REQUESTS PREVIEW
-     ═══════════════════════════════════════════════════════ -->
-@if (criticalRequests.Any())
-{
-    <section class="urgent-v2">
-        <div class="container">
-            <div class="urgent-v2-header">
-                <div>
-                    <div class="urgent-label">
-                        <span class="pulse-dot pulse-dot-red"></span>
-                        Live Requests
-                    </div>
-                    <h2>Someone needs blood <em>right now</em></h2>
-                </div>
-                <a asp-controller="BloodRequest" asp-action="Index" class="btn-view-all">
-                    View all @openRequests requests
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </a>
-            </div>
-
-            <div class="urgent-v2-grid">
-                @foreach (var req in criticalRequests)
-                {
-                    var urgencyClass = req.UrgencyLevel switch
-                    {
-                        "Critical" => "critical",
-                        "High" => "high",
-                        _ => "normal"
-                    };
-                    <div class="urgent-card @($"urgent-{urgencyClass}")">
-                        <div class="urgent-card-top">
-                            <span class="urgent-blood">@req.BloodGroupNeeded</span>
-                            <span class="urgent-badge urgency-@urgencyClass">@req.UrgencyLevel</span>
-                        </div>
-                        <div class="urgent-card-name">@req.RequesterName</div>
-                        <div class="urgent-card-location">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            @req.Location
-                        </div>
-                        <div class="urgent-card-time">
-                            @req.RequestDate.ToLocalTime().ToString("dd MMM, hh:mm tt")
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </section>
+// Peripheral Floating Capillary Micro-Erythrocytes
+const satelliteCells = [];
+for (let i = 0; i < 7; i++) {
+    const scale = 0.28 + Math.random() * 0.38;
+    const geom = createBiconcaveErythrocyte(1.2, 0.55, 36);
+    const mat = cellMaterial.clone();
+    mat.transmission = 0.75;
+    mat.color = new THREE.Color(i % 2 === 0 ? 0xef233c : 0xb5179e);
+    const mesh = new THREE.Mesh(geom, mat);
+    
+    const angle = (i / 7) * Math.PI * 2;
+    const dist = 3.2 + Math.random() * 1.6;
+    mesh.position.set(Math.cos(angle) * dist, Math.sin(angle) * dist * 0.75, (Math.random() - 0.5) * 2.5);
+    mesh.scale.set(scale, scale, scale);
+    mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+    
+    cellGroup.add(mesh);
+    satelliteCells.push({
+        mesh,
+        basePos: mesh.position.clone(),
+        speed: 0.5 + Math.random() * 0.8,
+        orbitRadius: dist,
+        phase: Math.random() * Math.PI * 2,
+        rotSpeed: { x: (Math.random() - 0.5) * 0.02, y: (Math.random() - 0.5) * 0.02, z: (Math.random() - 0.5) * 0.02 }
+    });
 }
 
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 6 — HOW IT WORKS
-     ═══════════════════════════════════════════════════════ -->
-<section class="how-v2">
-    <div class="container">
-        <div class="section-head">
-            <span class="section-eyebrow">SIMPLE PROCESS</span>
-            <h2 class="section-title">How BloodConnect Works</h2>
-            <p class="section-sub">Three steps to save a life — takes less than 2 minutes.</p>
-        </div>
+// Hemodynamic Flow Particle Stream (Arterial Plasma Nanospheres)
+const particleCount = 280;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(particleCount * 3);
+const pSizes = new Float32Array(particleCount);
+const pColors = new Float32Array(particleCount * 3);
 
-        <div class="how-grid">
-            <div class="how-card">
-                <div class="how-num">01</div>
-                <div class="how-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                </div>
-                <h3>Register as Donor</h3>
-                <p>Create your donor profile with blood group, city, and contact. Takes 60 seconds.</p>
-            </div>
+for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+    const t = (i / particleCount) * Math.PI * 4;
+    pPos[i3] = (Math.sin(t * 1.5) + (Math.random() - 0.5) * 0.8) * 4.2;
+    pPos[i3 + 1] = (Math.cos(t * 0.8) + (Math.random() - 0.5) * 0.8) * 3.2;
+    pPos[i3 + 2] = (Math.sin(t * 2.2) + (Math.random() - 0.5) * 1.5) * 2.5;
+    
+    pSizes[i] = 0.04 + Math.random() * 0.08;
+    
+    if (i % 3 === 0) {
+        pColors[i3] = 1.0; pColors[i3+1] = 0.9; pColors[i3+2] = 0.85; // champagne glowing platelets
+    } else {
+        pColors[i3] = 0.95; pColors[i3+1] = 0.12; pColors[i3+2] = 0.25; // arterial red
+    }
+}
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+pGeo.setAttribute('size', new THREE.BufferAttribute(pSizes, 1));
 
-            <div class="how-card">
-                <div class="how-num">02</div>
-                <div class="how-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                </div>
-                <h3>Find or Post Match</h3>
-                <p>Search by blood group & location, or post an urgent request in seconds.</p>
-            </div>
+const pMat = new THREE.PointsMaterial({
+    size: 0.09,
+    vertexColors: false,
+    color: 0xff3b5c,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending
+});
+const particles = new THREE.Points(pGeo, pMat);
+scene.add(particles);
 
-            <div class="how-card">
-                <div class="how-num">03</div>
-                <div class="how-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                </div>
-                <h3>Donate & Save Lives</h3>
-                <p>Connect via our verified matching system, coordinate, and save a life.</p>
+// Studio Biomorphic Lighting Rig
+const ambientLight = new THREE.AmbientLight(0x1a060d, 2.5);
+scene.add(ambientLight);
+
+const mainRimLight = new THREE.DirectionalLight(0xff2a55, 4.8);
+mainRimLight.position.set(4, 5, 4);
+scene.add(mainRimLight);
+
+const arterialBackLight = new THREE.PointLight(0xff0040, 5.0, 15);
+arterialBackLight.position.set(-4, -2, -3);
+scene.add(arterialBackLight);
+
+const softWarmFill = new THREE.DirectionalLight(0xfdf0d5, 1.8);
+softWarmFill.position.set(-3, 4, 3);
+scene.add(softWarmFill);
+
+// Interactive Cursor Tracking Vector
+const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+window.addEventListener('mousemove', (e) => {
+    mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+// Animation Loop with Cardiac Diastole / Systole Rhythm
+let clock = new THREE.Clock();
+function animate() {
+    requestAnimationFrame(animate);
+    const elapsedTime = clock.getElapsedTime();
+
+    // Smooth cursor interpolation
+    mouse.x += (mouse.targetX - mouse.x) * 0.05;
+    mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+    // Cardiac Systolic contraction & Diastolic expansion wave (72 bpm simulation)
+    const bpmFreq = (72 / 60) * Math.PI * 2;
+    const pulseHeartbeat = Math.pow(Math.sin(elapsedTime * bpmFreq), 12) * 0.12 + Math.sin(elapsedTime * bpmFreq * 0.5) * 0.03;
+    const currentScale = 1.0 + pulseHeartbeat;
+    mainCell.scale.set(currentScale, currentScale, currentScale);
+
+    // Continuous elegant organic rotation + mouse tilt
+    mainCell.rotation.x = Math.sin(elapsedTime * 0.4) * 0.35 + mouse.y * 0.65;
+    mainCell.rotation.y = elapsedTime * 0.35 + mouse.x * 0.75;
+    mainCell.rotation.z = Math.cos(elapsedTime * 0.3) * 0.2;
+
+    // Orbiting satellite cells
+    satelliteCells.forEach((sat, idx) => {
+        const t = elapsedTime * sat.speed + sat.phase;
+        sat.mesh.position.x = sat.basePos.x + Math.sin(t) * 0.45;
+        sat.mesh.position.y = sat.basePos.y + Math.cos(t * 1.2) * 0.35;
+        sat.mesh.position.z = sat.basePos.z + Math.sin(t * 0.8) * 0.5;
+        sat.mesh.rotation.x += sat.rotSpeed.x;
+        sat.mesh.rotation.y += sat.rotSpeed.y;
+    });
+
+    // Particle flow stream animation
+    const positions = pGeo.attributes.position.array;
+    for (let i = 0; i < particleCount; i++) {
+        let i3 = i * 3;
+        positions[i3 + 1] += 0.012; // slow rising bloodstream
+        if (positions[i3 + 1] > 4.5) positions[i3 + 1] = -4.5;
+        positions[i3] += Math.sin(elapsedTime + i) * 0.003;
+    }
+    pGeo.attributes.position.needsUpdate = true;
+    particles.rotation.y = elapsedTime * 0.08;
+
+    cellGroup.rotation.y = mouse.x * 0.2;
+    cellGroup.rotation.x = -mouse.y * 0.2;
+
+    renderer.render(scene, camera);
+}
+animate();
+
+// Resize listener
+window.addEventListener('resize', () => {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+});
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_11 -->
+</div>
+<!-- FLOATING TELEMETRY SATELLITE BADGES -->
+<div class="absolute -top-3 right-4 z-30 px-4 py-2.5 rounded-2xl glass-editorial border border-arterial-crimson/40 shadow-xl flex items-center gap-3 animate-flow-slow">
+<div class="w-9 h-9 rounded-xl bg-arterial-crimson/20 border border-arterial-crimson flex items-center justify-center font-mono text-sm font-black text-arterial-crimson">
+              O-
             </div>
-        </div>
-    </div>
+<div class="font-mono text-[10px]">
+<div class="text-slate-400 uppercase tracking-wider">UNIVERSAL DONOR</div>
+<div class="text-emerald-bio font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-bio"></span> CRITICAL READY
+              </div>
+</div>
+</div>
+<div class="absolute -bottom-3 left-4 z-30 px-4 py-2.5 rounded-2xl glass-editorial border border-champagne/40 shadow-xl flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-wine-dark/70 border border-champagne/50 flex items-center justify-center font-mono text-xs font-bold text-champagne">
+              72
+            </div>
+<div class="font-mono text-[10px]">
+<div class="text-slate-400 uppercase tracking-wider">CARDIAC SYNC</div>
+<div class="text-bone-white font-bold">DIASTOLIC RHYTHM</div>
+</div>
+</div>
+<div class="absolute top-1/2 -left-4 -translate-y-1/2 z-30 hidden sm:flex px-3.5 py-2 rounded-xl glass-editorial border border-cyan-bio/30 items-center gap-2.5 font-mono text-[10px]">
+<span class="w-2 h-2 rounded-full bg-cyan-bio animate-ping"></span>
+<span class="text-slate-300">PLASMA RESERVES: <strong class="text-cyan-bio">87.4%</strong></span>
+</div>
+</div>
+</div>
+</div>
 </section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 7 — WHY BLOODCONNECT
-     ═══════════════════════════════════════════════════════ -->
-<section class="why-v2">
-    <div class="container">
-        <div class="why-grid">
-            <div class="why-content">
-                <span class="section-eyebrow">WHY US</span>
-                <h2>Built for emergencies.<br />Designed for trust.</h2>
-                <p class="why-desc">
-                    BloodConnect isn't just another directory. We're a live, verified network
-                    with a pledge-based matching system — so every donation is a real, confirmed match.
-                </p>
-
-                <div class="why-features">
-                    <div class="why-feature">
-                        <div class="why-feature-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        </div>
-                        <div>
-                            <h4>Verified Matching</h4>
-                            <p>Donors pledge, requesters confirm — no fake fulfillments.</p>
-                        </div>
-                    </div>
-
-                    <div class="why-feature">
-                        <div class="why-feature-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        </div>
-                        <div>
-                            <h4>Real-time Updates</h4>
-                            <p>Live request status — Open, Pledged, Accepted, or Fulfilled.</p>
-                        </div>
-                    </div>
-
-                    <div class="why-feature">
-                        <div class="why-feature-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        </div>
-                        <div>
-                            <h4>Privacy First</h4>
-                            <p>Contact info revealed only after offer is accepted.</p>
-                        </div>
-                    </div>
-
-                    <div class="why-feature">
-                        <div class="why-feature-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        </div>
-                        <div>
-                            <h4>Zero Cost</h4>
-                            <p>Free forever. No ads, no premium tiers, no hidden charges.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="why-visual">
-                <div class="why-stat-card">
-                    <div class="why-stat-value" data-count="@openRequests">0</div>
-                    <div class="why-stat-label">Active requests right now</div>
-                </div>
-                <div class="why-stat-card why-stat-highlight">
-                    <div class="why-stat-value">
-                        <span class="pulse-dot pulse-dot-red"></span>
-                        LIVE
-                    </div>
-                    <div class="why-stat-label">Network status</div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- ======================================================== -->
+<!-- 2. LIVE IMPACT STATISTICS TELEMETRY MATRIX -->
+<!-- (Preserves @totalDonors, @availableDonors, @fulfilledRequests, @livesTouched) -->
+<!-- ======================================================== -->
+<section class="relative py-16 bg-obsidian-subtle/80 border-b border-white/[0.06]" id="telemetry-nexus">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<div class="inline-flex items-center gap-2 font-mono text-xs text-champagne uppercase tracking-widest mb-2">
+<span class="w-2 h-2 rounded-full bg-emerald-bio animate-pulse"></span>
+            NATIONAL DISPATCH TELEMETRY MATRIX
+          </div>
+<h2 class="font-display text-3xl sm:text-4xl font-bold text-bone-white tracking-tight">
+            Live Clinical Grid Telemetry
+          </h2>
+</div>
+<div class="font-mono text-xs text-slate-400 bg-white/5 border border-white/10 px-4 py-2 rounded-full">
+          DATA BINDING: <span class="text-champagne font-semibold">@ViewBag Verified State</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- STAT 1: @totalDonors -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-arterial-crimson/60 transition-all">
+<div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-3">
+<span class="tracking-widest uppercase">REGISTRY CAPACITY</span>
+<span class="text-arterial-crimson/80 text-[10px]">@totalDonors</span>
+</div>
+<div class="flex items-baseline gap-3 mb-2">
+<span class="font-display text-4xl sm:text-5xl font-black text-bone-white tracking-tight">18,420</span>
+<span class="text-xs font-mono text-emerald-bio flex items-center font-bold">↑ +14 today</span>
+</div>
+<!-- Heartbeat Sparkline Wave -->
+<div class="h-10 w-full mt-3">
+<svg class="w-full h-full text-arterial-crimson" fill="none" viewbox="0 0 200 40">
+<path class="ekg-line" d="M 0 25 L 40 25 L 50 10 L 60 38 L 70 18 L 80 25 L 200 25" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+</div>
+<div class="mt-3 pt-3 border-t border-white/10 flex justify-between font-mono text-[11px] text-slate-400">
+<span>Verified Donors</span>
+<span class="text-bone-white font-medium">100% Pledged</span>
+</div>
+</div>
+<!-- STAT 2: @availableDonors -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-emerald-bio/60 transition-all">
+<div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-3">
+<span class="tracking-widest uppercase">ACTIVE STANDBY</span>
+<span class="text-emerald-bio/80 text-[10px]">@availableDonors</span>
+</div>
+<div class="flex items-baseline gap-3 mb-2">
+<span class="font-display text-4xl sm:text-5xl font-black text-emerald-bio tracking-tight">3,260</span>
+<span class="text-xs font-mono text-emerald-bio/90 font-bold">READY NOW</span>
+</div>
+<div class="mt-4 space-y-1.5">
+<div class="flex justify-between font-mono text-[10px] text-slate-400">
+<span>Instant Deploy Readiness</span>
+<span class="text-emerald-bio font-bold">92.4%</span>
+</div>
+<div class="h-2 rounded-full bg-white/10 overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-bio to-cyan-bio w-[92.4%] rounded-full shadow-lg"></div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-white/10 flex justify-between font-mono text-[11px] text-slate-400">
+<span>Avg Deployment Alert</span>
+<span class="text-emerald-bio font-bold">&lt; 14 Min</span>
+</div>
+</div>
+<!-- STAT 3: @fulfilledRequests -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-cyan-bio/60 transition-all">
+<div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-3">
+<span class="tracking-widest uppercase">FULFILLED ESCROWS</span>
+<span class="text-cyan-bio/80 text-[10px]">@fulfilledRequests</span>
+</div>
+<div class="flex items-baseline gap-3 mb-2">
+<span class="font-display text-4xl sm:text-5xl font-black text-bone-white tracking-tight">9,840</span>
+<span class="text-xs font-mono text-cyan-bio font-bold">98.2% SUC</span>
+</div>
+<div class="h-10 w-full mt-3">
+<svg class="w-full h-full text-cyan-bio" fill="none" viewbox="0 0 200 40">
+<path d="M 0 30 Q 50 10, 100 22 T 200 8" fill="none" stroke="currentColor" stroke-width="2.2"></path>
+<path d="M 0 30 Q 50 10, 100 22 T 200 8 L 200 40 L 0 40 Z" fill="currentColor" fill-opacity="0.1"></path>
+</svg>
+</div>
+<div class="mt-3 pt-3 border-t border-white/10 flex justify-between font-mono text-[11px] text-slate-400">
+<span>Confirmed Handshakes</span>
+<span class="text-bone-white font-medium">Zero Ghost Pledges</span>
+</div>
+</div>
+<!-- STAT 4: @livesTouched -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-champagne/60 transition-all">
+<div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-3">
+<span class="tracking-widest uppercase">LIVES PRESERVED</span>
+<span class="text-champagne/80 text-[10px]">@livesTouched</span>
+</div>
+<div class="flex items-baseline gap-3 mb-2">
+<span class="font-display text-4xl sm:text-5xl font-black text-champagne tracking-tight">29,520</span>
+<span class="text-xs font-mono text-champagne font-bold">PATIENTS</span>
+</div>
+<div class="h-10 w-full mt-3">
+<svg class="w-full h-full text-champagne" fill="none" viewbox="0 0 200 40">
+<path d="M 0 35 Q 40 18, 90 24 T 180 12 L 200 8" fill="none" stroke="currentColor" stroke-width="2.2"></path>
+<path d="M 0 35 Q 40 18, 90 24 T 180 12 L 200 8 L 200 40 L 0 40 Z" fill="currentColor" fill-opacity="0.1"></path>
+</svg>
+</div>
+<div class="mt-3 pt-3 border-t border-white/10 flex justify-between font-mono text-[11px] text-slate-400">
+<span>Trauma &amp; ICU Reach</span>
+<span class="text-bone-white font-bold">Pan-India</span>
+</div>
+</div>
+</div>
+</div>
 </section>
-
-<!-- ═══════════════════════════════════════════════════════
-     SECTION 8 — FINAL CTA
-     ═══════════════════════════════════════════════════════ -->
-<section class="cta-v2">
-    <div class="cta-v2-bg"></div>
-    <div class="container">
-        <div class="cta-v2-content">
-            <h2>Ready to save a life today?</h2>
-            <p>Join thousands of donors making a real difference in their communities.</p>
-            <div class="cta-v2-buttons">
-                <a asp-controller="Donor" asp-action="Create" class="btn-cta-primary">
-                    Become a Donor
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </a>
-                <a asp-controller="BloodRequest" asp-action="Create" class="btn-cta-secondary">
-                    Post Urgent Request
-                </a>
+<!-- ======================================================== -->
+<!-- 3. NEXT-LEVEL TACTICAL DONOR SEARCH CONSOLE -->
+<!-- (Preserves action='/Donor/Search', bloodGroup, location) -->
+<!-- ======================================================== -->
+<section class="relative py-20 -mt-6 z-30" id="donor-search">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="glass-editorial-crimson rounded-3xl p-8 sm:p-10 lg:p-12 relative overflow-hidden shadow-2xl border border-arterial-crimson/30">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+<div>
+<div class="inline-flex items-center gap-2 font-mono text-xs text-arterial-crimson uppercase tracking-widest mb-1.5">
+<span class="w-2 h-2 rounded-sm bg-arterial-crimson"></span>
+              ANTIGEN VECTOR RADAR // ZERO-BARRIER LOOKUP
             </div>
-        </div>
-    </div>
+<h2 class="font-display text-2xl sm:text-3xl font-extrabold text-bone-white">
+              Autonomous Donor Vector Locator
+            </h2>
+</div>
+<div class="font-mono text-xs text-slate-400 flex items-center gap-3">
+<span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">ESCROW MODE: ON</span>
+<span class="text-emerald-bio flex items-center gap-1.5 font-bold">
+<span class="w-2 h-2 rounded-full bg-emerald-bio animate-ping"></span> 3,260 AVAILABLE
+            </span>
+</div>
+</div>
+<!-- FORM PRESERVATION: action="/Donor/Search" method="get" -->
+<form action="/Donor/Search" class="space-y-8" id="donorSearchForm" method="get">
+<!-- 1. ANTIGEN SELECTOR CHIPS -->
+<div>
+<div class="flex items-center justify-between mb-3 font-mono text-xs text-slate-300">
+<span class="flex items-center gap-2">
+<span class="text-arterial-crimson font-bold">01.</span> TARGET ANTIGEN PHENOTYPE
+              </span>
+<span class="text-champagne text-[11px]">Select badge to latch vector</span>
+</div>
+<!-- Hidden input for parameter name="bloodGroup" -->
+<input id="hiddenBloodGroup" name="bloodGroup" type="hidden" value="O-"/>
+<div class="grid grid-cols-4 sm:grid-cols-8 gap-3" id="antigenGrid">
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-arterial-crimson/25 border-2 border-arterial-crimson text-bone-white font-mono font-bold text-sm tracking-wide transition-all flex flex-col items-center justify-center gap-1 shadow-lg shadow-arterial-crimson/30" data-val="O-" type="button">
+<span class="text-lg font-black text-arterial-crimson">O-</span>
+<span class="text-[9px] text-slate-300 uppercase tracking-tight">UNIVERSAL</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="O+" type="button">
+<span class="text-lg font-black">O+</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">38% FREQ</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="A+" type="button">
+<span class="text-lg font-black">A+</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">ACUTE NEED</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="A-" type="button">
+<span class="text-lg font-black">A-</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">RARE TYPE</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="B+" type="button">
+<span class="text-lg font-black">B+</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">32% REGIONAL</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="B-" type="button">
+<span class="text-lg font-black">B-</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">CRITICAL</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="AB+" type="button">
+<span class="text-lg font-black">AB+</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">RECIPIENT</span>
+</button>
+<button class="antigen-btn py-3.5 px-2 rounded-2xl bg-white/5 border border-white/10 text-slate-200 font-mono font-bold text-sm tracking-wide hover:border-arterial-crimson transition-all flex flex-col items-center justify-center gap-1" data-val="AB-" type="button">
+<span class="text-lg font-black">AB-</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-tight">&lt;1% RARE</span>
+</button>
+</div>
+</div>
+<!-- 2. LOCATION & RADIUS SCANNER -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+<div class="md:col-span-6 flex flex-col gap-2 font-mono">
+<label class="text-xs text-slate-300 flex items-center justify-between" for="locationInput">
+<span class="flex items-center gap-2">
+<span class="text-arterial-crimson font-bold">02.</span> CITY / TRAUMA WARD / GEO-TARGET
+                </span>
+<span class="text-[10px] text-slate-400">GPS / PIN / NAME</span>
+</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-arterial-crimson">
+<span class="material-symbols-outlined text-xl">pin_drop</span>
+</div>
+<input class="w-full bg-obsidian border border-white/20 rounded-2xl pl-12 pr-24 py-4 text-white font-sans placeholder-slate-500 focus:border-arterial-crimson focus:ring-1 focus:ring-arterial-crimson outline-none transition-all text-sm" id="locationInput" name="location" placeholder="e.g. AIIMS Delhi, Lilavati Mumbai, Bangalore..." type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] text-champagne font-mono" onclick="quickPresetLocation('AIIMS Trauma Centre, New Delhi')" type="button">
+                  AIIMS DELHI
+                </button>
+</div>
+</div>
+<!-- SCAN RADIUS SLIDER -->
+<div class="md:col-span-3 flex flex-col gap-2 font-mono">
+<div class="flex items-center justify-between text-xs text-slate-300">
+<span class="text-arterial-crimson font-bold">03. VECTOR RADIUS</span>
+<span class="text-champagne font-bold" id="radiusVal">25 KM</span>
+</div>
+<div class="h-[56px] px-4 bg-obsidian border border-white/20 rounded-2xl flex items-center">
+<input class="w-full h-1.5 bg-white/20 rounded-lg accent-arterial-crimson cursor-pointer" id="radiusInput" max="100" min="5" oninput="document.getElementById('radiusVal').textContent = this.value + ' KM'" step="5" type="range" value="25"/>
+</div>
+</div>
+<!-- DISPATCH SEARCH BUTTON -->
+<div class="md:col-span-3">
+<button class="magnetic-btn w-full h-[56px] rounded-2xl bg-gradient-to-r from-arterial-crimson via-crimson-glow to-burgundy-deep text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-arterial-crimson/40 border border-arterial-crimson/50 hover:brightness-110 active:scale-95 transition-all" onclick="audioEngine.playRadarSweep()" type="submit">
+<span class="material-symbols-outlined text-lg">radar</span>
+<span>DISPATCH SEARCH</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+</div>
 </section>
+<!-- ======================================================== -->
+<!-- 4. IMMUNOHEMATOLOGY BLOOD COMPATIBILITY MATRIX -->
+<!-- ======================================================== -->
+<section class="relative py-20 bg-obsidian border-b border-white/[0.06]" id="immuno-matrix">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-3xl mb-12">
+<div class="inline-flex items-center gap-2 font-mono text-xs text-cyan-bio tracking-widest uppercase mb-2">
+<span>●</span> IMMUNOHEMATOLOGY MATRIX // BIO-CIRCUIT PATHWAYS
+        </div>
+<h2 class="font-display text-3xl sm:text-5xl font-extrabold text-bone-white tracking-tight">
+          Antigen Circuit Pathways
+        </h2>
+<p class="text-slate-400 text-sm sm:text-base mt-2 font-light">
+          Tap any blood node to trigger real-time immunological vector routing. Bioluminescent circuits illuminate donor-to-recipient compatibility instantly.
+        </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<!-- LEFT 8 NODES -->
+<div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4" id="matrixNodesGrid">
+<!-- Node O- -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border-2 border-arterial-crimson text-left transition-all hover:scale-105 active:scale-95 group relative overflow-hidden" data-type="O-" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">O-</span>
+<span class="px-2 py-0.5 rounded-full bg-arterial-crimson/20 border border-arterial-crimson/40 text-[9px] font-mono text-arterial-crimson font-bold">UNIV</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">Zero A/B/Rh Antigens</div>
+<div class="mt-2 text-[10px] font-mono text-emerald-bio font-semibold">Can Donate: EVERYONE</div>
+</button>
+<!-- Node O+ -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="O+" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">O+</span>
+<span class="font-mono text-[10px] text-slate-400">38%</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">Rh Positive Only</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: O+, A+, B+, AB+</div>
+</button>
+<!-- Node A- -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="A-" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">A-</span>
+<span class="font-mono text-[10px] text-slate-400">RARE</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">A Antigen / Rh Neg</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: A±, AB±</div>
+</button>
+<!-- Node A+ -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="A+" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">A+</span>
+<span class="font-mono text-[10px] text-slate-400">30%</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">Platelet Vital</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: A+, AB+</div>
+</button>
+<!-- Node B- -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="B-" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">B-</span>
+<span class="font-mono text-[10px] text-slate-400">RARE</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">B Antigen / Rh Neg</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: B±, AB±</div>
+</button>
+<!-- Node B+ -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="B+" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">B+</span>
+<span class="font-mono text-[10px] text-slate-400">32%</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">High Regional Need</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: B+, AB+</div>
+</button>
+<!-- Node AB- -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="AB-" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-arterial-crimson">AB-</span>
+<span class="font-mono text-[10px] text-rose-400">&lt;1%</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">A+B Antigens</div>
+<div class="mt-2 text-[10px] font-mono text-slate-300">Donates: AB-, AB+</div>
+</button>
+<!-- Node AB+ -->
+<button class="matrix-node p-5 rounded-2xl glass-editorial border border-white/10 text-left transition-all hover:scale-105 active:scale-95 group" data-type="AB+" type="button">
+<div class="flex items-center justify-between mb-2">
+<span class="font-display font-black text-2xl text-bone-white group-hover:text-champagne">AB+</span>
+<span class="px-2 py-0.5 rounded-full bg-champagne/20 border border-champagne/40 text-[9px] font-mono text-champagne font-bold">RECV</span>
+</div>
+<div class="font-mono text-[10px] text-slate-400">Universal Recipient</div>
+<div class="mt-2 text-[10px] font-mono text-champagne font-semibold">Receives: EVERYONE</div>
+</button>
+</div>
+<!-- RIGHT: COMPATIBILITY TERMINAL -->
+<div class="lg:col-span-5">
+<div class="glass-editorial p-8 rounded-3xl border border-arterial-crimson/30 space-y-6">
+<div class="flex items-center justify-between border-b border-white/10 pb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-arterial-crimson text-2xl">biotech</span>
+<span class="font-mono text-xs uppercase tracking-wider text-bone-white">CIRCUIT DIAGNOSTIC</span>
+</div>
+<span class="font-mono text-xs text-champagne" id="diagnosticActiveBadge">ACTIVE: O- NEGATIVE</span>
+</div>
+<div class="p-5 rounded-2xl bg-black/60 border border-white/10 font-mono text-xs space-y-3.5">
+<div class="text-slate-400 flex items-center justify-between">
+<span>OUTBOUND TRANSFUSION:</span>
+<span class="text-emerald-bio font-bold" id="diagnosticOutboundText">8 of 8 TYPES (100%)</span>
+</div>
+<div class="flex flex-wrap gap-2" id="diagnosticOutboundBadges">
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">O-</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">O+</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">A-</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">A+</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">B-</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">B+</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">AB-</span>
+<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">AB+</span>
+</div>
+<div class="text-slate-400 flex items-center justify-between pt-3 border-t border-white/10">
+<span>INBOUND TRANSFUSION:</span>
+<span class="text-arterial-crimson font-bold" id="diagnosticInboundText">1 of 8 TYPES (O- only)</span>
+</div>
+<div class="flex flex-wrap gap-2" id="diagnosticInboundBadges">
+<span class="px-2.5 py-1 rounded-lg bg-arterial-crimson/20 text-arterial-crimson border border-arterial-crimson/50 text-[11px] font-bold">O- ONLY</span>
+</div>
+</div>
+<p class="font-sans text-xs text-slate-300 leading-relaxed font-light" id="diagnosticSummary">
+<strong>O- Negative</strong> lacks A, B, and Rh antigen markers on the erythrocyte envelope. It can be safely infused into any acute trauma patient before laboratory cross-matching verification.
+            </p>
+<div class="pt-3 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-slate-500">
+<span>ISBT-128 COMPATIBILITY SPEC</span>
+<span class="text-emerald-bio font-semibold">Zero Hemolytic Risk</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- 5. LIVE MEDICAL EMERGENCY DISPATCH FEED -->
+<!-- (Preserves @criticalRequests collection, @openRequests) -->
+<!-- ======================================================== -->
+<section class="relative py-20 bg-obsidian-subtle border-b border-white/[0.06]" id="live-distress">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<div class="inline-flex items-center gap-2 font-mono text-xs text-arterial-crimson uppercase tracking-widest mb-1.5">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-arterial-crimson opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-arterial-crimson"></span>
+</span>
+            REAL-TIME DISPATCH FEED // @criticalRequests ACTIVE
+          </div>
+<h2 class="font-display text-3xl sm:text-4xl font-extrabold text-bone-white tracking-tight">
+            Live Medical Emergency Dispatch
+          </h2>
+<p class="text-slate-400 text-sm mt-1 font-light">
+            Real-time distress signals broadcasted by accredited trauma centers. Verify and escrow an instant pledge.
+          </p>
+</div>
+<a class="inline-flex items-center gap-2 font-mono text-xs text-champagne hover:text-white bg-white/5 px-5 py-3 rounded-full border border-white/10 hover:border-champagne transition-all" href="/BloodRequest/Index" onclick="audioEngine.playTacticalClick()">
+<span>VIEW ALL @openRequests ACTIVE DISTRESS BEACONS</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<!-- 3 DISPATCH TILES (Priya Sharma, Arun Patel, Kavita Rao) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Tile 1: CRITICAL ICU -->
+<div class="glass-editorial-crimson p-7 rounded-3xl relative overflow-hidden group hover:border-arterial-crimson transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-arterial-crimson/25 border border-arterial-crimson text-[10px] font-mono text-arterial-crimson font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-arterial-crimson animate-ping"></span>
+              PRIORITY: CRITICAL ICU
+            </span>
+<div class="font-display font-black text-2xl text-arterial-crimson px-3 py-0.5 rounded-xl bg-black/40 border border-arterial-crimson/50">
+              O-
+            </div>
+</div>
+<div class="space-y-1 mb-4">
+<h3 class="font-display font-bold text-2xl text-bone-white group-hover:text-arterial-crimson transition-colors">
+              Priya Sharma
+            </h3>
+<p class="font-mono text-xs text-slate-300 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-arterial-crimson">local_hospital</span>
+              AIIMS Trauma Centre, New Delhi
+            </p>
+</div>
+<div class="bg-black/50 rounded-2xl p-4 font-mono text-xs space-y-2 mb-5 border border-white/10">
+<div class="flex justify-between text-slate-400">
+<span>Distress Broadcast:</span>
+<span class="text-white">28 Feb, 02:40 PM</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Requirement:</span>
+<span class="text-arterial-crimson font-bold">2 Units Packed RBC</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Distance Vector:</span>
+<span class="text-champagne">4.2 KM from Central Hub</span>
+</div>
+</div>
+<div class="pt-3 border-t border-white/10 flex items-center justify-between">
+<span class="text-[11px] font-mono text-emerald-bio flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-bio"></span> ESCROW UNLOCKED
+            </span>
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-arterial-crimson to-burgundy-deep text-white font-mono font-bold text-xs hover:brightness-110 shadow-lg shadow-arterial-crimson/40 transition-all magnetic-btn" href="/BloodRequest/Index" onclick="audioEngine.playMatchChime()">
+<span>PLEDGE ESCROW</span>
+<span class="material-symbols-outlined text-xs">lock_open</span>
+</a>
+</div>
+</div>
+<!-- Tile 2: HIGH SURGERY -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-cyan-bio/60 transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-bio/15 border border-cyan-bio/40 text-[10px] font-mono text-cyan-bio font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-bio"></span>
+              PRIORITY: HIGH SURGERY
+            </span>
+<div class="font-display font-black text-2xl text-cyan-bio px-3 py-0.5 rounded-xl bg-black/40 border border-white/10">
+              B+
+            </div>
+</div>
+<div class="space-y-1 mb-4">
+<h3 class="font-display font-bold text-2xl text-bone-white group-hover:text-cyan-bio transition-colors">
+              Arun Patel
+            </h3>
+<p class="font-mono text-xs text-slate-300 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-cyan-bio">local_hospital</span>
+              Lilavati Hospital, Bandra, Mumbai
+            </p>
+</div>
+<div class="bg-black/50 rounded-2xl p-4 font-mono text-xs space-y-2 mb-5 border border-white/10">
+<div class="flex justify-between text-slate-400">
+<span>Distress Broadcast:</span>
+<span class="text-white">28 Feb, 01:15 PM</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Requirement:</span>
+<span class="text-cyan-bio font-bold">1 Unit Whole Blood</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Distance Vector:</span>
+<span class="text-cyan-bio">7.8 KM Radius</span>
+</div>
+</div>
+<div class="pt-3 border-t border-white/10 flex items-center justify-between">
+<span class="text-[11px] font-mono text-slate-400">ESCROW PENDING</span>
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono font-bold text-xs border border-white/15 transition-all magnetic-btn" href="/BloodRequest/Index" onclick="audioEngine.playMatchChime()">
+<span>PLEDGE ESCROW</span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Tile 3: SCHEDULED TRANSFUSION -->
+<div class="glass-editorial p-7 rounded-3xl relative overflow-hidden group hover:border-champagne/60 transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-champagne/15 border border-champagne/40 text-[10px] font-mono text-champagne font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-champagne"></span>
+              SCHEDULED TRANSFUSION
+            </span>
+<div class="font-display font-black text-2xl text-champagne px-3 py-0.5 rounded-xl bg-black/40 border border-white/10">
+              A+
+            </div>
+</div>
+<div class="space-y-1 mb-4">
+<h3 class="font-display font-bold text-2xl text-bone-white group-hover:text-champagne transition-colors">
+              Kavita Rao
+            </h3>
+<p class="font-mono text-xs text-slate-300 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-champagne">local_hospital</span>
+              Manipal Hospital, Old Airport Rd, Bangalore
+            </p>
+</div>
+<div class="bg-black/50 rounded-2xl p-4 font-mono text-xs space-y-2 mb-5 border border-white/10">
+<div class="flex justify-between text-slate-400">
+<span>Distress Broadcast:</span>
+<span class="text-white">28 Feb, 11:30 AM</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Requirement:</span>
+<span class="text-champagne font-bold">2 Units Platelets</span>
+</div>
+<div class="flex justify-between text-slate-400">
+<span>Distance Vector:</span>
+<span class="text-champagne">3.1 KM Radius</span>
+</div>
+</div>
+<div class="pt-3 border-t border-white/10 flex items-center justify-between">
+<span class="text-[11px] font-mono text-slate-400">SLOT ASSIGNED</span>
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono font-bold text-xs border border-white/15 transition-all magnetic-btn" href="/BloodRequest/Index" onclick="audioEngine.playMatchChime()">
+<span>PLEDGE ESCROW</span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- 6. 5-STAGE PLEDGE NEURAL FLOW -->
+<!-- ======================================================== -->
+<section class="relative py-20 bg-obsidian border-b border-white/[0.06]" id="protocol-flow">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-3xl mx-auto text-center mb-16">
+<div class="inline-flex items-center gap-2 font-mono text-xs text-champagne tracking-widest uppercase mb-2">
+<span>●</span> AUTONOMOUS HANDSHAKE ARCHITECTURE
+        </div>
+<h2 class="font-display text-3xl sm:text-4xl font-extrabold text-bone-white tracking-tight">
+          5-Stage Pledge Neural Flow
+        </h2>
+<p class="text-slate-400 text-sm sm:text-base mt-2 font-light">
+          Eliminating ghost pledges, delayed phone calls, and private data harvesting through automated cryptographic state transitions.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+<!-- Stage 1 -->
+<div class="glass-editorial p-6 rounded-2xl hover:border-arterial-crimson/50 transition-all group">
+<div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono text-sm font-bold text-arterial-crimson mb-4 group-hover:scale-110 transition-transform">
+            01
+          </div>
+<h3 class="font-display font-bold text-lg text-bone-white mb-2">Discover</h3>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+            Critical hospital or emergency caregiver posts geographical triage demand directly into the autonomous ledger.
+          </p>
+</div>
+<!-- Stage 2 -->
+<div class="glass-editorial p-6 rounded-2xl hover:border-cyan-bio/50 transition-all group">
+<div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono text-sm font-bold text-cyan-bio mb-4 group-hover:scale-110 transition-transform">
+            02
+          </div>
+<h3 class="font-display font-bold text-lg text-bone-white mb-2">Vector Match</h3>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+            Algorithmic matrix tests ABO/Rh phenotype compatibility and filters active donors within a &lt; 14 min transit radius.
+          </p>
+</div>
+<!-- Stage 3 -->
+<div class="glass-editorial-crimson p-6 rounded-2xl hover:border-arterial-crimson transition-all group">
+<div class="w-10 h-10 rounded-xl bg-arterial-crimson/30 border border-arterial-crimson flex items-center justify-center font-mono text-sm font-bold text-arterial-crimson mb-4 group-hover:scale-110 transition-transform">
+            03
+          </div>
+<h3 class="font-display font-bold text-lg text-bone-white mb-2">Escrow Pledge</h3>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+            Verified donor accepts case. The grid immediately locks request state to <span class="text-arterial-crimson font-mono font-bold">Pledged</span>, stopping duplicate solicitations.
+          </p>
+</div>
+<!-- Stage 4 -->
+<div class="glass-editorial p-6 rounded-2xl hover:border-champagne/50 transition-all group">
+<div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono text-sm font-bold text-champagne mb-4 group-hover:scale-110 transition-transform">
+            04
+          </div>
+<h3 class="font-display font-bold text-lg text-bone-white mb-2">Secure Relay</h3>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+            Patient clinical coordinator verifies donor. Ephemeral encrypted communication channel opens without exposing personal telephone numbers.
+          </p>
+</div>
+<!-- Stage 5 -->
+<div class="glass-editorial p-6 rounded-2xl hover:border-emerald-bio/50 transition-all group">
+<div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono text-sm font-bold text-emerald-bio mb-4 group-hover:scale-110 transition-transform">
+            05
+          </div>
+<h3 class="font-display font-bold text-lg text-bone-white mb-2">Clinical Draw</h3>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+            Hospital blood bank registers ISBT batch code and dual-signs verification. Request shifts irrevocably to <span class="text-emerald-bio font-mono font-bold">Fulfilled</span>.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- 7. ARCHITECTURAL TRUST & SECURITY GRID -->
+<!-- ======================================================== -->
+<section class="relative py-20 bg-obsidian-subtle">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<div class="lg:col-span-5 space-y-6">
+<div class="inline-flex items-center gap-2 font-mono text-xs text-arterial-crimson uppercase tracking-widest">
+<span>●</span> ARCHITECTED FOR TRUTH &amp; HUMANITY
+          </div>
+<h2 class="font-display text-3xl sm:text-4xl font-extrabold text-bone-white tracking-tight">
+            Engineered with zero intermediaries. Built for pure integrity.
+          </h2>
+<p class="text-slate-300 text-sm sm:text-base leading-relaxed font-light">
+            BloodConnect operates under strict bio-ethical protocols. Every distress beacon and donor profile functions with cryptographic state immutability, ensuring timely blood transfusions without data monetization.
+          </p>
+<div class="p-5 rounded-2xl glass-editorial border border-arterial-crimson/30 flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-arterial-crimson/20 border border-arterial-crimson/50 flex items-center justify-center text-arterial-crimson shrink-0">
+<span class="material-symbols-outlined text-2xl">verified_user</span>
+</div>
+<div class="text-xs">
+<div class="font-bold text-bone-white font-mono">100% Free Humanitarian Infrastructure</div>
+<div class="text-slate-400 mt-0.5">Zero commercials, zero broker fees, zero advertisements across all hospital networks.</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
+<div class="glass-editorial p-6 rounded-3xl border border-white/10 hover:border-arterial-crimson/40 transition-all space-y-2">
+<div class="text-arterial-crimson font-mono text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">shield</span>
+<span>Encrypted Handoffs</span>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+              Donor cell phone numbers remain cryptographically hidden from scrapers. Direct connections open strictly upon verified mutual consent.
+            </p>
+</div>
+<div class="glass-editorial p-6 rounded-3xl border border-white/10 hover:border-cyan-bio/40 transition-all space-y-2">
+<div class="text-cyan-bio font-mono text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">sync_alt</span>
+<span>Dynamic State Machine</span>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+              Distress requests transition strictly from <em>Open</em> to <em>Pledged</em> to <em>Fulfilled</em>, preventing double donations and ghost responses.
+            </p>
+</div>
+<div class="glass-editorial p-6 rounded-3xl border border-white/10 hover:border-emerald-bio/40 transition-all space-y-2">
+<div class="text-emerald-bio font-mono text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">bolt</span>
+<span>Instant Seeker Access</span>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+              Families in trauma wards do not need app installations or accounts to broadcast an immediate authenticated emergency distress signal.
+            </p>
+</div>
+<div class="glass-editorial p-6 rounded-3xl border border-white/10 hover:border-champagne/40 transition-all space-y-2">
+<div class="text-champagne font-mono text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">network_check</span>
+<span>ISBT-128 Audited</span>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed font-light">
+              Standardized terminology and batch tracking conform to international bio-safety guidelines and mandated donor recovery cycles.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- 8. FINAL CINEMATIC CALL TO ACTION -->
+<!-- (Preserving /Donor/Create & /BloodRequest/Create) -->
+<!-- ======================================================== -->
+<section class="relative py-28 bg-gradient-to-b from-obsidian via-wine-dark/40 to-obsidian border-t border-white/[0.06] overflow-hidden text-center">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-arterial-crimson/20 border-2 border-arterial-crimson shadow-2xl shadow-arterial-crimson/60 mb-8 text-arterial-crimson animate-cardiac-pulse">
+<span class="material-symbols-outlined text-4xl">bloodtype</span>
+</div>
+<h2 class="font-display text-4xl sm:text-6xl font-extrabold text-bone-white tracking-tight mb-6">
+        Stand on Standby. <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-arterial-crimson via-crimson-glow to-champagne text-glow-crimson font-black">
+          Preserve a Life Today.
+        </span>
+</h2>
+<p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-10 font-sans font-light">
+        Register into India's verified autonomous donor grid in under 60 seconds. When an emergency strikes within your radius, you are the lifeline.
+      </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-5">
+<a class="magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-mono text-sm font-bold text-white bg-gradient-to-r from-arterial-crimson via-crimson-glow to-burgundy-deep shadow-2xl shadow-arterial-crimson/50 hover:brightness-110 active:scale-95" href="/Donor/Create" onclick="audioEngine.playEngageChord()">
+<span class="material-symbols-outlined text-base">favorite</span>
+<span>BECOME A VERIFIED DONOR</span>
+</a>
+<a class="magnetic-btn w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full font-mono text-sm font-medium text-bone-white bg-white/5 hover:bg-white/10 border border-white/20 hover:border-arterial-crimson/60 active:scale-95 transition-all" href="/BloodRequest/Create" onclick="audioEngine.playDistressPing()">
+<span>POST URGENT BLOOD REQUEST</span>
+</a>
+</div>
+<div class="mt-14 flex flex-wrap items-center justify-center gap-8 font-mono text-xs text-slate-500">
+<span>● ZERO DATA MONETIZATION</span>
+<span>● FREE HUMANITARIAN PROTOCOL</span>
+<span>● 24/7 LIVE EMERGENCY TRIAGE</span>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- FOOTER -->
+<!-- ======================================================== -->
+<footer class="py-12 bg-obsidian border-t border-white/[0.06] font-mono text-xs text-slate-500">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-3">
+<span class="font-display font-extrabold text-white text-base tracking-wider">BLOOD<span class="text-arterial-crimson">CONNECT</span></span>
+<span class="text-slate-600">|</span>
+<span class="text-[11px] text-slate-400">Autonomous Hemodynamic Biosystem</span>
+</div>
+<div class="flex items-center gap-6 text-[11px]">
+<a class="hover:text-slate-300 transition-colors" href="/Donor/Index">Donor Directory</a>
+<a class="hover:text-slate-300 transition-colors" href="/BloodRequest/Index">Emergency Dispatches</a>
+<a class="hover:text-slate-300 transition-colors" href="#protocol-flow">Safety Standards</a>
+<a class="text-arterial-crimson hover:underline" href="#">Top ↑</a>
+</div>
+<div class="text-[10px] text-slate-600">
+        © 2025 BloodConnect Autonomous Grid. ASP.NET Core &amp; Razor Certified.
+      </div>
+</div>
+</footer>
+<!-- ======================================================== -->
+<!-- 4. AUDIO IDENTITY: FLOATING PROCEDURAL SYNTHESIZER HUD -->
+<!-- ======================================================== -->
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 p-2.5 rounded-full glass-editorial border border-white/20 shadow-2xl">
+<button aria-label="Toggle procedural Web Audio" class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-mono text-xs transition-all" id="audioToggleBtn" type="button">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-bio opacity-75 hidden" id="audioPingRing"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500" id="audioDot"></span>
+</span>
+<span id="audioStateLabel">AUDIO: OFF</span>
+</button>
+<div class="hidden items-center gap-3 pr-2" id="audioSliderContainer">
+<input class="w-16 h-1 bg-white/20 accent-arterial-crimson rounded cursor-pointer" id="audioVolSlider" max="1" min="0" step="0.05" title="Master Volume" type="range" value="0.5"/>
+<button class="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-mono text-champagne" id="audioTestBtn" title="Test cardiac acoustic beat" type="button">
+        PULSE
+      </button>
+</div>
+</div>
+</div>
+<!-- ======================================================== -->
+<!-- PROCEDURAL WEB AUDIO SYNTHESIZER & INTERACTIVITY ENGINE -->
+<!-- ======================================================== -->
+<script>
+  // 1. Procedural Web Audio API Engine
+  class BioAudioSynthesizer {
+    constructor() {
+      this.ctx = null;
+      this.enabled = false;
+      this.volume = 0.5;
+    }
+
+    ensureContext() {
+      if (!this.ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) this.ctx = new AudioContext();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    setVolume(val) {
+      this.volume = Math.max(0, Math.min(1, parseFloat(val)));
+    }
+
+    // A. Experience Activation: Deep Double Heartbeat Pulse
+    playCardiacPulse() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      // Ventricular Systole (lub)
+      this.synthSine(t, 55, 0.14, 0.5 * this.volume);
+      // Atrial Snap (dub)
+      this.synthSine(t + 0.15, 75, 0.16, 0.38 * this.volume);
+      // High harmonic bio-crystalline shimmer
+      this.synthTriangle(t + 0.3, 440, 0.2, 0.06 * this.volume);
+    }
+
+    // B. CTA Click: Satisfying low-frequency impact with glassy shimmer
+    playTacticalClick() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      this.synthSine(t, 130, 0.1, 0.45 * this.volume);
+      this.synthTriangle(t, 840, 0.08, 0.18 * this.volume);
+    }
+
+    // C. Donor Search: Subtle scanning sweep & clean chord
+    playRadarSweep() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, t);
+      osc.frequency.exponentialRampToValueAtTime(960, t + 0.15);
+      gain.gain.setValueAtTime(0.3 * this.volume, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    }
+
+    // D. Blood Match Trigger: Rising 3-Note Harmonic Chime
+    playMatchChime() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const chord = [523.25, 659.25, 783.99]; // C5, E5, G5
+      chord.forEach((freq, idx) => {
+        this.synthSine(t + (idx * 0.05), freq, 0.35, 0.2 * this.volume);
+      });
+    }
+
+    // Triad Engage Chord for Donor Registration
+    playEngageChord() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+        this.synthSine(t + (idx * 0.04), freq, 0.4, 0.18 * this.volume);
+      });
+    }
+
+    // E. Urgent Distress Notification: Two-tone Medical Ping
+    playDistressPing() {
+      if (!this.enabled) return;
+      this.ensureContext();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      this.synthTriangle(t, 880, 0.16, 0.35 * this.volume);
+      this.synthTriangle(t + 0.11, 740, 0.25, 0.25 * this.volume);
+    }
+
+    synthSine(time, freq, duration, gainVal) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, time + duration);
+      gain.gain.setValueAtTime(gainVal, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(time);
+      osc.stop(time + duration);
+    }
+
+    synthTriangle(time, freq, duration, gainVal) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(gainVal, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(time);
+      osc.stop(time + duration);
+    }
+  }
+
+  const audioEngine = new BioAudioSynthesizer();
+
+  // Floating HUD Controller Listeners
+  const audioToggleBtn = document.getElementById('audioToggleBtn');
+  const audioStateLabel = document.getElementById('audioStateLabel');
+  const audioDot = document.getElementById('audioDot');
+  const audioPingRing = document.getElementById('audioPingRing');
+  const audioSliderContainer = document.getElementById('audioSliderContainer');
+  const audioVolSlider = document.getElementById('audioVolSlider');
+  const audioTestBtn = document.getElementById('audioTestBtn');
+
+  audioToggleBtn.addEventListener('click', () => {
+    audioEngine.ensureContext();
+    audioEngine.enabled = !audioEngine.enabled;
+
+    if (audioEngine.enabled) {
+      audioStateLabel.textContent = 'AUDIO: ON';
+      audioDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-bio';
+      audioPingRing.classList.remove('hidden');
+      audioSliderContainer.classList.remove('hidden');
+      audioSliderContainer.classList.add('flex');
+      audioEngine.playCardiacPulse();
+    } else {
+      audioStateLabel.textContent = 'AUDIO: OFF';
+      audioDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-slate-500';
+      audioPingRing.classList.add('hidden');
+      audioSliderContainer.classList.add('hidden');
+      audioSliderContainer.classList.remove('flex');
+    }
+  });
+
+  audioVolSlider.addEventListener('input', (e) => audioEngine.setVolume(e.target.value));
+  audioTestBtn.addEventListener('click', () => audioEngine.playCardiacPulse());
+
+  // 2. Search Console Antigen Chip Selector
+  const antigenButtons = document.querySelectorAll('.antigen-btn');
+  const hiddenBloodGroup = document.getElementById('hiddenBloodGroup');
+
+  antigenButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-val');
+      if (hiddenBloodGroup) hiddenBloodGroup.value = val;
+
+      antigenButtons.forEach(b => {
+        b.classList.remove('border-2', 'border-arterial-crimson', 'bg-arterial-crimson/25', 'shadow-lg');
+        b.classList.add('border-white/10', 'bg-white/5');
+      });
+
+      btn.classList.remove('border-white/10', 'bg-white/5');
+      btn.classList.add('border-2', 'border-arterial-crimson', 'bg-arterial-crimson/25', 'shadow-lg');
+      audioEngine.playRadarSweep();
+    });
+  });
+
+  function quickPresetLocation(loc) {
+    const inp = document.getElementById('locationInput');
+    if (inp) {
+      inp.value = loc;
+      inp.focus();
+      audioEngine.playTacticalClick();
+    }
+  }
+
+  // 3. Immunohematology Matrix Logic
+  const antigenMatrixDataset = {
+    'O-': {
+      name: 'O- NEGATIVE',
+      outbound: ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'],
+      inbound: ['O-'],
+      summary: '<strong>O- Negative</strong> lacks A, B, and Rh antigen markers on the erythrocyte envelope. It can be safely infused into any acute trauma patient before laboratory cross-matching verification.'
+    },
+    'O+': {
+      name: 'O+ POSITIVE',
+      outbound: ['O+', 'A+', 'B+', 'AB+'],
+      inbound: ['O-', 'O+'],
+      summary: '<strong>O+ Positive</strong> possesses the Rh factor. It is the most prevalent blood type across India (38%), safely accepted by all Rh-positive patients.'
+    },
+    'A-': {
+      name: 'A- NEGATIVE',
+      outbound: ['A+', 'A-', 'AB+', 'AB-'],
+      inbound: ['O-', 'A-'],
+      summary: '<strong>A- Negative</strong> carries only A antigens without Rh factors. Compatible with all A and AB recipients.'
+    },
+    'A+': {
+      name: 'A+ POSITIVE',
+      outbound: ['A+', 'AB+'],
+      inbound: ['O-', 'O+', 'A-', 'A+'],
+      summary: '<strong>A+ Positive</strong> is in persistent high clinical demand for therapeutic platelets and emergency packed cell transfusions.'
+    },
+    'B-': {
+      name: 'B- NEGATIVE',
+      outbound: ['B+', 'B-', 'AB+', 'AB-'],
+      inbound: ['O-', 'B-'],
+      summary: '<strong>B- Negative</strong> is an exceptionally critical blood bank reserve with low population prevalence. Donates safely to B and AB patients.'
+    },
+    'B+': {
+      name: 'B+ POSITIVE',
+      outbound: ['B+', 'AB+'],
+      inbound: ['O-', 'O+', 'B-', 'B+'],
+      summary: '<strong>B+ Positive</strong> has a 32% prevalence in South Asia, acting as a foundational blood group across high-volume acute casualty departments.'
+    },
+    'AB-': {
+      name: 'AB- NEGATIVE',
+      outbound: ['AB+', 'AB-'],
+      inbound: ['O-', 'A-', 'B-', 'AB-'],
+      summary: '<strong>AB- Negative</strong> is the rarest major group (<1% globally). Can receive packed red cells from all Rh-negative donors.'
+    },
+    'AB+': {
+      name: 'AB+ POSITIVE',
+      outbound: ['AB+'],
+      inbound: ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'],
+      summary: '<strong>AB+ Positive</strong> is the Universal Red Blood Cell Recipient. Possessing A, B, and Rh antigens, their immune system will not reject red cells from any donor.'
+    }
+  };
+
+  const matrixNodes = document.querySelectorAll('.matrix-node');
+  const diagnosticActiveBadge = document.getElementById('diagnosticActiveBadge');
+  const diagnosticOutboundText = document.getElementById('diagnosticOutboundText');
+  const diagnosticOutboundBadges = document.getElementById('diagnosticOutboundBadges');
+  const diagnosticInboundText = document.getElementById('diagnosticInboundText');
+  const diagnosticInboundBadges = document.getElementById('diagnosticInboundBadges');
+  const diagnosticSummary = document.getElementById('diagnosticSummary');
+
+  matrixNodes.forEach(node => {
+    node.addEventListener('click', () => {
+      const type = node.getAttribute('data-type');
+      const data = antigenMatrixDataset[type];
+      if (!data) return;
+
+      matrixNodes.forEach(n => {
+        n.classList.remove('border-2', 'border-arterial-crimson', 'bg-arterial-crimson/20');
+        n.classList.add('border-white/10');
+      });
+      node.classList.remove('border-white/10');
+      node.classList.add('border-2', 'border-arterial-crimson', 'bg-arterial-crimson/20');
+
+      diagnosticActiveBadge.textContent = `ACTIVE: ${data.name}`;
+      diagnosticOutboundText.textContent = `${data.outbound.length} of 8 TYPES (${type === 'O-' ? 'EVERYONE' : data.outbound.join(', ')})`;
+      diagnosticInboundText.textContent = `${data.inbound.length} of 8 TYPES (${data.inbound.join(', ')})`;
+
+      diagnosticOutboundBadges.innerHTML = data.outbound.map(item => 
+        `<span class="px-2.5 py-1 rounded-lg bg-emerald-bio/15 text-emerald-bio border border-emerald-bio/40 text-[11px] font-bold">${item}</span>`
+      ).join('');
+
+      diagnosticInboundBadges.innerHTML = data.inbound.map(item => 
+        `<span class="px-2.5 py-1 rounded-lg bg-arterial-crimson/20 text-arterial-crimson border border-arterial-crimson/50 text-[11px] font-bold">${item}</span>`
+      ).join('');
+
+      diagnosticSummary.innerHTML = data.summary;
+      audioEngine.playMatchChime();
+    });
+  });
+
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const mobileDrawer = document.getElementById('mobileDrawer');
+  if (mobileMenuBtn && mobileDrawer) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileDrawer.classList.toggle('hidden');
+    });
+  }
+
+  function toggleMobileNav() {
+    if (mobileDrawer) mobileDrawer.classList.add('hidden');
+  }
+
+  // 4. Fallback execution of ThreeJS Erythrocyte Scene inside #threejs-bio-centerpiece if custom element isn't handled by host
+  window.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('threejs-bio-centerpiece');
+    if (container && window.THREE && !container.querySelector('canvas')) {
+      try {
+        const width = container.clientWidth || 480;
+        const height = container.clientHeight || 500;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(0, 0, 8.5);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        function createBiconcaveErythrocyte(radius = 1.6, thickness = 0.55, segments = 48) {
+          const geom = new THREE.SphereGeometry(radius, segments, segments);
+          const pos = geom.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            let x = pos.getX(i);
+            let y = pos.getY(i);
+            let z = pos.getZ(i);
+            let r = Math.sqrt(x * x + y * y);
+            let normR = r / radius;
+            let dimple = 0.35 + 1.2 * (normR * normR) - 0.7 * (normR * normR * normR * normR);
+            pos.setZ(i, z * dimple * thickness);
+          }
+          geom.computeVertexNormals();
+          return geom;
+        }
+
+        const cellGroup = new THREE.Group();
+        scene.add(cellGroup);
+
+        const cellMaterial = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(0xd90429),
+          emissive: new THREE.Color(0x38040e),
+          roughness: 0.18,
+          metalness: 0.05,
+          transmission: 0.65,
+          ior: 1.38,
+          thickness: 1.2,
+          clearcoat: 0.8
+        });
+
+        const mainCell = new THREE.Mesh(createBiconcaveErythrocyte(1.75, 0.65, 64), cellMaterial);
+        cellGroup.add(mainCell);
+
+        const ambientLight = new THREE.AmbientLight(0x22050b, 3.0);
+        scene.add(ambientLight);
+
+        const rimLight = new THREE.DirectionalLight(0xff1e44, 4.5);
+        rimLight.position.set(4, 5, 4);
+        scene.add(rimLight);
+
+        const backLight = new THREE.PointLight(0xff0040, 4.0, 15);
+        backLight.position.set(-4, -2, -3);
+        scene.add(backLight);
+
+        let clock = new THREE.Clock();
+        function animateCell() {
+          requestAnimationFrame(animateCell);
+          const t = clock.getElapsedTime();
+          mainCell.rotation.x = Math.sin(t * 0.4) * 0.35;
+          mainCell.rotation.y = t * 0.35;
+          const pulse = Math.pow(Math.sin(t * 3.76), 10) * 0.08;
+          mainCell.scale.set(1 + pulse, 1 + pulse, 1 + pulse);
+          renderer.render(scene, camera);
+        }
+        animateCell();
+
+        window.addEventListener('resize', () => {
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+      } catch (err) {
+        console.warn('Three.js initialized directly or handled by element.', err);
+      }
+    }
+  });
+</script>
+</body></html>

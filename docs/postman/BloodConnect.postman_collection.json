@@ -1,0 +1,464 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "BloodConnect API",
+		"description": "Complete API collection for BloodConnect project. Uses Cookie Authentication.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@bloodconnect.com\",\n  \"password\": \"Admin@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register New User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@bloodconnect.com\",\n  \"password\": \"Test@123\",\n  \"fullName\": \"Test User\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User (Me)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Donors - Happy Path",
+			"item": [
+				{
+					"name": "Get All Donors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor?page=1&pageSize=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Donor By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Donors (Compatible)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/search?bloodGroup=A%2B",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"search"
+							],
+							"query": [
+								{
+									"key": "bloodGroup",
+									"value": "A%2B"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Donor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"bloodGroup\": \"O+\",\n  \"age\": 25,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"Navrangpura\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Donor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"bloodGroup\": \"O+\",\n  \"age\": 26,\n  \"state\": \"Gujarat\",\n  \"city\": \"Surat\",\n  \"location\": \"Adajan\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Donor (Owner)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Donors - Validation & Security (Negative Tests)",
+			"item": [
+				{
+					"name": "GET 404 Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST 409 Duplicate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Duplicate\",\n  \"bloodGroup\": \"A+\",\n  \"age\": 25,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"Test\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST 400 Invalid Blood Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Bad BG\",\n  \"bloodGroup\": \"ZZ\",\n  \"age\": 25,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"Test\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST 400 Age Under 18",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Young\",\n  \"bloodGroup\": \"A+\",\n  \"age\": 17,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"Test\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "XSS Attempt",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"<script>alert('XSS')</script>\",\n  \"bloodGroup\": \"A+\",\n  \"age\": 25,\n  \"state\": \"Gujarat\",\n  \"city\": \"Ahmedabad\",\n  \"location\": \"<img src=x onerror=alert(1)>\",\n  \"contactNumber\": \"9876543210\",\n  \"isAvailable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/donor",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SQL Injection Attempt",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/donor/search?state=Gujarat%27%20OR%20%271%27%3D%271",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"donor",
+								"search"
+							],
+							"query": [
+								{
+									"key": "state",
+									"value": "Gujarat%27%20OR%20%271%27%3D%271"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5006",
+			"type": "string"
+		}
+	]
+}

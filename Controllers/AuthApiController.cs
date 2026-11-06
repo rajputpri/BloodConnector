@@ -23,6 +23,50 @@ namespace BloodConnect.Controllers
         }
 
         // =========================================================
+        // POST /api/auth/register   ← 🆕 NAYA ENDPOINT
+        // =========================================================
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterApiDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { error = "Invalid data.", details = ModelState });
+
+            var existing = await _userManager.FindByEmailAsync(dto.Email);
+            if (existing != null)
+                return Conflict(new { error = "Email already registered." });
+
+            var user = new AppUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email,
+                FullName = string.IsNullOrWhiteSpace(dto.FullName)
+                            ? dto.Email.Split('@')[0]
+                            : dto.FullName,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+                return BadRequest(new
+                {
+                    error = "Registration failed.",
+                    details = result.Errors.Select(e => e.Description)
+                });
+
+            await _userManager.AddToRoleAsync(user, DbSeeder.UserRole);
+
+            return Ok(new
+            {
+                message = "User registered successfully.",
+                userId = user.Id,
+                email = user.Email,
+                fullName = user.FullName
+            });
+        }
+
+        // =========================================================
         // POST /api/auth/login
         // =========================================================
         [HttpPost("login")]
@@ -91,6 +135,9 @@ namespace BloodConnect.Controllers
         }
     }
 
+    // =========================================================
+    // DTOs
+    // =========================================================
     public class LoginApiDto
     {
         [Required(ErrorMessage = "Email is required.")]
@@ -99,5 +146,19 @@ namespace BloodConnect.Controllers
 
         [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; } = "";
+    }
+
+    // 🆕 Register DTO
+    public class RegisterApiDto
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
+        public string Password { get; set; } = "";
+
+        public string? FullName { get; set; }
     }
 }
